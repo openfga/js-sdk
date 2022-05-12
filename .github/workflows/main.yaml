@@ -1,0 +1,129 @@
+name: Build, Test and Publish
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  fossa:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up node
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node-version }}
+          registry-url: 'https://registry.npmjs.org'
+          scope: '@openfga'
+          always-auth: false
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm ci
+      - name: Run FOSSA scan and upload build data
+        uses: fossas/fossa-action@main
+        with:
+          api-key: ${{ secrets.FOSSA_API_KEY }}
+          branch: ${{ github.ref_name }}
+      - name: Run FOSSA tests
+        uses: fossas/fossa-action@main
+        with:
+          api-key: ${{ secrets.FOSSA_API_KEY }}
+          run-tests: true
+
+  snyk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Run Snyk to check for vulnerabilities
+        uses: snyk/actions/node@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [14.x, 16.x, 18.x]
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up node
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node-version }}
+          registry-url: 'https://registry.npmjs.org'
+          scope: '@openfga'
+          always-auth: false
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up node
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Audit dependencies
+        run: npm audit
+
+      - name: Check for circular dependencies
+        run: npx madge --circular . --extensions ts,js
+
+      - name: Run tests
+        run: npm test
+
+  publish:
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [build, test, fossa, snyk]
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up node
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16'
+          registry-url: 'https://registry.npmjs.org'
+          scope: '@openfga'
+          always-auth: false
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Publish to npm
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  create-release:
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: publish
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: Roang-zero1/github-create-release-action@5cf058ddffa6fa04e5cda07c98570c757dc4a0e1
+        with:
+          version_regex: ^v[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,0 +1,60 @@
+{
+  "name": "@openfga/sdk",
+  "version": "0.0.1",
+  "description": "JavaScript and Node.js SDK for OpenFGA",
+  "author": "OpenFGA",
+  "keywords": [
+    "openfga",
+    "authorization",
+    "fga",
+    "fine-grained-authorization",
+    "rebac",
+    "zanzibar"
+  ],
+  "license": "Apache-2.0",
+  "main": "./dist/index.js",
+  "typings": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc --outDir dist/",
+    "prepublishOnly": "rm -rf dist/ && npm run build",
+    "test": "jest --config ./tests/jest.config.js",
+    "lint": "eslint . --ext .ts",
+    "lint:fix": "npm run lint -- --fix"
+  },
+  "dependencies": {
+    "axios": "^0.27.2"
+  },
+  "devDependencies": {
+    "@types/jest": "^28.1.1",
+    "@types/node": "^16.11.38",
+    "@typescript-eslint/eslint-plugin": "^5.27.1",
+    "@typescript-eslint/parser": "^5.27.1",
+    "eslint": "^8.17.0",
+    "jest": "^28.1.1",
+    "nock": "^13.2.6",
+    "ts-jest": "^28.0.4",
+    "typescript": "^4.7.3"
+  },
+  "files": [
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE",
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git://github.com:openfga/js-sdk.git"
+  },
+  "bugs": {
+    "url": "https://github.com/openfga/js-sdk/issues"
+  },
+  "homepage": "https://github.com/openfga/js-sdk#readme",
+  "overrides": {
+    "axios": {
+      "follow-redirects": "1.14.8"
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

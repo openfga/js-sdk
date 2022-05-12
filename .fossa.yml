@@ -1,0 +1,9 @@
+version: 3
+
+server: https://app.fossa.com
+
+project:
+  id: github.com/openfga/js-sdk
+  name: github.com/openfga/js-sdk
+  link: fga.dev
+  url: github.com/openfga/js-sdk
