@@ -13,9 +13,10 @@
  */
 
 
-export * from './api';
-export * from './apiModel';
-export { Configuration, UserConfigurationParams, GetDefaultRetryParams } from './configuration';
-export * from './errors';
+export * from "./api";
+export * from "./apiModel";
+export { Configuration, UserConfigurationParams, GetDefaultRetryParams } from "./configuration";
+export { Credentials, CredentialsMethod } from "./credentials";
+export * from "./errors";
 
 

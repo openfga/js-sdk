@@ -16,6 +16,7 @@
 import { AxiosResponse, AxiosStatic } from 'axios';
 
 import { Configuration } from "./configuration";
+import { Credentials } from "./credentials";
 import {
     FgaApiError,
     FgaApiInternalError,
@@ -47,10 +48,10 @@ export interface RequestArgs {
  *
  * @export
  */
-export const setBearerAuthToObject = async function (object: any, configuration: Configuration) {
-    const accessToken = await configuration.getAccessToken();
-    if (accessToken) {
-        object["Authorization"] = "Bearer " + accessToken;
+export const setBearerAuthToObject = async function (object: any, credentials: Credentials) {
+    const accessTokenHeader = await credentials.getAccessTokenHeader();
+    if (accessTokenHeader && !object[accessTokenHeader.name]) {
+        object[accessTokenHeader.name] = accessTokenHeader.value;
     }
 }
 
@@ -114,14 +115,17 @@ function randomTime(loopCount: number, minWaitInMs: number): number {
 /**
  * creates an axios request function
  */
-export const createRequestFunction = function (axiosArgs: RequestArgs, globalAxios: AxiosStatic, configuration: Configuration) {
+export const createRequestFunction = function (axiosArgs: RequestArgs, globalAxios: AxiosStatic, configuration: Configuration, credentials?: Credentials) {
     configuration.isValid();
 
     const retryParams = axiosArgs.options?.retryParams ? axiosArgs.options?.retryParams : configuration.retryParams;
     const maxRetry:number = retryParams ? retryParams.maxRetry : 0;
     const minWaitInMs:number = retryParams ? retryParams.minWaitInMs : 0;
+    if (!credentials) {
+        credentials = Credentials.init(configuration);
+    }
     return async (axios: AxiosStatic = globalAxios) : PromiseResult<any> => {
-        await setBearerAuthToObject(axiosArgs.options.headers, configuration);
+        await setBearerAuthToObject(axiosArgs.options.headers, credentials!);
         for (let i = 0; i < maxRetry + 1; i++) {
             try {
                 const axiosRequestArgs = {...axiosArgs.options, url: configuration.getBasePath() + axiosArgs.url};

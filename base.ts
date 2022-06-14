@@ -1,5 +1,3 @@
-/* tslint:disable */
-/* eslint-disable */
 /**
  * JavaScript and Node.js SDK for OpenFGA
  *
@@ -14,21 +12,10 @@
 
 
 // Some imports not used depending on template conditions
-// @ts-ignore
-import globalAxios, { AxiosPromise, AxiosStatic } from 'axios';
+import globalAxios, { AxiosStatic } from "axios";
 
 import { Configuration, UserConfigurationParams } from "./configuration";
-
-/**
- *
- * @export
- */
-export const COLLECTION_FORMATS = {
-    csv: ",",
-    ssv: " ",
-    tsv: "\t",
-    pipes: "|",
-};
+import { Credentials } from "./credentials";
 
 /**
  *
@@ -46,14 +33,17 @@ export interface RequestArgs {
  * @class BaseAPI
  */
 export class BaseAPI {
-    protected configuration: Configuration;
+  protected configuration: Configuration;
+  protected credentials: Credentials;
 
-    constructor(configuration: UserConfigurationParams | Configuration, protected axios: AxiosStatic = globalAxios) {
-        if (configuration instanceof Configuration) {
-            this.configuration = configuration;
-        } else {
-            this.configuration = new Configuration(configuration, axios);
-        }
-        this.configuration.isValid();
+  constructor(configuration: UserConfigurationParams | Configuration, protected axios: AxiosStatic = globalAxios) {
+    if (configuration instanceof Configuration) {
+      this.configuration = configuration;
+    } else {
+      this.configuration = new Configuration(configuration, axios);
     }
+    this.configuration.isValid();
+
+    this.credentials = Credentials.init(this.configuration);
+  }
 }

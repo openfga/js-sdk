@@ -13,17 +13,18 @@
 import * as nock from "nock";
 
 import {
-  OpenFgaApi,
+  AuthorizationModel,
+  CheckResponse,
+  Configuration,
+  CredentialsMethod,
+  ErrorCode,
+  ExpandResponse,
+  FgaApiAuthenticationError,
   FgaApiInternalError,
   FgaApiNotFoundError,
   FgaApiRateLimitExceededError,
   FgaApiValidationError,
-  FgaApiAuthenticationError,
-  AuthorizationModel,
-  CheckResponse,
-  Configuration,
-  ErrorCode,
-  ExpandResponse,
+  OpenFgaApi,
   ReadAuthorizationModelResponse,
   ReadAuthorizationModelsResponse,
   ReadChangesResponse,
@@ -31,9 +32,11 @@ import {
   TupleKey,
   TupleOperation,
   TypeDefinitions,
+  UserConfigurationParams,
 } from "../index";
 import { CallResult } from "../common";
 import { GetDefaultRetryParams } from "../configuration";
+import { AuthCredentialsConfig } from "../credentials";
 
 nock.disableNetConnect();
 
@@ -43,14 +46,20 @@ const OPENFGA_API_TOKEN_ISSUER = "tokenissuer.fga.example";
 const OPENFGA_API_AUDIENCE = "https://api.fga.example/";
 const OPENFGA_CLIENT_ID = "some-random-id";
 const OPENFGA_CLIENT_SECRET = "this-is-very-secret";
+const OPENFGA_API_TOKEN = "fga_abcdef";
 
-const baseConfig = {
+const baseConfig: UserConfigurationParams = {
   storeId: OPENFGA_STORE_ID,
   apiHost: OPENFGA_API_HOST,
-  apiTokenIssuer: OPENFGA_API_TOKEN_ISSUER,
-  apiAudience: OPENFGA_API_AUDIENCE,
-  clientId: OPENFGA_CLIENT_ID,
-  clientSecret: OPENFGA_CLIENT_SECRET,
+  credentials: {
+    method: CredentialsMethod.ClientCredentials,
+    config: {
+      apiTokenIssuer: OPENFGA_API_TOKEN_ISSUER,
+      apiAudience: OPENFGA_API_AUDIENCE,
+      clientId: OPENFGA_CLIENT_ID,
+      clientSecret: OPENFGA_CLIENT_SECRET,
+    }
+  }
 };
 
 const defaultConfiguration = new Configuration(baseConfig);
@@ -170,10 +179,17 @@ const nocks = {
 
 describe("OpenFga SDK", function () {
   describe("initializing the sdk", () => {
-    it("should require storeId in configuration", () => {
+    it("should not require storeId in configuration", () => {
       expect(
         () => new OpenFgaApi({ ...baseConfig, storeId: undefined! })
-      ).toThrowError();
+      ).not.toThrowError();
+    });
+
+    it("should require storeId when calling endpoints that require it", () => {
+      const openFgaApi = new OpenFgaApi({ ...baseConfig, storeId: undefined!, credentials: undefined! });
+      expect(
+        openFgaApi.readAuthorizationModels()
+      ).rejects.toThrow();
     });
 
     it("should require host in configuration", () => {
@@ -190,7 +206,16 @@ describe("OpenFga SDK", function () {
 
     it("should validate apiTokenIssuer in configuration (adding scheme as part of the apiTokenIssuer)", () => {
       expect(
-        () => new OpenFgaApi({ ...baseConfig, apiTokenIssuer: "https://api.fga.example" })
+        () => new OpenFgaApi({
+          ...baseConfig,
+          credentials: {
+            method: CredentialsMethod.ClientCredentials,
+            config: {
+              ...(baseConfig.credentials as any).config,
+              apiTokenIssuer: "https://api.fga.example"
+            }
+          } as Configuration["credentials"]
+        })
       ).toThrowError();
     });
 
@@ -198,7 +223,7 @@ describe("OpenFga SDK", function () {
       expect(
         () =>
           new OpenFgaApi({
-            storeId: baseConfig.storeId,
+            storeId: baseConfig.storeId!,
             apiHost: baseConfig.apiHost,
           })
       ).not.toThrowError();
@@ -209,7 +234,9 @@ describe("OpenFga SDK", function () {
         () =>
           new OpenFgaApi({
             ...baseConfig,
-            clientSecret: undefined!,
+            credentials: {
+              method: CredentialsMethod.ClientCredentials,
+            } as AuthCredentialsConfig,
           })
       ).toThrowError();
 
@@ -217,7 +244,13 @@ describe("OpenFga SDK", function () {
         () =>
           new OpenFgaApi({
             ...baseConfig,
-            clientId: undefined!,
+            credentials: {
+              method: CredentialsMethod.ClientCredentials,
+              config: {
+                ...(baseConfig.credentials as any)!.config,
+                clientId: undefined!
+              }
+            } as Configuration["credentials"]
           })
       ).toThrowError();
 
@@ -225,7 +258,13 @@ describe("OpenFga SDK", function () {
         () =>
           new OpenFgaApi({
             ...baseConfig,
-            apiTokenIssuer: undefined!,
+            credentials: {
+              method: CredentialsMethod.ClientCredentials,
+              config: {
+                ...(baseConfig.credentials as any)!.clientCredentials,
+                clientSecret: undefined!
+              }
+            } as Configuration["credentials"]
           })
       ).toThrowError();
 
@@ -233,14 +272,34 @@ describe("OpenFga SDK", function () {
         () =>
           new OpenFgaApi({
             ...baseConfig,
-            apiAudience: undefined!,
+            credentials: {
+              method: CredentialsMethod.ClientCredentials,
+              config: {
+                ...(baseConfig.credentials as any)!.config,
+                apiAudience: undefined!
+              }
+            } as Configuration["credentials"]
+          })
+      ).toThrowError();
+
+      expect(
+        () =>
+          new OpenFgaApi({
+            ...baseConfig,
+            credentials: {
+              method: CredentialsMethod.ClientCredentials,
+              config: {
+                ...(baseConfig.credentials as any)!.config,
+                apiTokenIssuer: undefined!
+              }
+            } as Configuration["credentials"]
           })
       ).toThrowError();
     });
 
     it("should issue a network call to get the token at the first request if client id is provided", async () => {
-      const scope = nocks.tokenExchange(defaultConfiguration.apiTokenIssuer!);
-      nocks.readAuthorizationModels(baseConfig.storeId);
+      const scope = nocks.tokenExchange(OPENFGA_API_TOKEN_ISSUER);
+      nocks.readAuthorizationModels(baseConfig.storeId!);
 
       const openFgaApi = new OpenFgaApi(baseConfig);
       expect(scope.isDone()).toBe(false);
@@ -253,11 +312,11 @@ describe("OpenFga SDK", function () {
     });
 
     it("should not issue a network call to get the token at the first request if the clientId is not provided", async () => {
-      const scope = nocks.tokenExchange(defaultConfiguration.apiTokenIssuer!);
-      nocks.readAuthorizationModels(baseConfig.storeId);
+      const scope = nocks.tokenExchange(OPENFGA_API_TOKEN_ISSUER);
+      nocks.readAuthorizationModels(baseConfig.storeId!);
 
       const openFgaApi = new OpenFgaApi({
-        storeId: baseConfig.storeId,
+        storeId: baseConfig.storeId!,
         apiHost: baseConfig.apiHost,
       });
       expect(scope.isDone()).toBe(false);
@@ -271,7 +330,6 @@ describe("OpenFga SDK", function () {
 
     it("should allow passing in a configuration instance", async () => {
       const configuration = new Configuration(baseConfig);
-      configuration.apiAudience = "api.fga.example";
       expect(() => new OpenFgaApi(configuration)).not.toThrowError();
     });
   });
@@ -293,7 +351,7 @@ describe("OpenFga SDK", function () {
       };
 
       beforeEach(async () => {
-        nocks.tokenExchange(defaultConfiguration.apiTokenIssuer!, "test-token");
+        nocks.tokenExchange(OPENFGA_API_TOKEN_ISSUER, "test-token");
 
         nock(basePath)
           .defaultReplyHeaders({
@@ -350,7 +408,7 @@ describe("OpenFga SDK", function () {
           retryParams: GetDefaultRetryParams(2, 10),
         };
         openFgaApi = new OpenFgaApi({ ...updateBaseConfig });
-        nocks.tokenExchange(defaultConfiguration.apiTokenIssuer!, "test-token");
+        nocks.tokenExchange(OPENFGA_API_TOKEN_ISSUER, "test-token");
 
         nock(basePath)
           .post(
@@ -391,7 +449,7 @@ describe("OpenFga SDK", function () {
         };
         openFgaApi = new OpenFgaApi({ ...updateBaseConfig });
 
-        nocks.tokenExchange(defaultConfiguration.apiTokenIssuer!, "test-token");
+        nocks.tokenExchange(OPENFGA_API_TOKEN_ISSUER, "test-token");
 
         nock(basePath)
           .post(
@@ -407,7 +465,7 @@ describe("OpenFga SDK", function () {
             message: "nock error",
           });
 
-        nocks.check(baseConfig.storeId, tupleKey);
+        nocks.check(baseConfig.storeId!, tupleKey);
       });
 
       afterEach(() => {
@@ -428,7 +486,7 @@ describe("OpenFga SDK", function () {
       };
 
       beforeEach(async () => {
-        nocks.tokenExchange(defaultConfiguration.apiTokenIssuer!, "test-token");
+        nocks.tokenExchange(OPENFGA_API_TOKEN_ISSUER, "test-token");
 
         nock(basePath)
           .post(
@@ -444,7 +502,7 @@ describe("OpenFga SDK", function () {
             message: "nock error",
           });
 
-        nocks.check(baseConfig.storeId, tupleKey);
+        nocks.check(baseConfig.storeId!, tupleKey);
       });
 
       afterEach(() => {
@@ -468,7 +526,7 @@ describe("OpenFga SDK", function () {
       };
 
       beforeEach(async () => {
-        nocks.tokenExchange(defaultConfiguration.apiTokenIssuer!, "test-token");
+        nocks.tokenExchange(OPENFGA_API_TOKEN_ISSUER, "test-token");
 
         nock(basePath)
           .post(
@@ -502,7 +560,7 @@ describe("OpenFga SDK", function () {
       };
 
       beforeEach(async () => {
-        nocks.tokenExchange(defaultConfiguration.apiTokenIssuer!, "test-token");
+        nocks.tokenExchange(OPENFGA_API_TOKEN_ISSUER, "test-token");
 
         nock(basePath)
           .post(
@@ -536,7 +594,7 @@ describe("OpenFga SDK", function () {
       };
 
       beforeEach(async () => {
-        nock(`https://${defaultConfiguration.apiTokenIssuer}`)
+        nock(`https://${ OPENFGA_API_TOKEN_ISSUER}`)
           .post("/oauth/token")
           .reply(401);
 
@@ -573,14 +631,14 @@ describe("OpenFga SDK", function () {
 
     beforeAll(async () => {
       openFgaApi = new OpenFgaApi({ ...baseConfig });
-      nocks.tokenExchange(defaultConfiguration.apiTokenIssuer!);
+      nocks.tokenExchange(OPENFGA_API_TOKEN_ISSUER);
 
       const tupleKey = {
         object: "foobar:x",
         user: "user:xyz",
         relation: "abc",
       };
-      const scope = nocks.check(baseConfig.storeId, tupleKey);
+      const scope = nocks.check(baseConfig.storeId!, tupleKey);
       expect(scope.isDone()).toBe(false);
 
       result = await openFgaApi.check({ tuple_key: tupleKey });
@@ -610,7 +668,7 @@ describe("OpenFga SDK", function () {
     });
 
     beforeEach(() => {
-      nocks.tokenExchange(defaultConfiguration.apiTokenIssuer!);
+      nocks.tokenExchange(OPENFGA_API_TOKEN_ISSUER);
     });
 
     afterEach(() => {
@@ -624,7 +682,7 @@ describe("OpenFga SDK", function () {
           relation: "admin",
           object: "workspace:1",
         };
-        const scope = nocks.check(baseConfig.storeId, tuple);
+        const scope = nocks.check(baseConfig.storeId!, tuple);
 
         expect(scope.isDone()).toBe(false);
         const data = await openFgaApi.check({ tuple_key: tuple });
@@ -641,7 +699,7 @@ describe("OpenFga SDK", function () {
           relation: "admin",
           object: "workspace:1",
         };
-        const scope = nocks.write(baseConfig.storeId, tuple);
+        const scope = nocks.write(baseConfig.storeId!, tuple);
 
         expect(scope.isDone()).toBe(false);
         const data = await openFgaApi.write({
@@ -660,7 +718,7 @@ describe("OpenFga SDK", function () {
           relation: "admin",
           object: "workspace:1",
         };
-        const scope = nocks.delete(baseConfig.storeId, tuple);
+        const scope = nocks.delete(baseConfig.storeId!, tuple);
 
         expect(scope.isDone()).toBe(false);
         const data = await openFgaApi.write({
@@ -679,7 +737,7 @@ describe("OpenFga SDK", function () {
           relation: "admin",
           object: "workspace:1",
         };
-        const scope = nocks.expand(baseConfig.storeId, tuple);
+        const scope = nocks.expand(baseConfig.storeId!, tuple);
 
         expect(scope.isDone()).toBe(false);
         const data = await openFgaApi.expand({ tuple_key: tuple });
@@ -696,7 +754,7 @@ describe("OpenFga SDK", function () {
           relation: "admin",
           object: "workspace:1",
         };
-        const scope = nocks.read(baseConfig.storeId, tuple);
+        const scope = nocks.read(baseConfig.storeId!, tuple);
 
         expect(scope.isDone()).toBe(false);
         const data = await openFgaApi.read({ tuple_key: tuple });
@@ -714,7 +772,7 @@ describe("OpenFga SDK", function () {
           ],
         };
         const scope = nocks.writeAuthorizationModel(
-          baseConfig.storeId,
+          baseConfig.storeId!,
           authorizationModel
         );
 
@@ -731,7 +789,7 @@ describe("OpenFga SDK", function () {
     describe("readAuthorizationModel", () => {
       it("should call the api and return the response", async () => {
         const configId = "string";
-        const scope = nocks.readSingleAuthzModel(baseConfig.storeId, configId);
+        const scope = nocks.readSingleAuthzModel(baseConfig.storeId!, configId);
 
         expect(scope.isDone()).toBe(false);
         const data = await openFgaApi.readAuthorizationModel(configId);
@@ -748,7 +806,7 @@ describe("OpenFga SDK", function () {
 
     describe("readAuthorizationModels", () => {
       it("should call the api and return the response", async () => {
-        const scope = nocks.readAuthorizationModels(baseConfig.storeId);
+        const scope = nocks.readAuthorizationModels(baseConfig.storeId!);
 
         expect(scope.isDone()).toBe(false);
         const data = await openFgaApi.readAuthorizationModels();
@@ -766,7 +824,7 @@ describe("OpenFga SDK", function () {
         const pageSize = 25;
         const continuationToken = "eyJwayI6IkxBVEVTVF9OU0NPTkZJR19hdXRoMHN0b3JlIiwic2siOiIxem1qbXF3MWZLZExTcUoyN01MdTdqTjh0cWgifQ==";
 
-        const scope = nocks.readChanges(baseConfig.storeId, type, pageSize, continuationToken);
+        const scope = nocks.readChanges(baseConfig.storeId!, type, pageSize, continuationToken);
 
         expect(scope.isDone()).toBe(false);
         const response = await openFgaApi.readChanges(type, pageSize, continuationToken);

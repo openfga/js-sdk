@@ -21,6 +21,7 @@ apiModel.ts
 base.ts
 common.ts
 configuration.ts
+credentials.ts
 errors.ts
 git_push.sh
 index.ts

@@ -189,6 +189,25 @@ export interface CreateStoreResponse {
 /**
  * 
  * @export
+ * @interface Difference
+ */
+export interface Difference {
+    /**
+     * 
+     * @type {Userset}
+     * @memberof Difference
+     */
+    base?: Userset;
+    /**
+     * 
+     * @type {Userset}
+     * @memberof Difference
+     */
+    subtract?: Userset;
+}
+/**
+ * 
+ * @export
  * @enum {string}
  */
 
@@ -766,6 +785,25 @@ export enum TupleOperation {
 /**
  * 
  * @export
+ * @interface TupleToUserset
+ */
+export interface TupleToUserset {
+    /**
+     * 
+     * @type {ObjectRelation}
+     * @memberof TupleToUserset
+     */
+    tupleset?: ObjectRelation;
+    /**
+     * 
+     * @type {ObjectRelation}
+     * @memberof TupleToUserset
+     */
+    computedUserset?: ObjectRelation;
+}
+/**
+ * 
+ * @export
  * @interface TypeDefinition
  */
 export interface TypeDefinition {
@@ -828,10 +866,10 @@ export interface Userset {
     computedUserset?: ObjectRelation;
     /**
      * 
-     * @type {V1TupleToUserset}
+     * @type {TupleToUserset}
      * @memberof Userset
      */
-    tupleToUserset?: V1TupleToUserset;
+    tupleToUserset?: TupleToUserset;
     /**
      * 
      * @type {Usersets}
@@ -846,10 +884,10 @@ export interface Userset {
     intersection?: Usersets;
     /**
      * 
-     * @type {V1Difference}
+     * @type {Difference}
      * @memberof Userset
      */
-    difference?: V1Difference;
+    difference?: Difference;
 }
 /**
  * A UsersetTree contains the result of an Expansion.
@@ -914,44 +952,6 @@ export interface Usersets {
      * @memberof Usersets
      */
     child?: Array<Userset>;
-}
-/**
- * 
- * @export
- * @interface V1Difference
- */
-export interface V1Difference {
-    /**
-     * 
-     * @type {Userset}
-     * @memberof V1Difference
-     */
-    base?: Userset;
-    /**
-     * 
-     * @type {Userset}
-     * @memberof V1Difference
-     */
-    subtract?: Userset;
-}
-/**
- * 
- * @export
- * @interface V1TupleToUserset
- */
-export interface V1TupleToUserset {
-    /**
-     * 
-     * @type {ObjectRelation}
-     * @memberof V1TupleToUserset
-     */
-    tupleset?: ObjectRelation;
-    /**
-     * 
-     * @type {ObjectRelation}
-     * @memberof V1TupleToUserset
-     */
-    computedUserset?: ObjectRelation;
 }
 /**
  * 

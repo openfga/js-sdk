@@ -70,6 +70,10 @@ yarn add @openfga/sdk
 
 ### Initializing the API Client
 
+[Learn how to setup your SDK](https://openfga.dev/docs/getting-started/setup-sdk-client)
+
+Without an API Token
+
 ```javascript
 const { OpenFgaApi } = require('@openfga/sdk'); // OR import { OpenFgaApi } from '@openfga/sdk';
 
@@ -77,22 +81,85 @@ const openFga = new OpenFgaApi({
   apiScheme: OPENFGA_API_SCHEME, // optional, defaults to "https"
   apiHost: OPENFGA_API_HOST, // required, define without the scheme (e.g. api.openfga.example instead of https://api.openfga.example)
   storeId: OPENFGA_STORE_ID,
-  apiTokenIssuer: OPENFGA_API_TOKEN_ISSUER, // optional, required if client id is set
-  apiAudience: OPENFGA_API_AUDIENCE, // optional, required if client id is set
-  clientId: OPENFGA_CLIENT_ID, // optional (pass in if your provider requires authentication via client credential flow)
-  clientSecret: OPENFGA_CLIENT_SECRET, // optional, required if client id is set
 });
 ```
 
+With an API Token
+
+```javascript
+const { OpenFgaApi } = require('@openfga/sdk'); // OR import { OpenFgaApi } from '@openfga/sdk';
+
+const openFga = new OpenFgaApi({
+  apiScheme: OPENFGA_API_SCHEME, // optional, defaults to "https"
+  apiHost: OPENFGA_API_HOST, // required, define without the scheme (e.g. api.openfga.example instead of https://api.openfga.example)
+  storeId: OPENFGA_STORE_ID,
+  credentials: {
+    method: CredentialsMethod.ApiToken,
+    config: {
+      token: OPENFGA_API_TOKEN,
+    }
+  }
+});
+```
+
+
 ### Get your Store ID and optional credentials
 
-You need your store id to call the OpenFGA API. You may also configure your credentials if your token provider requires it.
+You need your store id to call the OpenFGA API (unless it is to create a store or list all stores). You may also configure your credentials if your service requires it.
 
 ### Calling the API
+
+#### List Stores
+
+[API Documentation](https://openfga.dev/docs/api#/Stores/ListStores)
+
+```javascript
+const { stores } = await openFga.listStores();
+
+// stores = [{ "id": "1uHxCSuTP0VKPYSnkq1pbb1jeZw", "name": "OpenFGA Demo Store", "created_at": "2022-01-01T00:00:00.000Z", "updated_at": "2022-01-01T00:00:00.000Z" }]
+```
+
+#### Create Store
+
+[API Documentation](https://openfga.dev/docs/api#/Stores/CreateStore)
+
+```javascript
+const { id: storeId } = await openFga.createStore({
+  name: "OpenFGA Demo Store",
+});
+
+// storeId = "1uHxCSuTP0VKPYSnkq1pbb1jeZw"
+```
+
+#### Get Store
+
+[API Documentation](https://openfga.dev/docs/api#/Stores/GetStore)
+
+> Requires a client initialized with a storeId
+
+```javascript
+const store = await openFga.getStore({
+  name: "OpenFGA Demo Store",
+});
+
+// stores = { "id": "1uHxCSuTP0VKPYSnkq1pbb1jeZw", "name": "OpenFGA Demo Store", "created_at": "2022-01-01T00:00:00.000Z", "updated_at": "2022-01-01T00:00:00.000Z" }
+```
+
+#### Delete Store
+
+[API Documentation](https://openfga.dev/docs/api#/Stores/DeleteStore)
+
+> Requires a client initialized with a storeId
+
+```javascript
+await openFga.deleteStore();
+```
 
 #### Write Authorization Model
 
 [API Documentation](https://openfga.dev/docs/api#/Authorization%20Models/WriteAuthorizationModel)
+
+> Requires a client initialized with a storeId
 
 > Note: To learn how to build your authorization model, check the Docs at https://openfga.dev/docs.
 
@@ -125,6 +192,8 @@ const { authorization_model_id: id } = await openFga.writeAuthorizationModel({
 
 [API Documentation](https://openfga.dev/docs/api#/Authorization%20Models/ReadAuthorizationModel)
 
+> Requires a client initialized with a storeId
+
 ```javascript
 // Assuming `1uHxCSuTP0VKPYSnkq1pbb1jeZw` is an id of a single model
 const { authorization_model: authorizationModel } = await openFga.readAuthorizationModel('1uHxCSuTP0VKPYSnkq1pbb1jeZw');
@@ -146,6 +215,8 @@ const { authorization_model_ids: authorizationModelIds } = await openFga.readAut
 
 [API Documentation](https://openfga.dev/docs/api#/Tuples/Check)
 
+> Requires a client initialized with a storeId
+
 > Provide a tuple and ask the OpenFGA API to check for a relationship
 
 ```javascript
@@ -164,6 +235,8 @@ const result = await openFga.check({
 
 [API Documentation](https://openfga.dev/docs/api#/Tuples/Write)
 
+> Requires a client initialized with a storeId
+
 ```javascript
 await openFga.write({
   writes: {
@@ -177,6 +250,8 @@ await openFga.write({
 
 [API Documentation](https://openfga.dev/docs/api#/Tuples/Write)
 
+> Requires a client initialized with a storeId
+
 ```javascript
 await openFga.write({
   deletes: {
@@ -189,6 +264,8 @@ await openFga.write({
 #### Expand
 
 [API Documentation](https://openfga.dev/docs/api#/Debugging/Expand)
+
+> Requires a client initialized with a storeId
 
 ```javascript
 const { tree } = await openFga.expand({
@@ -204,6 +281,8 @@ const { tree } = await openFga.expand({
 #### Read
 
 [API Documentation](https://openfga.dev/docs/api#/Tuples/Read)
+
+> Requires a client initialized with a storeId
 
 ```javascript
 // Find if a relationship tuple stating that a certain user is an admin on a certain workspace
@@ -246,6 +325,8 @@ const { tuples } = await openFga.read(body);
 ```
 
 #### Read Changes (Watch)
+
+> Requires a client initialized with a storeId
 
 [API Documentation](https://openfga.dev/docs/api#/Tuples/ReadChanges)
 
@@ -461,6 +542,7 @@ const response = await openFga.readChanges(type, pageSize, continuationToken);
  - [ContextualTupleKeys](#ContextualTupleKeys)
  - [CreateStoreRequest](#CreateStoreRequest)
  - [CreateStoreResponse](#CreateStoreResponse)
+ - [Difference](#Difference)
  - [ErrorCode](#ErrorCode)
  - [ExpandRequest](#ExpandRequest)
  - [ExpandResponse](#ExpandResponse)
@@ -487,6 +569,7 @@ const response = await openFga.readChanges(type, pageSize, continuationToken);
  - [TupleKey](#TupleKey)
  - [TupleKeys](#TupleKeys)
  - [TupleOperation](#TupleOperation)
+ - [TupleToUserset](#TupleToUserset)
  - [TypeDefinition](#TypeDefinition)
  - [TypeDefinitions](#TypeDefinitions)
  - [Users](#Users)
@@ -495,8 +578,6 @@ const response = await openFga.readChanges(type, pageSize, continuationToken);
  - [UsersetTreeDifference](#UsersetTreeDifference)
  - [UsersetTreeTupleToUserset](#UsersetTreeTupleToUserset)
  - [Usersets](#Usersets)
- - [V1Difference](#V1Difference)
- - [V1TupleToUserset](#V1TupleToUserset)
  - [ValidationErrorMessageResponse](#ValidationErrorMessageResponse)
  - [WriteAssertionsRequest](#WriteAssertionsRequest)
  - [WriteAuthorizationModelResponse](#WriteAuthorizationModelResponse)
@@ -583,6 +664,15 @@ Name | Type | Description | Notes
 **name** | **string** |  | [optional] [default to undefined]
 **created_at** | **string** |  | [optional] [default to undefined]
 **updated_at** | **string** |  | [optional] [default to undefined]
+
+#### Difference
+
+##### Properties
+
+Name | Type | Description | Notes
+------------ | ------------- | ------------- | -------------
+**base** | [**Userset**](#Userset) |  | [optional] [default to undefined]
+**subtract** | [**Userset**](#Userset) |  | [optional] [default to undefined]
 
 #### ErrorCode
 
@@ -942,6 +1032,15 @@ Name | Type | Description | Notes
 * `Delete` (value: `'TUPLE_OPERATION_DELETE'`)
 
 
+#### TupleToUserset
+
+##### Properties
+
+Name | Type | Description | Notes
+------------ | ------------- | ------------- | -------------
+**tupleset** | [**ObjectRelation**](#ObjectRelation) |  | [optional] [default to undefined]
+**computedUserset** | [**ObjectRelation**](#ObjectRelation) |  | [optional] [default to undefined]
+
 #### TypeDefinition
 
 ##### Properties
@@ -975,10 +1074,10 @@ Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **this** | **object** | A DirectUserset is a sentinel message for referencing the direct members specified by an object/relation mapping. | [optional] [default to undefined]
 **computedUserset** | [**ObjectRelation**](#ObjectRelation) |  | [optional] [default to undefined]
-**tupleToUserset** | [**V1TupleToUserset**](#V1TupleToUserset) |  | [optional] [default to undefined]
+**tupleToUserset** | [**TupleToUserset**](#TupleToUserset) |  | [optional] [default to undefined]
 **union** | [**Usersets**](#Usersets) |  | [optional] [default to undefined]
 **intersection** | [**Usersets**](#Usersets) |  | [optional] [default to undefined]
-**difference** | [**V1Difference**](#V1Difference) |  | [optional] [default to undefined]
+**difference** | [**Difference**](#Difference) |  | [optional] [default to undefined]
 
 #### UsersetTree
 
@@ -1013,24 +1112,6 @@ Name | Type | Description | Notes
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **child** | [**Userset**[]](#Userset) |  | [optional] [default to undefined]
-
-#### V1Difference
-
-##### Properties
-
-Name | Type | Description | Notes
------------- | ------------- | ------------- | -------------
-**base** | [**Userset**](#Userset) |  | [optional] [default to undefined]
-**subtract** | [**Userset**](#Userset) |  | [optional] [default to undefined]
-
-#### V1TupleToUserset
-
-##### Properties
-
-Name | Type | Description | Notes
------------- | ------------- | ------------- | -------------
-**tupleset** | [**ObjectRelation**](#ObjectRelation) |  | [optional] [default to undefined]
-**computedUserset** | [**ObjectRelation**](#ObjectRelation) |  | [optional] [default to undefined]
 
 #### ValidationErrorMessageResponse
 
