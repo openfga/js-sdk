@@ -119,8 +119,11 @@ export class Credentials {
     }
   }
 
-
-  public isValid() {
+  /**
+   *
+   * @throws {FgaValidationError}
+   */
+  public isValid(): void {
     const { authConfig } = this;
     switch (authConfig?.method) {
     case CredentialsMethod.None:

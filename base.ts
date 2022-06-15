@@ -46,4 +46,12 @@ export class BaseAPI {
 
     this.credentials = Credentials.init(this.configuration);
   }
+
+  public get storeId() {
+    return this.configuration.storeId;
+  }
+
+  public set storeId(storeId: string) {
+    this.configuration.storeId = storeId;
+  }
 }

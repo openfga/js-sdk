@@ -111,15 +111,15 @@ export class Configuration {
     this.apiHost = params.apiHost!;
     this.storeId = params.storeId!;
 
-    const credentialOpts = params.credentials;
+    const credentialParams = params.credentials;
 
-    if (credentialOpts) {
-      switch (credentialOpts?.method) {
+    if (credentialParams) {
+      switch (credentialParams?.method) {
       case CredentialsMethod.ApiToken:
         this.credentials = {
-          method: credentialOpts.method,
+          method: credentialParams.method,
           config: {
-            token: credentialOpts.config.token!,
+            token: credentialParams.config.token!,
             headerName: "Authorization",
             headerValuePrefix: "Bearer",
           }
@@ -129,11 +129,11 @@ export class Configuration {
         this.credentials = {
           method: CredentialsMethod.ClientCredentials,
           config: {
-            // We are enforcing that they exist here, but validating that they set later in isValid
-            clientId: credentialOpts.config.clientId,
-            clientSecret: credentialOpts.config.clientSecret,
-            apiAudience: credentialOpts.config.apiAudience,
-            apiTokenIssuer: credentialOpts.config.apiTokenIssuer,
+            // We are only copying them from the passed in params here. We will be validating that they are valid in the Credentials constructor
+            clientId: credentialParams.config.clientId,
+            clientSecret: credentialParams.config.clientSecret,
+            apiAudience: credentialParams.config.apiAudience,
+            apiTokenIssuer: credentialParams.config.apiTokenIssuer,
           }
         };
         break;
@@ -156,10 +156,11 @@ export class Configuration {
   }
 
   /**
-   * Ensures that the Configuration is valid
-   * @return boolean
+   *
+   * @return {boolean}
+   * @throws {FgaValidationError}
    */
-  public isValid() {
+  public isValid(): boolean {
     assertParamExists("Configuration", "apiScheme", this.apiScheme);
     assertParamExists("Configuration", "apiHost", this.apiHost);
 

@@ -219,7 +219,7 @@ describe("OpenFga SDK", function () {
       ).toThrowError();
     });
 
-    it("should not require clientId, clientSecret, apiTokenIssuer and apiAudience in configuration when not needed", () => {
+    it("should not require credentials in configuration when not needed", () => {
       expect(
         () =>
           new OpenFgaApi({
@@ -229,7 +229,20 @@ describe("OpenFga SDK", function () {
       ).not.toThrowError();
     });
 
-    it("should require clientId, clientSecret, apiTokenIssuer and apiAudience in configuration when needed", () => {
+    it("should require apiToken credentials in configuration in api_token flow", () => {
+      expect(
+        () =>
+          new OpenFgaApi({
+            storeId: baseConfig.storeId!,
+            apiHost: baseConfig.apiHost,
+            credentials: {
+              method: CredentialsMethod.ApiToken as any
+            }
+          })
+      ).toThrowError();
+    });
+
+    it("should require clientId, clientSecret, apiTokenIssuer and apiAudience credentials in configuration in client_credentials flow", () => {
       expect(
         () =>
           new OpenFgaApi({
@@ -331,6 +344,15 @@ describe("OpenFga SDK", function () {
     it("should allow passing in a configuration instance", async () => {
       const configuration = new Configuration(baseConfig);
       expect(() => new OpenFgaApi(configuration)).not.toThrowError();
+    });
+
+    it("should allow updating the storeId after initialization", async () => {
+      const openFgaApi = new OpenFgaApi({
+        apiHost: OPENFGA_API_HOST
+      });
+      expect(openFgaApi.storeId).toBe(undefined);
+      openFgaApi.storeId = OPENFGA_STORE_ID;
+      expect(openFgaApi.storeId).toBe(OPENFGA_STORE_ID);
     });
   });
 

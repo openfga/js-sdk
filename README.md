@@ -116,7 +116,7 @@ You need your store id to call the OpenFGA API (unless it is to create a store o
 ```javascript
 const { stores } = await openFga.listStores();
 
-// stores = [{ "id": "1uHxCSuTP0VKPYSnkq1pbb1jeZw", "name": "OpenFGA Demo Store", "created_at": "2022-01-01T00:00:00.000Z", "updated_at": "2022-01-01T00:00:00.000Z" }]
+// stores = [{ "id": "01FQH7V8BEG3GPQW93KTRFR8JB", "name": "OpenFGA Demo Store", "created_at": "2022-01-01T00:00:00.000Z", "updated_at": "2022-01-01T00:00:00.000Z" }]
 ```
 
 #### Create Store
@@ -128,7 +128,7 @@ const { id: storeId } = await openFga.createStore({
   name: "OpenFGA Demo Store",
 });
 
-// storeId = "1uHxCSuTP0VKPYSnkq1pbb1jeZw"
+// storeId = "01FQH7V8BEG3GPQW93KTRFR8JB"
 ```
 
 #### Get Store
@@ -142,7 +142,7 @@ const store = await openFga.getStore({
   name: "OpenFGA Demo Store",
 });
 
-// stores = { "id": "1uHxCSuTP0VKPYSnkq1pbb1jeZw", "name": "OpenFGA Demo Store", "created_at": "2022-01-01T00:00:00.000Z", "updated_at": "2022-01-01T00:00:00.000Z" }
+// store = { "id": "01FQH7V8BEG3GPQW93KTRFR8JB", "name": "OpenFGA Demo Store", "created_at": "2022-01-01T00:00:00.000Z", "updated_at": "2022-01-01T00:00:00.000Z" }
 ```
 
 #### Delete Store
