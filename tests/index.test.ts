@@ -204,7 +204,7 @@ describe("OpenFga SDK", function () {
       ).toThrowError();
     });
 
-    it("should validate apiTokenIssuer in configuration (adding scheme as part of the apiTokenIssuer)", () => {
+    it("should validate apiTokenIssuer in configuration (should not allow scheme as part of the apiTokenIssuer)", () => {
       expect(
         () => new OpenFgaApi({
           ...baseConfig,
@@ -212,7 +212,7 @@ describe("OpenFga SDK", function () {
             method: CredentialsMethod.ClientCredentials,
             config: {
               ...(baseConfig.credentials as any).config,
-              apiTokenIssuer: "https://api.fga.example"
+              apiTokenIssuer: "https://tokenissuer.fga.example"
             }
           } as Configuration["credentials"]
         })
