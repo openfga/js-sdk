@@ -19,7 +19,7 @@
     "prepublishOnly": "rm -rf dist/ && npm run build",
     "test": "jest --config ./tests/jest.config.js",
     "lint": "eslint . --ext .ts",
-    "lint:fix": "npm run lint -- --fix"
+    "lint:fix": "eslint . --ext .ts --fix"
   },
   "dependencies": {
     "axios": "^0.27.2"
