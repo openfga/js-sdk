@@ -49,6 +49,8 @@ import {
   InternalErrorCode,
   InternalErrorMessageResponse,
   Leaf,
+  ListObjectsRequest,
+  ListObjectsResponse,
   ListStoresResponse,
   Node,
   Nodes,
@@ -272,6 +274,45 @@ export const OpenFgaApiAxiosParamCreator = function (configuration: Configuratio
       };
     },
     /**
+         * 
+         * @summary ListObjects lists all of the object ids for objects of the provided type that the given user has a specific relation with.
+         * @param {ListObjectsRequest} body
+         * @param {*} [options] Override http request option.
+         * @throws { FgaError }
+         */
+    listObjects: async (body: ListObjectsRequest, options: any = {}): Promise<RequestArgs> => {
+      // verify required parameter 'body' is not null or undefined
+      assertParamExists("listObjects", "body", body);
+      assertParamExists("Configuration", "storeId", configuration.storeId);
+      const localVarPath = "/stores/{store_id}/list-objects"
+        .replace(`{${"store_id"}}`, encodeURIComponent(String(configuration.storeId)))
+            ;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
+
+      const localVarRequestOptions = { method: "POST", ...baseOptions, ...options};
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
+
+
+    
+      localVarHeaderParameter["Content-Type"] = "application/json";
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
+      const headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+      localVarRequestOptions.data = serializeDataIfNeeded(body, localVarRequestOptions, configuration);
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
+    /**
          * Returns a paginated list of OpenFGA stores.
          * @summary Get all stores
          * @param {number} [pageSize]
@@ -426,7 +467,7 @@ export const OpenFgaApiAxiosParamCreator = function (configuration: Configuratio
       };
     },
     /**
-         * The GET authorization-models API will return all the authorization models for a certain store. Path parameter `store_id` is required. OpenFGA\'s response will contain an array of all authorization models, sorted in descending order of creation.  ## Example Assume that a store\'s authorization model has been configured twice. To get all the authorization models that have been created in this store, call GET authorization-models. The API will return a response that looks like: ```json {   \"authorization_models\": [     {       \"id\": \"01G50QVV17PECNVAHX1GG4Y5NC\",       \"type_definitions\": [...]     },     {       \"id\": \"01G4ZW8F4A07AKQ8RHSVG9RW04\",       \"type_definitions\": [...]     },   ] } ``` If there are more authorization models available, the response will contain an extra field `continuation_token`: ```json {   \"authorization_models\": [     {       \"id\": \"01G50QVV17PECNVAHX1GG4Y5NC\",       \"type_definitions\": [...]     },     {       \"id\": \"01G4ZW8F4A07AKQ8RHSVG9RW04\",       \"type_definitions\": [...]     },   ]   \"continuation_token\": \"eyJwayI6IkxBVEVTVF9OU0NPTkZJR19hdXRoMHN0b3JlIiwic2siOiIxem1qbXF3MWZLZExTcUoyN01MdTdqTjh0cWgifQ==\" } ``` 
+         * The GET authorization-models API will return all the authorization models for a certain store. Path parameter `store_id` is required. OpenFGA\'s response will contain an array of all authorization models, sorted in descending order of creation.  ## Example Assume that a store\'s authorization model has been configured twice. To get all the authorization models that have been created in this store, call GET authorization-models. The API will return a response that looks like: ```json {   \"authorization_models\": [     {       \"id\": \"01G50QVV17PECNVAHX1GG4Y5NC\",       \"type_definitions\": [...]     },     {       \"id\": \"01G4ZW8F4A07AKQ8RHSVG9RW04\",       \"type_definitions\": [...]     },   ] } ``` If there are more authorization models available, the response will contain an extra field `continuation_token`: ```json {   \"authorization_models\": [     {       \"id\": \"01G50QVV17PECNVAHX1GG4Y5NC\",       \"type_definitions\": [...]     },     {       \"id\": \"01G4ZW8F4A07AKQ8RHSVG9RW04\",       \"type_definitions\": [...]     },   ],   \"continuation_token\": \"eyJwayI6IkxBVEVTVF9OU0NPTkZJR19hdXRoMHN0b3JlIiwic2siOiIxem1qbXF3MWZLZExTcUoyN01MdTdqTjh0cWgifQ==\" } ``` 
          * @summary Return all the authorization models for a particular store
          * @param {number} [pageSize]
          * @param {string} [continuationToken]
@@ -700,6 +741,17 @@ export const OpenFgaApiFp = function(configuration: Configuration) {
       return createRequestFunction(localVarAxiosArgs, globalAxios, configuration);
     },
     /**
+         * 
+         * @summary ListObjects lists all of the object ids for objects of the provided type that the given user has a specific relation with.
+         * @param {ListObjectsRequest} body
+         * @param {*} [options] Override http request option.
+         * @throws { FgaError }
+         */
+    async listObjects(body: ListObjectsRequest, options?: any): Promise<(axios?: AxiosStatic) => PromiseResult<ListObjectsResponse>> {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.listObjects(body, options);
+      return createRequestFunction(localVarAxiosArgs, globalAxios, configuration);
+    },
+    /**
          * Returns a paginated list of OpenFGA stores.
          * @summary Get all stores
          * @param {number} [pageSize]
@@ -745,7 +797,7 @@ export const OpenFgaApiFp = function(configuration: Configuration) {
       return createRequestFunction(localVarAxiosArgs, globalAxios, configuration);
     },
     /**
-         * The GET authorization-models API will return all the authorization models for a certain store. Path parameter `store_id` is required. OpenFGA\'s response will contain an array of all authorization models, sorted in descending order of creation.  ## Example Assume that a store\'s authorization model has been configured twice. To get all the authorization models that have been created in this store, call GET authorization-models. The API will return a response that looks like: ```json {   \"authorization_models\": [     {       \"id\": \"01G50QVV17PECNVAHX1GG4Y5NC\",       \"type_definitions\": [...]     },     {       \"id\": \"01G4ZW8F4A07AKQ8RHSVG9RW04\",       \"type_definitions\": [...]     },   ] } ``` If there are more authorization models available, the response will contain an extra field `continuation_token`: ```json {   \"authorization_models\": [     {       \"id\": \"01G50QVV17PECNVAHX1GG4Y5NC\",       \"type_definitions\": [...]     },     {       \"id\": \"01G4ZW8F4A07AKQ8RHSVG9RW04\",       \"type_definitions\": [...]     },   ]   \"continuation_token\": \"eyJwayI6IkxBVEVTVF9OU0NPTkZJR19hdXRoMHN0b3JlIiwic2siOiIxem1qbXF3MWZLZExTcUoyN01MdTdqTjh0cWgifQ==\" } ``` 
+         * The GET authorization-models API will return all the authorization models for a certain store. Path parameter `store_id` is required. OpenFGA\'s response will contain an array of all authorization models, sorted in descending order of creation.  ## Example Assume that a store\'s authorization model has been configured twice. To get all the authorization models that have been created in this store, call GET authorization-models. The API will return a response that looks like: ```json {   \"authorization_models\": [     {       \"id\": \"01G50QVV17PECNVAHX1GG4Y5NC\",       \"type_definitions\": [...]     },     {       \"id\": \"01G4ZW8F4A07AKQ8RHSVG9RW04\",       \"type_definitions\": [...]     },   ] } ``` If there are more authorization models available, the response will contain an extra field `continuation_token`: ```json {   \"authorization_models\": [     {       \"id\": \"01G50QVV17PECNVAHX1GG4Y5NC\",       \"type_definitions\": [...]     },     {       \"id\": \"01G4ZW8F4A07AKQ8RHSVG9RW04\",       \"type_definitions\": [...]     },   ],   \"continuation_token\": \"eyJwayI6IkxBVEVTVF9OU0NPTkZJR19hdXRoMHN0b3JlIiwic2siOiIxem1qbXF3MWZLZExTcUoyN01MdTdqTjh0cWgifQ==\" } ``` 
          * @summary Return all the authorization models for a particular store
          * @param {number} [pageSize]
          * @param {string} [continuationToken]
@@ -862,6 +914,16 @@ export const OpenFgaApiFactory = function (configuration: Configuration, axios?:
       return localVarFp.getStore(options).then((request) => request(axios));
     },
     /**
+         * 
+         * @summary ListObjects lists all of the object ids for objects of the provided type that the given user has a specific relation with.
+         * @param {ListObjectsRequest} body
+         * @param {*} [options] Override http request option.
+         * @throws { FgaError }
+         */
+    listObjects(body: ListObjectsRequest, options?: any): PromiseResult<ListObjectsResponse> {
+      return localVarFp.listObjects(body, options).then((request) => request(axios));
+    },
+    /**
          * Returns a paginated list of OpenFGA stores.
          * @summary Get all stores
          * @param {number} [pageSize]
@@ -903,7 +965,7 @@ export const OpenFgaApiFactory = function (configuration: Configuration, axios?:
       return localVarFp.readAuthorizationModel(id, options).then((request) => request(axios));
     },
     /**
-         * The GET authorization-models API will return all the authorization models for a certain store. Path parameter `store_id` is required. OpenFGA\'s response will contain an array of all authorization models, sorted in descending order of creation.  ## Example Assume that a store\'s authorization model has been configured twice. To get all the authorization models that have been created in this store, call GET authorization-models. The API will return a response that looks like: ```json {   \"authorization_models\": [     {       \"id\": \"01G50QVV17PECNVAHX1GG4Y5NC\",       \"type_definitions\": [...]     },     {       \"id\": \"01G4ZW8F4A07AKQ8RHSVG9RW04\",       \"type_definitions\": [...]     },   ] } ``` If there are more authorization models available, the response will contain an extra field `continuation_token`: ```json {   \"authorization_models\": [     {       \"id\": \"01G50QVV17PECNVAHX1GG4Y5NC\",       \"type_definitions\": [...]     },     {       \"id\": \"01G4ZW8F4A07AKQ8RHSVG9RW04\",       \"type_definitions\": [...]     },   ]   \"continuation_token\": \"eyJwayI6IkxBVEVTVF9OU0NPTkZJR19hdXRoMHN0b3JlIiwic2siOiIxem1qbXF3MWZLZExTcUoyN01MdTdqTjh0cWgifQ==\" } ``` 
+         * The GET authorization-models API will return all the authorization models for a certain store. Path parameter `store_id` is required. OpenFGA\'s response will contain an array of all authorization models, sorted in descending order of creation.  ## Example Assume that a store\'s authorization model has been configured twice. To get all the authorization models that have been created in this store, call GET authorization-models. The API will return a response that looks like: ```json {   \"authorization_models\": [     {       \"id\": \"01G50QVV17PECNVAHX1GG4Y5NC\",       \"type_definitions\": [...]     },     {       \"id\": \"01G4ZW8F4A07AKQ8RHSVG9RW04\",       \"type_definitions\": [...]     },   ] } ``` If there are more authorization models available, the response will contain an extra field `continuation_token`: ```json {   \"authorization_models\": [     {       \"id\": \"01G50QVV17PECNVAHX1GG4Y5NC\",       \"type_definitions\": [...]     },     {       \"id\": \"01G4ZW8F4A07AKQ8RHSVG9RW04\",       \"type_definitions\": [...]     },   ],   \"continuation_token\": \"eyJwayI6IkxBVEVTVF9OU0NPTkZJR19hdXRoMHN0b3JlIiwic2siOiIxem1qbXF3MWZLZExTcUoyN01MdTdqTjh0cWgifQ==\" } ``` 
          * @summary Return all the authorization models for a particular store
          * @param {number} [pageSize]
          * @param {string} [continuationToken]
@@ -1025,6 +1087,18 @@ export class OpenFgaApi extends BaseAPI {
   }
 
   /**
+     * 
+     * @summary ListObjects lists all of the object ids for objects of the provided type that the given user has a specific relation with.
+     * @param {ListObjectsRequest} body
+     * @param {*} [options] Override http request option.
+     * @throws { FgaError }
+     * @memberof OpenFgaApi
+     */
+  public listObjects(body: ListObjectsRequest, options?: any) {
+    return OpenFgaApiFp(this.configuration).listObjects(body, options).then((request) => request(this.axios));
+  }
+
+  /**
      * Returns a paginated list of OpenFGA stores.
      * @summary Get all stores
      * @param {number} [pageSize]
@@ -1074,7 +1148,7 @@ export class OpenFgaApi extends BaseAPI {
   }
 
   /**
-     * The GET authorization-models API will return all the authorization models for a certain store. Path parameter `store_id` is required. OpenFGA\'s response will contain an array of all authorization models, sorted in descending order of creation.  ## Example Assume that a store\'s authorization model has been configured twice. To get all the authorization models that have been created in this store, call GET authorization-models. The API will return a response that looks like: ```json {   \"authorization_models\": [     {       \"id\": \"01G50QVV17PECNVAHX1GG4Y5NC\",       \"type_definitions\": [...]     },     {       \"id\": \"01G4ZW8F4A07AKQ8RHSVG9RW04\",       \"type_definitions\": [...]     },   ] } ``` If there are more authorization models available, the response will contain an extra field `continuation_token`: ```json {   \"authorization_models\": [     {       \"id\": \"01G50QVV17PECNVAHX1GG4Y5NC\",       \"type_definitions\": [...]     },     {       \"id\": \"01G4ZW8F4A07AKQ8RHSVG9RW04\",       \"type_definitions\": [...]     },   ]   \"continuation_token\": \"eyJwayI6IkxBVEVTVF9OU0NPTkZJR19hdXRoMHN0b3JlIiwic2siOiIxem1qbXF3MWZLZExTcUoyN01MdTdqTjh0cWgifQ==\" } ``` 
+     * The GET authorization-models API will return all the authorization models for a certain store. Path parameter `store_id` is required. OpenFGA\'s response will contain an array of all authorization models, sorted in descending order of creation.  ## Example Assume that a store\'s authorization model has been configured twice. To get all the authorization models that have been created in this store, call GET authorization-models. The API will return a response that looks like: ```json {   \"authorization_models\": [     {       \"id\": \"01G50QVV17PECNVAHX1GG4Y5NC\",       \"type_definitions\": [...]     },     {       \"id\": \"01G4ZW8F4A07AKQ8RHSVG9RW04\",       \"type_definitions\": [...]     },   ] } ``` If there are more authorization models available, the response will contain an extra field `continuation_token`: ```json {   \"authorization_models\": [     {       \"id\": \"01G50QVV17PECNVAHX1GG4Y5NC\",       \"type_definitions\": [...]     },     {       \"id\": \"01G4ZW8F4A07AKQ8RHSVG9RW04\",       \"type_definitions\": [...]     },   ],   \"continuation_token\": \"eyJwayI6IkxBVEVTVF9OU0NPTkZJR19hdXRoMHN0b3JlIiwic2siOiIxem1qbXF3MWZLZExTcUoyN01MdTdqTjh0cWgifQ==\" } ``` 
      * @summary Return all the authorization models for a particular store
      * @param {number} [pageSize]
      * @param {string} [continuationToken]

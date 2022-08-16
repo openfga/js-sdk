@@ -1,6 +1,6 @@
 {
   "name": "@openfga/sdk",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "JavaScript and Node.js SDK for OpenFGA",
   "author": "OpenFGA",
   "keywords": [
@@ -25,15 +25,15 @@
     "axios": "^0.27.2"
   },
   "devDependencies": {
-    "@types/jest": "^28.1.1",
-    "@types/node": "^16.11.38",
-    "@typescript-eslint/eslint-plugin": "^5.28.0",
-    "@typescript-eslint/parser": "^5.28.0",
-    "eslint": "^8.17.0",
-    "jest": "^28.1.1",
-    "nock": "^13.2.6",
-    "ts-jest": "^28.0.5",
-    "typescript": "^4.7.3"
+    "@types/jest": "^28.1.7",
+    "@types/node": "^16.11.49",
+    "@typescript-eslint/eslint-plugin": "^5.33.1",
+    "@typescript-eslint/parser": "^5.33.1",
+    "eslint": "^8.22.0",
+    "jest": "^28.1.3",
+    "nock": "^13.2.9",
+    "ts-jest": "^28.0.8",
+    "typescript": "^4.7.4"
   },
   "files": [
     "README.md",

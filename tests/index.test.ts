@@ -25,6 +25,7 @@ import {
   FgaApiRateLimitExceededError,
   FgaApiValidationError,
   OpenFgaApi,
+  ListObjectsResponse,
   ReadAuthorizationModelResponse,
   ReadAuthorizationModelsResponse,
   ReadChangesResponse,
@@ -174,6 +175,11 @@ const nocks = {
         }],
         "continuation_token": "eyJwayI6IkxBVEVTVF9OU0NPTkZJR19hdXRoMHN0b3JlIiwic2siOiIxem1qbXF3MWZLZExTcUoyN01MdTdqTjh0cWgifQ=="
       } as ReadChangesResponse);
+  },
+  listObjects: (storeId: string, responseBody: ListObjectsResponse, basePath = defaultConfiguration.getBasePath()) => {
+    return nock(basePath)
+      .post(`/stores/${storeId}/list-objects`)
+      .reply(200, responseBody);
   },
 };
 
@@ -853,6 +859,37 @@ describe("OpenFga SDK", function () {
 
         expect(scope.isDone()).toBe(true);
         expect(response).toMatchObject({ changes: expect.arrayContaining([]) });
+      });
+    });
+
+    describe("listObjects", () => {
+      it("should call the api and return the response", async () => {
+        const mockedResponse = { object_ids: ["roadmap"] };
+        const scope = nocks.listObjects(baseConfig.storeId!, mockedResponse);
+
+        expect(scope.isDone()).toBe(false);
+        const response = await openFgaApi.listObjects({
+          authorization_model_id: "01GAHCE4YVKPQEKZQHT2R89MQV",
+          user: "anne",
+          relation: "can_read",
+          type: "document",
+          contextual_tuples: {
+            tuple_keys:
+              [{
+                user: "anne",
+                relation: "editor",
+                object: "folder:product"
+              }, {
+                user: "folder:product",
+                relation: "parent",
+                object: "document:roadmap"
+              }]
+          }
+        });
+
+        expect(scope.isDone()).toBe(true);
+        expect(response.object_ids).toHaveLength(mockedResponse.object_ids.length);
+        expect(response.object_ids).toEqual(expect.arrayContaining(mockedResponse.object_ids));
       });
     });
   });

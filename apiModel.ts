@@ -390,6 +390,56 @@ export interface Leaf {
 /**
  * 
  * @export
+ * @interface ListObjectsRequest
+ */
+export interface ListObjectsRequest {
+    /**
+     * 
+     * @type {string}
+     * @memberof ListObjectsRequest
+     */
+    authorization_model_id?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ListObjectsRequest
+     */
+    type?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ListObjectsRequest
+     */
+    relation?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ListObjectsRequest
+     */
+    user?: string;
+    /**
+     * 
+     * @type {ContextualTupleKeys}
+     * @memberof ListObjectsRequest
+     */
+    contextual_tuples?: ContextualTupleKeys;
+}
+/**
+ * 
+ * @export
+ * @interface ListObjectsResponse
+ */
+export interface ListObjectsResponse {
+    /**
+     * 
+     * @type {Array<string>}
+     * @memberof ListObjectsResponse
+     */
+    object_ids?: Array<string>;
+}
+/**
+ * 
+ * @export
  * @interface ListStoresResponse
  */
 export interface ListStoresResponse {
