@@ -52,6 +52,7 @@ import {
   ListObjectsRequest,
   ListObjectsResponse,
   ListStoresResponse,
+  Metadata,
   Node,
   Nodes,
   NotFoundErrorCode,
@@ -63,6 +64,8 @@ import {
   ReadChangesResponse,
   ReadRequest,
   ReadResponse,
+  RelationMetadata,
+  RelationReference,
   Status,
   Store,
   Tuple,
@@ -72,7 +75,6 @@ import {
   TupleOperation,
   TupleToUserset,
   TypeDefinition,
-  TypeDefinitions,
   Users,
   Userset,
   UsersetTree,
@@ -81,6 +83,7 @@ import {
   Usersets,
   ValidationErrorMessageResponse,
   WriteAssertionsRequest,
+  WriteAuthorizationModelRequest,
   WriteAuthorizationModelResponse,
   WriteRequest,
 } from "./apiModel";
@@ -641,13 +644,13 @@ export const OpenFgaApiAxiosParamCreator = function (configuration: Configuratio
     /**
          * The POST authorization-model API will update the authorization model for a certain store. Path parameter `store_id` and `type_definitions` array in the body are required.  Each item in the `type_definitions` array is a type definition as specified in the field `type_definition`. The response will return the authorization model\'s ID in the `id` field.  ## Example To update the authorization model with a single `document` authorization model, call POST authorization-models API with the body:  ```json {   \"type_definitions\":[     {       \"type\":\"document\",       \"relations\":{         \"reader\":{           \"union\":{             \"child\":[               {                 \"this\":{}               },               {                 \"computedUserset\":{                   \"object\":\"\",                   \"relation\":\"writer\"                 }               }             ]           }         },         \"writer\":{           \"this\":{}         }       }     }   ] } ``` OpenFGA\'s response will include the version id for this authorization model, which will look like  ``` {\"authorization_model_id\": \"01G50QVV17PECNVAHX1GG4Y5NC\"} ``` 
          * @summary Create a new authorization model
-         * @param {TypeDefinitions} typeDefinitions
+         * @param {WriteAuthorizationModelRequest} body
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    writeAuthorizationModel: async (typeDefinitions: TypeDefinitions, options: any = {}): Promise<RequestArgs> => {
-      // verify required parameter 'typeDefinitions' is not null or undefined
-      assertParamExists("writeAuthorizationModel", "typeDefinitions", typeDefinitions);
+    writeAuthorizationModel: async (body: WriteAuthorizationModelRequest, options: any = {}): Promise<RequestArgs> => {
+      // verify required parameter 'body' is not null or undefined
+      assertParamExists("writeAuthorizationModel", "body", body);
       assertParamExists("Configuration", "storeId", configuration.storeId);
       const localVarPath = "/stores/{store_id}/authorization-models"
         .replace(`{${"store_id"}}`, encodeURIComponent(String(configuration.storeId)))
@@ -670,7 +673,7 @@ export const OpenFgaApiAxiosParamCreator = function (configuration: Configuratio
       setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
       const headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
       localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-      localVarRequestOptions.data = serializeDataIfNeeded(typeDefinitions, localVarRequestOptions, configuration);
+      localVarRequestOptions.data = serializeDataIfNeeded(body, localVarRequestOptions, configuration);
 
       return {
         url: toPathString(localVarUrlObj),
@@ -847,12 +850,12 @@ export const OpenFgaApiFp = function(configuration: Configuration) {
     /**
          * The POST authorization-model API will update the authorization model for a certain store. Path parameter `store_id` and `type_definitions` array in the body are required.  Each item in the `type_definitions` array is a type definition as specified in the field `type_definition`. The response will return the authorization model\'s ID in the `id` field.  ## Example To update the authorization model with a single `document` authorization model, call POST authorization-models API with the body:  ```json {   \"type_definitions\":[     {       \"type\":\"document\",       \"relations\":{         \"reader\":{           \"union\":{             \"child\":[               {                 \"this\":{}               },               {                 \"computedUserset\":{                   \"object\":\"\",                   \"relation\":\"writer\"                 }               }             ]           }         },         \"writer\":{           \"this\":{}         }       }     }   ] } ``` OpenFGA\'s response will include the version id for this authorization model, which will look like  ``` {\"authorization_model_id\": \"01G50QVV17PECNVAHX1GG4Y5NC\"} ``` 
          * @summary Create a new authorization model
-         * @param {TypeDefinitions} typeDefinitions
+         * @param {WriteAuthorizationModelRequest} body
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    async writeAuthorizationModel(typeDefinitions: TypeDefinitions, options?: any): Promise<(axios?: AxiosStatic) => PromiseResult<WriteAuthorizationModelResponse>> {
-      const localVarAxiosArgs = await localVarAxiosParamCreator.writeAuthorizationModel(typeDefinitions, options);
+    async writeAuthorizationModel(body: WriteAuthorizationModelRequest, options?: any): Promise<(axios?: AxiosStatic) => PromiseResult<WriteAuthorizationModelResponse>> {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.writeAuthorizationModel(body, options);
       return createRequestFunction(localVarAxiosArgs, globalAxios, configuration);
     },
   };
@@ -1011,12 +1014,12 @@ export const OpenFgaApiFactory = function (configuration: Configuration, axios?:
     /**
          * The POST authorization-model API will update the authorization model for a certain store. Path parameter `store_id` and `type_definitions` array in the body are required.  Each item in the `type_definitions` array is a type definition as specified in the field `type_definition`. The response will return the authorization model\'s ID in the `id` field.  ## Example To update the authorization model with a single `document` authorization model, call POST authorization-models API with the body:  ```json {   \"type_definitions\":[     {       \"type\":\"document\",       \"relations\":{         \"reader\":{           \"union\":{             \"child\":[               {                 \"this\":{}               },               {                 \"computedUserset\":{                   \"object\":\"\",                   \"relation\":\"writer\"                 }               }             ]           }         },         \"writer\":{           \"this\":{}         }       }     }   ] } ``` OpenFGA\'s response will include the version id for this authorization model, which will look like  ``` {\"authorization_model_id\": \"01G50QVV17PECNVAHX1GG4Y5NC\"} ``` 
          * @summary Create a new authorization model
-         * @param {TypeDefinitions} typeDefinitions
+         * @param {WriteAuthorizationModelRequest} body
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    writeAuthorizationModel(typeDefinitions: TypeDefinitions, options?: any): PromiseResult<WriteAuthorizationModelResponse> {
-      return localVarFp.writeAuthorizationModel(typeDefinitions, options).then((request) => request(axios));
+    writeAuthorizationModel(body: WriteAuthorizationModelRequest, options?: any): PromiseResult<WriteAuthorizationModelResponse> {
+      return localVarFp.writeAuthorizationModel(body, options).then((request) => request(axios));
     },
   };
 };
@@ -1202,13 +1205,13 @@ export class OpenFgaApi extends BaseAPI {
   /**
      * The POST authorization-model API will update the authorization model for a certain store. Path parameter `store_id` and `type_definitions` array in the body are required.  Each item in the `type_definitions` array is a type definition as specified in the field `type_definition`. The response will return the authorization model\'s ID in the `id` field.  ## Example To update the authorization model with a single `document` authorization model, call POST authorization-models API with the body:  ```json {   \"type_definitions\":[     {       \"type\":\"document\",       \"relations\":{         \"reader\":{           \"union\":{             \"child\":[               {                 \"this\":{}               },               {                 \"computedUserset\":{                   \"object\":\"\",                   \"relation\":\"writer\"                 }               }             ]           }         },         \"writer\":{           \"this\":{}         }       }     }   ] } ``` OpenFGA\'s response will include the version id for this authorization model, which will look like  ``` {\"authorization_model_id\": \"01G50QVV17PECNVAHX1GG4Y5NC\"} ``` 
      * @summary Create a new authorization model
-     * @param {TypeDefinitions} typeDefinitions
+     * @param {WriteAuthorizationModelRequest} body
      * @param {*} [options] Override http request option.
      * @throws { FgaError }
      * @memberof OpenFgaApi
      */
-  public writeAuthorizationModel(typeDefinitions: TypeDefinitions, options?: any) {
-    return OpenFgaApiFp(this.configuration).writeAuthorizationModel(typeDefinitions, options).then((request) => request(this.axios));
+  public writeAuthorizationModel(body: WriteAuthorizationModelRequest, options?: any) {
+    return OpenFgaApiFp(this.configuration).writeAuthorizationModel(body, options).then((request) => request(this.axios));
   }
 }
 

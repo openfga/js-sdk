@@ -61,6 +61,12 @@ export interface AuthorizationModel {
     id?: string;
     /**
      * 
+     * @type {string}
+     * @memberof AuthorizationModel
+     */
+    schema_version?: string;
+    /**
+     * 
      * @type {Array<TypeDefinition>}
      * @memberof AuthorizationModel
      */
@@ -257,7 +263,9 @@ export enum ErrorCode {
     QueryStringTypeContinuationTokenMismatch = 'query_string_type_continuation_token_mismatch',
     ExceededEntityLimit = 'exceeded_entity_limit',
     InvalidContextualTuple = 'invalid_contextual_tuple',
-    DuplicateContextualTuple = 'duplicate_contextual_tuple'
+    DuplicateContextualTuple = 'duplicate_contextual_tuple',
+    InvalidAuthorizationModel = 'invalid_authorization_model',
+    UnsupportedSchemaVersion = 'unsupported_schema_version'
 }
 
 /**
@@ -455,6 +463,19 @@ export interface ListStoresResponse {
      * @memberof ListStoresResponse
      */
     continuation_token?: string;
+}
+/**
+ * 
+ * @export
+ * @interface Metadata
+ */
+export interface Metadata {
+    /**
+     * 
+     * @type {{ [key: string]: RelationMetadata; }}
+     * @memberof Metadata
+     */
+    relations?: { [key: string]: RelationMetadata; };
 }
 /**
  * 
@@ -680,6 +701,38 @@ export interface ReadResponse {
 /**
  * 
  * @export
+ * @interface RelationMetadata
+ */
+export interface RelationMetadata {
+    /**
+     * 
+     * @type {Array<RelationReference>}
+     * @memberof RelationMetadata
+     */
+    directly_related_user_types?: Array<RelationReference>;
+}
+/**
+ * RelationReference represents a relation of a particular object type (e.g. \'document#viewer\').
+ * @export
+ * @interface RelationReference
+ */
+export interface RelationReference {
+    /**
+     * 
+     * @type {string}
+     * @memberof RelationReference
+     */
+    type: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof RelationReference
+     */
+    relation?: string;
+}
+/**
+ * 
+ * @export
  * @interface Status
  */
 export interface Status {
@@ -868,20 +921,13 @@ export interface TypeDefinition {
      * @type {{ [key: string]: Userset; }}
      * @memberof TypeDefinition
      */
-    relations: { [key: string]: Userset; };
-}
-/**
- * 
- * @export
- * @interface TypeDefinitions
- */
-export interface TypeDefinitions {
+    relations?: { [key: string]: Userset; };
     /**
      * 
-     * @type {Array<TypeDefinition>}
-     * @memberof TypeDefinitions
+     * @type {Metadata}
+     * @memberof TypeDefinition
      */
-    type_definitions?: Array<TypeDefinition>;
+    metadata?: Metadata;
 }
 /**
  * 
@@ -1034,6 +1080,25 @@ export interface WriteAssertionsRequest {
      * @memberof WriteAssertionsRequest
      */
     assertions: Array<Assertion>;
+}
+/**
+ * 
+ * @export
+ * @interface WriteAuthorizationModelRequest
+ */
+export interface WriteAuthorizationModelRequest {
+    /**
+     * 
+     * @type {Array<TypeDefinition>}
+     * @memberof WriteAuthorizationModelRequest
+     */
+    type_definitions?: Array<TypeDefinition>;
+    /**
+     * 
+     * @type {string}
+     * @memberof WriteAuthorizationModelRequest
+     */
+    schema_version?: string;
 }
 /**
  * 

@@ -32,8 +32,8 @@ import {
   ReadResponse,
   TupleKey,
   TupleOperation,
-  TypeDefinitions,
   UserConfigurationParams,
+  WriteAuthorizationModelRequest,
 } from "../index";
 import { CallResult } from "../common";
 import { GetDefaultRetryParams } from "../configuration";
@@ -146,7 +146,7 @@ const nocks = {
   },
   writeAuthorizationModel: (
     storeId: string,
-    configurations: TypeDefinitions,
+    configurations: WriteAuthorizationModelRequest,
     basePath = defaultConfiguration.getBasePath(),
   ) => {
     return nock(basePath)
@@ -166,7 +166,7 @@ const nocks = {
       .reply(200, {
         changes: [{
           tuple_key: {
-            user: "anne",
+            user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
             relation: "viewer",
             object: "document:roadmap"
           },
@@ -662,9 +662,9 @@ describe("OpenFga SDK", function () {
       nocks.tokenExchange(OPENFGA_API_TOKEN_ISSUER);
 
       const tupleKey = {
-        object: "foobar:x",
         user: "user:xyz",
         relation: "abc",
+        object: "foobar:x",
       };
       const scope = nocks.check(baseConfig.storeId!, tupleKey);
       expect(scope.isDone()).toBe(false);
@@ -706,7 +706,7 @@ describe("OpenFga SDK", function () {
     describe("check", () => {
       it("should properly pass the request and return an allowed API response", async () => {
         const tuple = {
-          user: "user543",
+          user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
           relation: "admin",
           object: "workspace:1",
         };
@@ -723,7 +723,7 @@ describe("OpenFga SDK", function () {
     describe("write: write tuples", () => {
       it("should properly pass the errors that the OpenFGA API returns", async () => {
         const tuple = {
-          user: "user543",
+          user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
           relation: "admin",
           object: "workspace:1",
         };
@@ -742,7 +742,7 @@ describe("OpenFga SDK", function () {
     describe("write: delete tuples", () => {
       it("should properly pass the errors that the OpenFGA API returns", async () => {
         const tuple = {
-          user: "user543",
+          user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
           relation: "admin",
           object: "workspace:1",
         };
@@ -761,7 +761,7 @@ describe("OpenFga SDK", function () {
     describe("expand", () => {
       it("should properly pass the errors that the OpenFGA API returns", async () => {
         const tuple = {
-          user: "user543",
+          user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
           relation: "admin",
           object: "workspace:1",
         };
@@ -778,7 +778,7 @@ describe("OpenFga SDK", function () {
     describe("read", () => {
       it("should properly pass the errors that the OpenFGA API returns", async () => {
         const tuple = {
-          user: "user543",
+          user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
           relation: "admin",
           object: "workspace:1",
         };
@@ -870,13 +870,13 @@ describe("OpenFga SDK", function () {
         expect(scope.isDone()).toBe(false);
         const response = await openFgaApi.listObjects({
           authorization_model_id: "01GAHCE4YVKPQEKZQHT2R89MQV",
-          user: "anne",
+          user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
           relation: "can_read",
           type: "document",
           contextual_tuples: {
             tuple_keys:
               [{
-                user: "anne",
+                user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
                 relation: "editor",
                 object: "folder:product"
               }, {

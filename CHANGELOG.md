@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.1.0
+
+### [0.1.0](https://github.com/openfga/js-sdk/compare/v0.0.2...v0.1.0) (2022-09-29)
+
+- BREAKING: exported type `TypeDefinitions` is now `WriteAuthorizationModelRequest`
+    This is only a breaking change on the SDK, not the API. It was changed to conform to the proto changes in [openfga/api](https://github.com/openfga/api/pull/27).
+    It makes the type name more consistent and less confusing (normally people would incorrectly assume TypeDefinitions = TypeDefinition[]).
+- chore(deps): upgrade dependencies
+
 ## v0.0.2
 
 ### [0.0.2](https://github.com/openfga/js-sdk/compare/v0.0.1...v0.0.2) (2022-08-15)
