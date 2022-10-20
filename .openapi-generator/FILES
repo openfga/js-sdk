@@ -9,6 +9,7 @@
 .github/workflows/main.yaml
 .github/workflows/semgrep.yaml
 .gitignore
+.gitignore
 .npmrc
 CHANGELOG.md
 CONTRIBUTING.md
