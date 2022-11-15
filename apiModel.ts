@@ -729,6 +729,12 @@ export interface RelationReference {
      * @memberof RelationReference
      */
     relation?: string;
+    /**
+     * 
+     * @type {object}
+     * @memberof RelationReference
+     */
+    wildcard?: object;
 }
 /**
  * 

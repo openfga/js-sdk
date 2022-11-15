@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.1.1
+
+### [0.1.1](https://github.com/openfga/js-sdk/compare/v0.1.0...v0.1.1) (2022-11-15)
+
+Updated [ListObjects API](https://openfga.dev/api/service#/Relationship%20Queries/ListObjects) which supports wildcard restriction in directly assignable type.
+
 ## v0.1.0
 
 ### [0.1.0](https://github.com/openfga/js-sdk/compare/v0.0.2...v0.1.0) (2022-09-29)
