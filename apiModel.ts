@@ -39,7 +39,7 @@ export interface Assertion {
      * @type {TupleKey}
      * @memberof Assertion
      */
-    tuple_key?: TupleKey;
+    tuple_key: TupleKey;
     /**
      * 
      * @type {boolean}
@@ -83,7 +83,7 @@ export interface CheckRequest {
      * @type {TupleKey}
      * @memberof CheckRequest
      */
-    tuple_key?: TupleKey;
+    tuple_key: TupleKey;
     /**
      * 
      * @type {ContextualTupleKeys}
@@ -159,7 +159,7 @@ export interface CreateStoreRequest {
      * @type {string}
      * @memberof CreateStoreRequest
      */
-    name?: string;
+    name: string;
 }
 /**
  * 
@@ -203,13 +203,13 @@ export interface Difference {
      * @type {Userset}
      * @memberof Difference
      */
-    base?: Userset;
+    base: Userset;
     /**
      * 
      * @type {Userset}
      * @memberof Difference
      */
-    subtract?: Userset;
+    subtract: Userset;
 }
 /**
  * 
@@ -279,7 +279,7 @@ export interface ExpandRequest {
      * @type {TupleKey}
      * @memberof ExpandRequest
      */
-    tuple_key?: TupleKey;
+    tuple_key: TupleKey;
     /**
      * 
      * @type {string}
@@ -412,19 +412,19 @@ export interface ListObjectsRequest {
      * @type {string}
      * @memberof ListObjectsRequest
      */
-    type?: string;
+    type: string;
     /**
      * 
      * @type {string}
      * @memberof ListObjectsRequest
      */
-    relation?: string;
+    relation: string;
     /**
      * 
      * @type {string}
      * @memberof ListObjectsRequest
      */
-    user?: string;
+    user: string;
     /**
      * 
      * @type {ContextualTupleKeys}
@@ -443,7 +443,7 @@ export interface ListObjectsResponse {
      * @type {Array<string>}
      * @memberof ListObjectsResponse
      */
-    object_ids?: Array<string>;
+    objects?: Array<string>;
 }
 /**
  * 
@@ -660,12 +660,6 @@ export interface ReadRequest {
      * @memberof ReadRequest
      */
     tuple_key?: TupleKey;
-    /**
-     * 
-     * @type {string}
-     * @memberof ReadRequest
-     */
-    authorization_model_id?: string;
     /**
      * 
      * @type {number}
@@ -1098,7 +1092,7 @@ export interface WriteAuthorizationModelRequest {
      * @type {Array<TypeDefinition>}
      * @memberof WriteAuthorizationModelRequest
      */
-    type_definitions?: Array<TypeDefinition>;
+    type_definitions: Array<TypeDefinition>;
     /**
      * 
      * @type {string}

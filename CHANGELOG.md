@@ -1,10 +1,26 @@
 # Changelog
 
+## v0.2.0
+
+### [0.2.0](https://github.com/openfga/js-sdk/compare/v0.1.1...v0.2.0) (2022-12-14)
+
+Updated to include support for [OpenFGA 0.3.0](https://github.com/openfga/openfga/releases/tag/v0.3.0)
+
+Changes:
+- [BREAKING] feat(list-objects)!: response has been changed to include the object type
+    e.g. response that was `{"object_ids":["roadmap"]}`, will now be `{"objects":["document:roadmap"]}`
+
+Fixes:
+- fix(models): update interfaces that had incorrectly optional fields to make them required
+
+Chore:
+- chore(deps): update dev dependencies
+
 ## v0.1.1
 
 ### [0.1.1](https://github.com/openfga/js-sdk/compare/v0.1.0...v0.1.1) (2022-11-15)
 
-Updated [ListObjects API](https://openfga.dev/api/service#/Relationship%20Queries/ListObjects) which supports wildcard restriction in directly assignable type.
+Regenerate to include support for [restricting wildcards](https://github.com/openfga/rfcs/pull/8) in authorization models.
 
 ## v0.1.0
 

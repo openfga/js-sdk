@@ -173,6 +173,8 @@ await openFga.deleteStore();
 ```javascript
 const { authorization_model_id: id } = await openFga.writeAuthorizationModel({
   type_definitions: [{
+      type: "user",
+    }, {
     type: "document",
     relations: {
       "writer": { "this": {} },
@@ -182,7 +184,7 @@ const { authorization_model_id: id } = await openFga.writeAuthorizationModel({
             { "this": {} },
             { "computedUserset": {
                "object": "",
-              "relation": "viewer" }
+              "relation": "writer" }
             }
           ]
         }
@@ -228,9 +230,10 @@ const { authorization_model_ids: authorizationModelIds } = await openFga.readAut
 const result = await openFga.check({
   tuple_key: {
     user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
-    relation: "admin",
-    object: "workspace:675bcac4-ad38-4fb1-a19a-94a5648c91d6",
+    relation: "viewer",
+    object: "document:roadmap",
   },
+  authorization_model_id: "1uHxCSuTP0VKPYSnkq1pbb1jeZw",
 });
 
 // result = { allowed: true, resolution: "" }
@@ -247,6 +250,7 @@ await openFga.write({
   writes: {
     tuple_keys: [{ user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b", relation: "viewer", object: "document:roadmap" }],
   },
+  authorization_model_id: "1uHxCSuTP0VKPYSnkq1pbb1jeZw",
 });
 
 ```
@@ -262,6 +266,7 @@ await openFga.write({
   deletes: {
     tuple_keys: [{ user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b", relation: "viewer", object: "document:roadmap" }],
   },
+  authorization_model_id: "1uHxCSuTP0VKPYSnkq1pbb1jeZw",
 });
 
 ```
@@ -275,12 +280,13 @@ await openFga.write({
 ```javascript
 const { tree } = await openFga.expand({
   tuple_key: {
-    relation: "admin",
-    object: "workspace:675bcac4-ad38-4fb1-a19a-94a5648c91d6",
+    relation: "viewer",
+    object: "document:roadmap",
   },
+  authorization_model_id: "1uHxCSuTP0VKPYSnkq1pbb1jeZw",
 });
 
-// tree  = { root: { name: "workspace:675bcac4-ad38-4fb1-a19a-94a5648c91d6#admin", leaf: { users: { users: ["user:81684243-9356-4421-8fbf-a4f8d36aa31b", "user:f52a4f7a-054d-47ff-bb6e-3ac81269988f"] } } } }
+// tree  = { root: { name: "document:roadmap#viewer", leaf: { users: { users: ["user:81684243-9356-4421-8fbf-a4f8d36aa31b", "user:f52a4f7a-054d-47ff-bb6e-3ac81269988f"] } } } }
 ```
 
 #### Read Tuples
@@ -290,38 +296,41 @@ const { tree } = await openFga.expand({
 > Requires a client initialized with a storeId
 
 ```javascript
-// Find if a relationship tuple stating that a certain user is an admin on a certain workspace
+// Find if a relationship tuple stating that a certain user is a viewer of a certain document
 const body = {
   tuple_key: {
     user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
-    relation: "admin",
-    object: "workspace:675bcac4-ad38-4fb1-a19a-94a5648c91d6",
+    relation: "viewer",
+    object: "document:roadmap",
   },
 };
 
-// Find all relationship tuples where a certain user has a relationship as any relation to a certain workspace
+// Find all relationship tuples where a certain user has a relationship as any relation to a certain document
 const body = {
   tuple_key: {
     user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
-    object: "workspace:675bcac4-ad38-4fb1-a19a-94a5648c91d6",
+    object: "document:roadmap",
   },
 };
 
-// Find all relationship tuples where a certain user is an admin on any workspace
+// Find all relationship tuples where a certain user is a viewer of any document
 const body = {
   tuple_key: {
     user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
-    relation: "admin",
-    object: "workspace:",
+    relation: "viewer",
+    object: "document:",
   },
 };
 
-// Find all relationship tuples where any user has a relationship as any relation with a particular workspace
+// Find all relationship tuples where any user has a relationship as any relation with a particular document
 const body = {
   tuple_key: {
-    object: "workspace:675bcac4-ad38-4fb1-a19a-94a5648c91d6",
+    object: "document:roadmap",
   },
 };
+
+// Read all stored relationship tuples
+body := {};
 
 const { tuples } = await openFga.read(body);
 
@@ -336,15 +345,15 @@ const { tuples } = await openFga.read(body);
 [API Documentation](https://openfga.dev/api/service#/Relationship%20Tuples/ReadChanges)
 
 ```javascript
-const type = 'workspace';
+const type = 'document';
 const pageSize = 25;
 const continuationToken = 'eyJwayI6IkxBVEVTVF9OU0NPTkZJR19hdXRoMHN0b3JlIiwic2siOiIxem1qbXF3MWZLZExTcUoyN01MdTdqTjh0cWgifQ==';
 const response = await openFga.readChanges(type, pageSize, continuationToken);
 
 // response.continuation_token = ...
 // response.changes = [
-//   { tuple_key: { user, relation, object }, operation: "write", timestamp: ... },
-//   { tuple_key: { user, relation, object }, operation: "delete", timestamp: ... }
+//   { tuple_key: { user, relation, object }, operation: "writer", timestamp: ... },
+//   { tuple_key: { user, relation, object }, operation: "viewer", timestamp: ... }
 // ]
 ```
 
@@ -355,26 +364,22 @@ const response = await openFga.readChanges(type, pageSize, continuationToken);
 [API Documentation](https://openfga.dev/api/service#/Relationship%20Queries/ListObjects)
 
 ```javascript
-const response = await openFgaApi.listObjects({
+const response = await openFga.listObjects({
   authorization_model_id: "01GAHCE4YVKPQEKZQHT2R89MQV",
   user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
-  relation: "can_read",
+  relation: "viewer",
   type: "document",
   contextual_tuples: {
     tuple_keys:
       [{
         user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
-        relation: "editor",
-        object: "folder:product"
-      }, {
-        user: "folder:product",
-        relation: "parent",
-        object: "document:roadmap"
+        relation: "writer",
+        object: "document:budget"
       }]
   }
 });
 
-// response.object_ids = ["roadmap"]
+// response.objects = ["document:roadmap"]
 ```
 
 
@@ -388,7 +393,7 @@ const response = await openFgaApi.listObjects({
 | [**expand**](#expand) | **POST** /stores/{store_id}/expand | Expand all relationships in userset tree format, and following userset rewrite rules.  Useful to reason about and debug a certain relationship |
 | [**getStore**](#getstore) | **GET** /stores/{store_id} | Get a store |
 | [**listObjects**](#listobjects) | **POST** /stores/{store_id}/list-objects | [EXPERIMENTAL] Get all object ids of the given type that the user has a relation with |
-| [**listStores**](#liststores) | **GET** /stores | Get all stores |
+| [**listStores**](#liststores) | **GET** /stores | List all stores |
 | [**read**](#read) | **POST** /stores/{store_id}/read | Get tuples from the store that matches a query, without following userset rewrite rules |
 | [**readAssertions**](#readassertions) | **GET** /stores/{store_id}/assertions/{authorization_model_id} | Read assertions for an authorization model ID |
 | [**readAuthorizationModel**](#readauthorizationmodel) | **GET** /stores/{store_id}/authorization-models/{id} | Return a particular version of an authorization model |
@@ -650,7 +655,7 @@ Name | Type | Description | Notes
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**tuple_key** | [**TupleKey**](#TupleKey) |  | [optional] [default to undefined]
+**tuple_key** | [**TupleKey**](#TupleKey) |  | [default to undefined]
 **expectation** | **boolean** |  | [default to undefined]
 
 #### AuthorizationModel
@@ -669,7 +674,7 @@ Name | Type | Description | Notes
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**tuple_key** | [**TupleKey**](#TupleKey) |  | [optional] [default to undefined]
+**tuple_key** | [**TupleKey**](#TupleKey) |  | [default to undefined]
 **contextual_tuples** | [**ContextualTupleKeys**](#ContextualTupleKeys) |  | [optional] [default to undefined]
 **authorization_model_id** | **string** |  | [optional] [default to undefined]
 **trace** | **boolean** | Defaults to false. Making it true has performance implications. | [optional] [readonly] [default to undefined]
@@ -705,7 +710,7 @@ Name | Type | Description | Notes
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**name** | **string** |  | [optional] [default to undefined]
+**name** | **string** |  | [default to undefined]
 
 #### CreateStoreResponse
 
@@ -724,8 +729,8 @@ Name | Type | Description | Notes
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**base** | [**Userset**](#Userset) |  | [optional] [default to undefined]
-**subtract** | [**Userset**](#Userset) |  | [optional] [default to undefined]
+**base** | [**Userset**](#Userset) |  | [default to undefined]
+**subtract** | [**Userset**](#Userset) |  | [default to undefined]
 
 #### ErrorCode
 
@@ -835,7 +840,7 @@ Name | Type | Description | Notes
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**tuple_key** | [**TupleKey**](#TupleKey) |  | [optional] [default to undefined]
+**tuple_key** | [**TupleKey**](#TupleKey) |  | [default to undefined]
 **authorization_model_id** | **string** |  | [optional] [default to undefined]
 
 #### ExpandResponse
@@ -911,9 +916,9 @@ Name | Type | Description | Notes
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **authorization_model_id** | **string** |  | [optional] [default to undefined]
-**type** | **string** |  | [optional] [default to undefined]
-**relation** | **string** |  | [optional] [default to undefined]
-**user** | **string** |  | [optional] [default to undefined]
+**type** | **string** |  | [default to undefined]
+**relation** | **string** |  | [default to undefined]
+**user** | **string** |  | [default to undefined]
 **contextual_tuples** | [**ContextualTupleKeys**](#ContextualTupleKeys) |  | [optional] [default to undefined]
 
 #### ListObjectsResponse
@@ -922,7 +927,7 @@ Name | Type | Description | Notes
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**object_ids** | **string** |  | [optional] [default to undefined]
+**objects** | **string** |  | [optional] [default to undefined]
 
 #### ListStoresResponse
 
@@ -1035,7 +1040,6 @@ Name | Type | Description | Notes
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **tuple_key** | [**TupleKey**](#TupleKey) |  | [optional] [default to undefined]
-**authorization_model_id** | **string** |  | [optional] [default to undefined]
 **page_size** | **number** |  | [optional] [default to undefined]
 **continuation_token** | **string** |  | [optional] [default to undefined]
 
@@ -1232,7 +1236,7 @@ Name | Type | Description | Notes
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**type_definitions** | [**TypeDefinition**[]](#TypeDefinition) |  | [optional] [default to undefined]
+**type_definitions** | [**TypeDefinition**[]](#TypeDefinition) |  | [default to undefined]
 **schema_version** | **string** |  | [optional] [default to undefined]
 
 #### WriteAuthorizationModelResponse

@@ -501,7 +501,7 @@ describe("OpenFga SDK", function () {
       });
 
       it("should return allowed", async () => {
-        const result = await openFgaApi.check({ tuple_key: tupleKey }, {});
+        const result = await openFgaApi.check({ tuple_key: tupleKey, authorization_model_id: "1uHxCSuTP0VKPYSnkq1pbb1jeZw"}, {});
 
         expect(result.allowed).toBe(true);
       });
@@ -732,6 +732,7 @@ describe("OpenFga SDK", function () {
         expect(scope.isDone()).toBe(false);
         const data = await openFgaApi.write({
           writes: { tuple_keys: [tuple] },
+          authorization_model_id: "1uHxCSuTP0VKPYSnkq1pbb1jeZw",
         });
 
         expect(scope.isDone()).toBe(true);
@@ -751,6 +752,7 @@ describe("OpenFga SDK", function () {
         expect(scope.isDone()).toBe(false);
         const data = await openFgaApi.write({
           deletes: { tuple_keys: [tuple] },
+          authorization_model_id: "1uHxCSuTP0VKPYSnkq1pbb1jeZw",
         });
 
         expect(scope.isDone()).toBe(true);
@@ -768,7 +770,7 @@ describe("OpenFga SDK", function () {
         const scope = nocks.expand(baseConfig.storeId!, tuple);
 
         expect(scope.isDone()).toBe(false);
-        const data = await openFgaApi.expand({ tuple_key: tuple });
+        const data = await openFgaApi.expand({ tuple_key: tuple, authorization_model_id: "1uHxCSuTP0VKPYSnkq1pbb1jeZw"});
 
         expect(scope.isDone()).toBe(true);
         expect(data).toMatchObject({});
@@ -864,7 +866,7 @@ describe("OpenFga SDK", function () {
 
     describe("listObjects", () => {
       it("should call the api and return the response", async () => {
-        const mockedResponse = { object_ids: ["roadmap"] };
+        const mockedResponse = { objects: ["document:roadmap"] };
         const scope = nocks.listObjects(baseConfig.storeId!, mockedResponse);
 
         expect(scope.isDone()).toBe(false);
@@ -888,8 +890,8 @@ describe("OpenFga SDK", function () {
         });
 
         expect(scope.isDone()).toBe(true);
-        expect(response.object_ids).toHaveLength(mockedResponse.object_ids.length);
-        expect(response.object_ids).toEqual(expect.arrayContaining(mockedResponse.object_ids));
+        expect(response.objects).toHaveLength(mockedResponse.objects.length);
+        expect(response.objects).toEqual(expect.arrayContaining(mockedResponse.objects));
       });
     });
   });
