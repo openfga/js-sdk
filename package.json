@@ -55,6 +55,9 @@
       "follow-redirects": "1.14.8"
     }
   },
+  "engines": {
+    "node": ">=14.17.0"
+  },
   "publishConfig": {
     "access": "public"
   }

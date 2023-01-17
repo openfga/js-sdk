@@ -13,175 +13,31 @@
 import * as nock from "nock";
 
 import {
-  AuthorizationModel,
   CheckResponse,
   Configuration,
   CredentialsMethod,
   ErrorCode,
-  ExpandResponse,
   FgaApiAuthenticationError,
   FgaApiInternalError,
   FgaApiNotFoundError,
   FgaApiRateLimitExceededError,
   FgaApiValidationError,
   OpenFgaApi,
-  ListObjectsResponse,
-  ReadAuthorizationModelResponse,
-  ReadAuthorizationModelsResponse,
-  ReadChangesResponse,
-  ReadResponse,
-  TupleKey,
-  TupleOperation,
-  UserConfigurationParams,
-  WriteAuthorizationModelRequest,
 } from "../index";
 import { CallResult } from "../common";
 import { GetDefaultRetryParams } from "../configuration";
 import { AuthCredentialsConfig } from "../credentials";
+import {
+  baseConfig,
+  defaultConfiguration,
+  OPENFGA_API_HOST,
+  OPENFGA_API_TOKEN_ISSUER,
+  OPENFGA_STORE_ID
+} from "./helpers/default-config";
+import { getNocks } from "./helpers/nocks";
 
+const nocks = getNocks(nock);
 nock.disableNetConnect();
-
-const OPENFGA_STORE_ID = "test-random-store-id";
-const OPENFGA_API_HOST = "api.fga.example";
-const OPENFGA_API_TOKEN_ISSUER = "tokenissuer.fga.example";
-const OPENFGA_API_AUDIENCE = "https://api.fga.example/";
-const OPENFGA_CLIENT_ID = "some-random-id";
-const OPENFGA_CLIENT_SECRET = "this-is-very-secret";
-const OPENFGA_API_TOKEN = "fga_abcdef";
-
-const baseConfig: UserConfigurationParams = {
-  storeId: OPENFGA_STORE_ID,
-  apiHost: OPENFGA_API_HOST,
-  credentials: {
-    method: CredentialsMethod.ClientCredentials,
-    config: {
-      apiTokenIssuer: OPENFGA_API_TOKEN_ISSUER,
-      apiAudience: OPENFGA_API_AUDIENCE,
-      clientId: OPENFGA_CLIENT_ID,
-      clientSecret: OPENFGA_CLIENT_SECRET,
-    }
-  }
-};
-
-const defaultConfiguration = new Configuration(baseConfig);
-
-const nocks = {
-  tokenExchange: (
-    apiTokenIssuer: string,
-    accessToken = "test-token",
-    expiresIn = 300
-  ) => {
-    return nock(`https://${apiTokenIssuer}`).post("/oauth/token").reply(200, {
-      access_token: accessToken,
-      expires_in: expiresIn,
-    });
-  },
-  readAuthorizationModels: (
-    storeId: string,
-    basePath = defaultConfiguration.getBasePath(),
-  ) => {
-    return nock(basePath)
-      .get(`/stores/${storeId}/authorization-models`)
-      .reply(200, {
-        configurations: [],
-      } as ReadAuthorizationModelsResponse);
-  },
-  check: (
-    storeId: string,
-    tuple: TupleKey,
-    basePath = defaultConfiguration.getBasePath(),
-  ) => {
-    return nock(basePath)
-      .post(`/stores/${storeId}/check`)
-      .reply(200, {
-        allowed: true,
-      } as CheckResponse);
-  },
-  write: (
-    storeId: string,
-    tuple: TupleKey,
-    basePath = defaultConfiguration.getBasePath(),
-  ) => {
-    return nock(basePath)
-      .post(`/stores/${storeId}/write`)
-      .reply(200, {} as Promise<object>);
-  },
-  delete: (
-    storeId: string,
-    tuple: TupleKey,
-    basePath = defaultConfiguration.getBasePath(),
-  ) => {
-    return nock(basePath)
-      .post(`/stores/${storeId}/write`)
-      .reply(200, {} as Promise<object>);
-  },
-  read: (
-    storeId: string,
-    tuple: TupleKey,
-    basePath = defaultConfiguration.getBasePath(),
-  ) => {
-    return nock(basePath)
-      .post(`/stores/${storeId}/read`)
-      .reply(200, { tuples: [] } as ReadResponse);
-  },
-  expand: (
-    storeId: string,
-    tuple: TupleKey,
-    basePath = defaultConfiguration.getBasePath(),
-  ) => {
-    return nock(basePath)
-      .post(`/stores/${storeId}/expand`)
-      .reply(200, { tree: {} } as ExpandResponse);
-  },
-  readSingleAuthzModel: (
-    storeId: string,
-    configId: string,
-    basePath = defaultConfiguration.getBasePath(),
-  ) => {
-    return nock(basePath)
-      .get(`/stores/${storeId}/authorization-models/${configId}`)
-      .reply(200, {
-        configuration: { id: "some-id", type_definitions: [] },
-      } as AuthorizationModel);
-  },
-  writeAuthorizationModel: (
-    storeId: string,
-    configurations: WriteAuthorizationModelRequest,
-    basePath = defaultConfiguration.getBasePath(),
-  ) => {
-    return nock(basePath)
-      .post(`/stores/${storeId}/authorization-models`)
-      .reply(200, {
-        id: "some-new-id",
-      } as ReadAuthorizationModelResponse);
-  },
-  readChanges: (storeId: string, type: string, pageSize: number, contToken: string, basePath = defaultConfiguration.getBasePath()) => {
-    return nock(basePath)
-      .get(`/stores/${storeId}/changes`)
-      .query({
-        type,
-        page_size: pageSize,
-        continuation_token: contToken
-      })
-      .reply(200, {
-        changes: [{
-          tuple_key: {
-            user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
-            relation: "viewer",
-            object: "document:roadmap"
-          },
-          operation: TupleOperation.Write,
-          timestamp: "2000-01-01T00:00:00Z"
-        }],
-        "continuation_token": "eyJwayI6IkxBVEVTVF9OU0NPTkZJR19hdXRoMHN0b3JlIiwic2siOiIxem1qbXF3MWZLZExTcUoyN01MdTdqTjh0cWgifQ=="
-      } as ReadChangesResponse);
-  },
-  listObjects: (storeId: string, responseBody: ListObjectsResponse, basePath = defaultConfiguration.getBasePath()) => {
-    return nock(basePath)
-      .post(`/stores/${storeId}/list-objects`)
-      .reply(200, responseBody);
-  },
-};
 
 describe("OpenFga SDK", function () {
   describe("initializing the sdk", () => {
@@ -849,7 +705,7 @@ describe("OpenFga SDK", function () {
 
         expect(scope.isDone()).toBe(true);
         expect(data).toMatchObject({
-          configuration: {
+          authorization_model: {
             id: expect.any(String),
             type_definitions: expect.arrayContaining([]),
           },
@@ -859,14 +715,14 @@ describe("OpenFga SDK", function () {
 
     describe("readAuthorizationModels", () => {
       it("should call the api and return the response", async () => {
-        const scope = nocks.readAuthorizationModels(baseConfig.storeId!);
+        const scope = nocks.readAuthorizationModels(baseConfig.storeId!, defaultConfiguration.getBasePath(), [{ id: "1", type_definitions: []}]);
 
         expect(scope.isDone()).toBe(false);
         const data = await openFgaApi.readAuthorizationModels();
 
         expect(scope.isDone()).toBe(true);
         expect(data).toMatchObject({
-          configurations: expect.arrayContaining([]),
+          authorization_models: expect.arrayContaining([{ id: "1", type_definitions: []}]),
         });
       });
     });
