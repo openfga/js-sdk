@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.2.1
+
+### [0.2.1](https://github.com/openfga/js-sdk/compare/v0.2.0...v0.2.1) (2023-01-17)
+
+- chore(deps): upgrade dev dependencies, resolves npm audit issue
+
 ## v0.2.0
 
 ### [0.2.0](https://github.com/openfga/js-sdk/compare/v0.1.1...v0.2.0) (2022-12-14)

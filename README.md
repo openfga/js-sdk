@@ -392,7 +392,7 @@ const response = await openFga.listObjects({
 | [**deleteStore**](#deletestore) | **DELETE** /stores/{store_id} | Delete a store |
 | [**expand**](#expand) | **POST** /stores/{store_id}/expand | Expand all relationships in userset tree format, and following userset rewrite rules.  Useful to reason about and debug a certain relationship |
 | [**getStore**](#getstore) | **GET** /stores/{store_id} | Get a store |
-| [**listObjects**](#listobjects) | **POST** /stores/{store_id}/list-objects | [EXPERIMENTAL] Get all object ids of the given type that the user has a relation with |
+| [**listObjects**](#listobjects) | **POST** /stores/{store_id}/list-objects | [EXPERIMENTAL] Get all objects of the given type that the user has a relation with |
 | [**listStores**](#liststores) | **GET** /stores | List all stores |
 | [**read**](#read) | **POST** /stores/{store_id}/read | Get tuples from the store that matches a query, without following userset rewrite rules |
 | [**readAssertions**](#readassertions) | **GET** /stores/{store_id}/assertions/{authorization_model_id} | Read assertions for an authorization model ID |
