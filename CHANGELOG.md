@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.2.2
+
+### [0.2.2](https://github.com/openfga/js-sdk/compare/v0.2.1...v0.2.2) (2023-01-23)
+
+- fix(credentials): resolve client credentials token not being cached
+- chore(deps): upgrade dev dependencies
+
 ## v0.2.1
 
 ### [0.2.1](https://github.com/openfga/js-sdk/compare/v0.2.0...v0.2.1) (2023-01-17)

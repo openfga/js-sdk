@@ -1,6 +1,6 @@
 {
   "name": "@openfga/sdk",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "JavaScript and Node.js SDK for OpenFGA",
   "author": "OpenFGA",
   "keywords": [
@@ -25,7 +25,7 @@
     "axios": "^0.27.2"
   },
   "devDependencies": {
-    "@types/jest": "^29.2.5",
+    "@types/jest": "^29.2.6",
     "@types/node": "^18.11.18",
     "@typescript-eslint/eslint-plugin": "^5.48.2",
     "@typescript-eslint/parser": "^5.48.2",

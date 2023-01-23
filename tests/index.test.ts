@@ -330,6 +330,29 @@ describe("OpenFga SDK", function () {
       nock.cleanAll();
     });
 
+    it("should cache the bearer token and not issue a network call to get the token at the second request", async () => {
+      let scope = nocks.tokenExchange(OPENFGA_API_TOKEN_ISSUER);
+      nocks.readAuthorizationModels(baseConfig.storeId!);
+
+      const openFgaApi = new OpenFgaApi(baseConfig);
+      expect(scope.isDone()).toBe(false);
+
+      await openFgaApi.readAuthorizationModels();
+
+      expect(scope.isDone()).toBe(true);
+
+      nock.cleanAll();
+      scope = nocks.tokenExchange(OPENFGA_API_TOKEN_ISSUER);
+      nocks.readAuthorizationModels(baseConfig.storeId!);
+      expect(scope.isDone()).toBe(false);
+
+      await openFgaApi.readAuthorizationModels();
+
+      expect(scope.isDone()).toBe(false);
+
+      nock.cleanAll();
+    });
+
     it("should not issue a network call to get the token at the first request if the clientId is not provided", async () => {
       const scope = nocks.tokenExchange(OPENFGA_API_TOKEN_ISSUER);
       nocks.readAuthorizationModels(baseConfig.storeId!);
