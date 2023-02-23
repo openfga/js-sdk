@@ -84,12 +84,6 @@ import {
   WriteRequest,
 } from "./apiModel";
 
-// default maximum number of retry
-const cDefaultMaxRetry = 3;
-// default minimum wait period in retry - but will backoff exponentially
-const cDefaultMinWaitMs = 100;
-
-
 /**
  * OpenFgaApi - axios parameter creator
  * @export

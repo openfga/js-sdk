@@ -26,6 +26,7 @@ import {
     FgaApiValidationError,
     FgaError
 } from "./errors";
+import { setNotEnumerableProperty } from "./utils";
 
 /**
  *
@@ -126,17 +127,13 @@ export const createRequestFunction = function (axiosArgs: RequestArgs, globalAxi
     }
     return async (axios: AxiosStatic = globalAxios) : PromiseResult<any> => {
         await setBearerAuthToObject(axiosArgs.options.headers, credentials!);
-        for (let i = 0; i < maxRetry + 1; i++) {
+        for (let iterationCount = 0; iterationCount < maxRetry + 1; iterationCount++) {
             try {
                 const axiosRequestArgs = {...axiosArgs.options, url: configuration.getBasePath() + axiosArgs.url};
                 const response = await axios.request(axiosRequestArgs);
                 const data = typeof response.data === 'undefined' ? {} : response.data;
                 const result: CallResult<any> = { ...data };
-                Object.defineProperty(result, '$response', {
-                    enumerable: false,
-                    writable: false,
-                    value: response
-                });
+                setNotEnumerableProperty(result, '$response', response);
                 return result;
             } catch (err: unknown) {
                 if (!axios.isAxiosError(err) || !err.response?.status) {
@@ -148,13 +145,17 @@ export const createRequestFunction = function (axiosArgs: RequestArgs, globalAxi
                     throw new FgaApiAuthenticationError(err);
                 } else if (err.response?.status === 404) {
                     throw new FgaApiNotFoundError(err);
-                } else if (err.response?.status === 429) {
-                    if (i >= maxRetry) {
+                } else if (err.response?.status === 429 || err.response?.status >= 500) {
+                    if (iterationCount >= maxRetry) {
                         // We have reached the max retry limit
                         // Thus, we have no choice but to throw
-                        throw new FgaApiRateLimitExceededError(err);
+                        if (err.response?.status === 429) {
+                          throw new FgaApiRateLimitExceededError(err);
+                        } else {
+                          throw new FgaApiInternalError(err);
+                        }
                     }
-                    await new Promise(r => setTimeout(r, randomTime(i, minWaitInMs)));
+                    await new Promise(r => setTimeout(r, randomTime(iterationCount, minWaitInMs)));
                 } else if (err.response?.status >= 500) {
                     throw new FgaApiInternalError(err);
                 } else {

@@ -434,7 +434,13 @@ describe("OpenFga SDK", function () {
 
       beforeEach(async () => {
         nocks.tokenExchange(OPENFGA_API_TOKEN_ISSUER, "test-token");
+      });
 
+      afterEach(() => {
+        nock.cleanAll();
+      });
+
+      it("should throw FgaApiInternalError if retries disabled", async () => {
         nock(basePath)
           .post(
             `/stores/${storeId}/check`,
@@ -447,16 +453,40 @@ describe("OpenFga SDK", function () {
             code: "internal_error",
             message: "nock error",
           });
-      });
 
-      afterEach(() => {
-        nock.cleanAll();
-      });
-
-      it("should throw FgaApiInternalError", async () => {
         await expect(
-          openFgaApi.check({ tuple_key: tupleKey })
+          openFgaApi.check({ tuple_key: tupleKey }, { retryParams: { maxRetry: 0 }})
         ).rejects.toThrow(FgaApiInternalError);
+      });
+
+      it("should not throw FgaApiInternalError with default retries", async () => {
+        nock(basePath)
+          .post(
+            `/stores/${storeId}/check`,
+            {
+              tuple_key: tupleKey,
+            },
+            expect.objectContaining({ Authorization: "Bearer test-token" })
+          )
+          .reply(500, {
+            code: "internal_error",
+            message: "nock error",
+          });
+
+        nock(basePath)
+          .post(
+            `/stores/${storeId}/check`,
+            {
+              tuple_key: tupleKey,
+            },
+            expect.objectContaining({ Authorization: "Bearer test-token" })
+          )
+          .reply(200, {
+            allowed: true,
+          });
+
+        const response = await openFgaApi.check({ tuple_key: tupleKey });
+        expect(response.allowed).toBe(true);
       });
     });
 
