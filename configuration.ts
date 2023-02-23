@@ -23,8 +23,8 @@ const DEFAULT_MAX_RETRY = 5;
 const DEFAULT_MIN_WAIT_MS = 100;
 
 export interface RetryParams {
-  maxRetry: number;
-  minWaitInMs: number;
+  maxRetry?: number;
+  minWaitInMs?: number;
 }
 
 export interface UserConfigurationParams {

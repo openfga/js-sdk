@@ -35,7 +35,7 @@ import {
 } from "./apiModel";
 import { BaseAPI } from "./base";
 import { CallResult, PromiseResult } from "./common";
-import { Configuration, UserConfigurationParams } from "./configuration";
+import { Configuration, RetryParams, UserConfigurationParams } from "./configuration";
 import { FgaValidationError } from "./errors";
 import { chunkSequentialCall, setNotEnumerableProperty } from "./utils";
 
@@ -45,14 +45,11 @@ export type OpenFgaClientConfig = (UserConfigurationParams | Configuration) & {
 
 type TupleKey = Required<ApiTupleKey>;
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface RetryOpts {
-}
-
 const DEFAULT_MAX_METHOD_PARALLEL_REQS = 10;
+const DEFAULT_MAX_RETRY_OVERRIDE = 15;
 
 export interface ClientRequestOpts {
-  retry?: RetryOpts;
+  retryParams?: RetryParams;
 }
 
 export interface AuthorizationModelIdOpts {
@@ -277,14 +274,18 @@ export class OpenFgaClient extends BaseAPI {
 
     const results: ClientWriteResponse = { writes: [], deletes: [] };
     await chunkSequentialCall<TupleKey, void>(
-      (chunk) => this.openFgaApi.write({ writes: { tuple_keys: chunk}, authorization_model_id: authorizationModelId })
+      (chunk) => this.openFgaApi.write(
+        { writes: { tuple_keys: chunk}, authorization_model_id: authorizationModelId },
+        { retryParams: { maxRetry: DEFAULT_MAX_RETRY_OVERRIDE } })
         .then(() => { results.writes.push(...chunk.map(tuple => ({ tuple_key: tuple, status: ClientWriteStatus.SUCCESS }))); })
         .catch(() => { results.writes.push(...chunk.map(tuple => ({ tuple_key: tuple, status: ClientWriteStatus.FAILURE }))); }),
       writes || [],
       transaction.maxPerChunk || DEFAULT_MAX_METHOD_PARALLEL_REQS,
     );
     await chunkSequentialCall<TupleKey, void>(
-      (chunk) => this.openFgaApi.write({ deletes: { tuple_keys: chunk }, authorization_model_id: authorizationModelId })
+      (chunk) => this.openFgaApi.write(
+        { deletes: { tuple_keys: chunk }, authorization_model_id: authorizationModelId },
+        { retryParams: { maxRetry: DEFAULT_MAX_RETRY_OVERRIDE } })
         .then(() => { results.deletes.push(...chunk.map(tuple => ({ tuple_key: tuple, status: ClientWriteStatus.SUCCESS }))); })
         .catch(() => { results.deletes.push(...chunk.map(tuple => ({ tuple_key: tuple, status: ClientWriteStatus.FAILURE }))); }),
       deletes || [],
@@ -343,7 +344,7 @@ export class OpenFgaClient extends BaseAPI {
    */
   async batchCheck(batchCheckRequest: ClientBatchCheckRequest, options: ClientRequestOptsWithAuthZModelId = {}): Promise<ClientBatchCheckResponse> {
     return chunkSequentialCall<TupleKey, any>(async (tuples) => 
-      Promise.all(tuples.map(tuple => this.check(tuple, options)
+      Promise.all(tuples.map(tuple => this.check(tuple, { ...options, retryParams: { maxRetry: DEFAULT_MAX_RETRY_OVERRIDE } })
         .then(({ allowed, $response: response }) => {
           const result = {
             allowed: allowed || false,

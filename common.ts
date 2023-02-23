@@ -156,8 +156,6 @@ export const createRequestFunction = function (axiosArgs: RequestArgs, globalAxi
                         }
                     }
                     await new Promise(r => setTimeout(r, randomTime(iterationCount, minWaitInMs)));
-                } else if (err.response?.status >= 500) {
-                    throw new FgaApiInternalError(err);
                 } else {
                     throw new FgaApiError(err);
                 }
