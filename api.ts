@@ -84,6 +84,7 @@ import {
   WriteRequest,
 } from "./apiModel";
 
+
 /**
  * OpenFgaApi - axios parameter creator
  * @export

@@ -14,8 +14,10 @@
 
 
 export * from "./api";
-export * from "./apiModel";
 export * from "./client";
+export * from "./apiModel";
 export { Configuration, UserConfigurationParams, GetDefaultRetryParams } from "./configuration";
 export { Credentials, CredentialsMethod } from "./credentials";
 export * from "./errors";
+
+

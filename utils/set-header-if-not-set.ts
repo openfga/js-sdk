@@ -11,13 +11,8 @@
  */
 
 
-export default function chunkArray<T>(inputArray: T[], maxChunkSize: number): T[][] {
-  const arrayOfArrays = [];
-
-  const inputArrayClone = [...inputArray];
-  while (inputArrayClone.length > 0) {
-    arrayOfArrays.push(inputArrayClone.splice(0, maxChunkSize));
+export function setHeaderIfNotSet(headers: Record<string, string>, key: string, value: string): void {
+  if (!headers[key] && value) {
+    headers[key] = value;
   }
-
-  return arrayOfArrays;
 }

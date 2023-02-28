@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.2.3
+
+### [0.2.3](https://github.com/openfga/js-sdk/compare/v0.2.2...v0.2.3) (2023-02-24)
+
+- feat(client): client wrapper with a slightly changed interface
+- feat(client): implement `batchCheck` to check multiple tuples in parallel
+- feat(client): implement `listRelations` to check what relationships a user has with an object
+- feat(client): add support for a non-transactional `Write`
+- chore(config): bump default max retries to 5
+- fix: retry on 5xx errors
+- chore!: request Node >= 14.7.0
+
 ## v0.2.2
 
 ### [0.2.2](https://github.com/openfga/js-sdk/compare/v0.2.1...v0.2.2) (2023-01-23)

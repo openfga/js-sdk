@@ -66,7 +66,7 @@ export class Configuration {
    * @type {string}
    * @memberof Configuration
    */
-  private static sdkVersion = "0.2.2";
+  private static sdkVersion = "0.2.3";
 
   /**
    * provide scheme (e.g. `https`)
@@ -174,8 +174,8 @@ export class Configuration {
         `Configuration.apiScheme (${this.apiScheme}) and Configuration.apiHost (${this.apiHost}) do not form a valid URI (${this.getBasePath()})`);
     }
 
-    if (this.retryParams?.maxRetry && this.retryParams.maxRetry > 5) {
-      throw new FgaValidationError("Configuration.retryParams.maxRetry exceeds maximum allowed limit of 5");
+    if (this.retryParams?.maxRetry && this.retryParams.maxRetry > 15) {
+      throw new FgaValidationError("Configuration.retryParams.maxRetry exceeds maximum allowed limit of 15");
     }
 
     return true;
