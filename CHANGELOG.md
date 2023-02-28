@@ -2,7 +2,7 @@
 
 ## v0.2.3
 
-### [0.2.3](https://github.com/openfga/js-sdk/compare/v0.2.2...v0.2.3) (2023-02-24)
+### [0.2.3](https://github.com/openfga/js-sdk/compare/v0.2.2...v0.2.3) (2023-02-28)
 
 - feat(client): client wrapper with a slightly changed interface
 - feat(client): implement `batchCheck` to check multiple tuples in parallel
@@ -11,6 +11,8 @@
 - chore(config): bump default max retries to 5
 - fix: retry on 5xx errors
 - chore!: request Node >= 14.7.0
+
+Checkout the [README](https://github.com/openfga/js-sdk/blob/main/README.md) for more on how to use the new OpenFgaClient.
 
 ## v0.2.2
 
