@@ -147,12 +147,13 @@ export const getNocks = ((nock: typeof Nock) => ({
   },
   write: (
     storeId: string,
-    tuple?: TupleKey,
     basePath = defaultConfiguration.getBasePath(),
+    responseBody: object | { code: string, message: string } = {},
+    statusCode = 204,
   ) => {
     return nock(basePath)
       .post(`/stores/${storeId}/write`)
-      .reply(200, {} as Promise<object>);
+      .reply(statusCode, responseBody);
   },
   delete: (
     storeId: string,

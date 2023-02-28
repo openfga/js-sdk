@@ -13,7 +13,7 @@
 
 import * as nock from "nock";
 
-import { CredentialsMethod, OpenFgaClient } from "../index";
+import { ClientWriteStatus, CredentialsMethod, OpenFgaClient } from "../index";
 import { baseConfig, defaultConfiguration, getNocks } from "./helpers";
 
 const nocks = getNocks(nock);
@@ -199,7 +199,7 @@ describe("OpenFGA Client", () => {
           relation: "admin",
           object: "workspace:1",
         };
-        const scope = nocks.write(baseConfig.storeId!, tuple);
+        const scope = nocks.write(baseConfig.storeId!);
 
         expect(scope.isDone()).toBe(false);
         const data = await fgaClient.write({
@@ -241,6 +241,46 @@ describe("OpenFGA Client", () => {
         expect(scope2.isDone()).toBe(false);
         expect(data).toMatchObject({});
       });
+
+      it("should not fail the request on errors in non-transaction mode", async () => {
+        const tuples = [{
+          user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
+          relation: "admin",
+          object: "workspace:1",
+        }, {
+          user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
+          relation: "admin",
+          object: "workspace:2",
+        }, {
+          user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
+          relation: "reader",
+          object: "workspace:3",
+        }];
+        const scope0 = nocks.write(baseConfig.storeId!).matchHeader("X-OpenFGA-Client-Method", "Write");
+        const scope1 = nocks.write(baseConfig.storeId!).matchHeader("X-OpenFGA-Client-Method", "Write");
+        const scope2 = nocks.write(baseConfig.storeId!, defaultConfiguration.getBasePath(), {
+          "code": "validation_error",
+          "message": "relation &#39;workspace#reader&#39; not found"
+        }, 400).matchHeader("X-OpenFGA-Client-Method", "Write");
+
+        expect(scope0.isDone()).toBe(false);
+        expect(scope1.isDone()).toBe(false);
+        expect(scope2.isDone()).toBe(false);
+        const data = await fgaClient.write({
+          writes: tuples,
+        }, {
+          authorization_model_id: "1uHxCSuTP0VKPYSnkq1pbb1jeZw",
+          transaction: { disable: true },
+        });
+
+        expect(scope0.isDone()).toBe(true);
+        expect(scope1.isDone()).toBe(true);
+        expect(scope2.isDone()).toBe(true);
+        expect(data.writes.length).toBe(3);
+        expect(data.writes.find(tuple => tuple.tuple_key.object === tuples[0].object)?.status).toBe(ClientWriteStatus.SUCCESS);
+        expect(data.writes.find(tuple => tuple.tuple_key.object === tuples[1].object)?.status).toBe(ClientWriteStatus.SUCCESS);
+        expect(data.writes.find(tuple => tuple.tuple_key.object === tuples[2].object)?.status).toBe(ClientWriteStatus.FAILURE);
+      });
     });
 
     describe("WriteTuples", () => {
@@ -250,7 +290,7 @@ describe("OpenFGA Client", () => {
           relation: "admin",
           object: "workspace:1",
         };
-        const scope = nocks.write(baseConfig.storeId!, tuple);
+        const scope = nocks.write(baseConfig.storeId!);
 
         expect(scope.isDone()).toBe(false);
         const data = await fgaClient.writeTuples([tuple], {
@@ -269,7 +309,7 @@ describe("OpenFGA Client", () => {
           relation: "admin",
           object: "workspace:1",
         };
-        const scope = nocks.write(baseConfig.storeId!, tuple);
+        const scope = nocks.write(baseConfig.storeId!);
 
         expect(scope.isDone()).toBe(false);
         const data = await fgaClient.deleteTuples([tuple], {

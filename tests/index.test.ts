@@ -637,7 +637,7 @@ describe("OpenFGA SDK", function () {
           relation: "admin",
           object: "workspace:1",
         };
-        const scope = nocks.write(baseConfig.storeId!, tuple);
+        const scope = nocks.write(baseConfig.storeId!);
 
         expect(scope.isDone()).toBe(false);
         const data = await fgaApi.write({

@@ -37,7 +37,7 @@ import {
 import { BaseAPI } from "./base";
 import { CallResult, PromiseResult } from "./common";
 import { Configuration, RetryParams, UserConfigurationParams } from "./configuration";
-import { FgaValidationError } from "./errors";
+import { FgaError, FgaValidationError } from "./errors";
 import {
   chunkSequentialCall,
   generateRandomIdWithNonUniqueFallback,
@@ -107,8 +107,8 @@ export enum ClientWriteStatus {
 }
 
 export interface ClientWriteResponse {
-  writes: { tuple_key: TupleKey, status: ClientWriteStatus }[];
-  deletes: { tuple_key: TupleKey, status: ClientWriteStatus }[];
+  writes: { tuple_key: TupleKey, status: ClientWriteStatus, err?: Error }[];
+  deletes: { tuple_key: TupleKey, status: ClientWriteStatus, err?: Error }[];
 }
 
 export interface ClientListRelationsResponse {
@@ -296,7 +296,7 @@ export class OpenFgaClient extends BaseAPI {
         { writes: { tuple_keys: chunk}, authorization_model_id: authorizationModelId },
         { retryParams: { maxRetry: DEFAULT_MAX_RETRY_OVERRIDE }, headers })
         .then(() => { results.writes.push(...chunk.map(tuple => ({ tuple_key: tuple, status: ClientWriteStatus.SUCCESS }))); })
-        .catch(() => { results.writes.push(...chunk.map(tuple => ({ tuple_key: tuple, status: ClientWriteStatus.FAILURE }))); }),
+        .catch((err) => { results.writes.push(...chunk.map(tuple => ({ tuple_key: tuple, status: ClientWriteStatus.FAILURE, err }))); }),
       writes || [],
       maxPerChunk,
     );
@@ -305,7 +305,7 @@ export class OpenFgaClient extends BaseAPI {
         { deletes: { tuple_keys: chunk }, authorization_model_id: authorizationModelId },
         { retryParams: { maxRetry: DEFAULT_MAX_RETRY_OVERRIDE }, headers })
         .then(() => { results.deletes.push(...chunk.map(tuple => ({ tuple_key: tuple, status: ClientWriteStatus.SUCCESS }))); })
-        .catch(() => { results.deletes.push(...chunk.map(tuple => ({ tuple_key: tuple, status: ClientWriteStatus.FAILURE }))); }),
+        .catch((err) => { results.deletes.push(...chunk.map(tuple => ({ tuple_key: tuple, status: ClientWriteStatus.FAILURE, err }))); }),
       deletes || [],
       maxPerChunk,
     );
@@ -433,12 +433,12 @@ export class OpenFgaClient extends BaseAPI {
 
     // 1- Get the list of relations on that object type
     // 2- Filter out/error out on invalid relations
-    // 2- Call check in batch
+    // 3- Call check in batch
     const authorizationModel: AuthorizationModel | undefined = this.getAuthorizationModelId(options) ?
       (await this.readAuthorizationModel(options))?.authorization_model : (await this.readLatestAuthorizationModel(options))?.authorization_model;
 
     if (!authorizationModel) {
-      throw new Error("authorization_model_not_found");
+      throw new FgaError("authorization_model_not_found");
     }
 
     const { type: objectType } = getObjectFromString(object);
