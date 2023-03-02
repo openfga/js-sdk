@@ -370,6 +370,8 @@ export interface InternalErrorMessageResponse {
      */
     message?: string;
 }
+
+
 /**
  * A leaf node contains either - a set of users (which may be individual users, or usersets   referencing other relations) - a computed node, which is the result of a computed userset   value in the authorization model - a tupleToUserset nodes, containing the result of expanding   a tupleToUserset value in a authorization model.
  * @export
@@ -578,6 +580,8 @@ export interface PathUnknownErrorMessageResponse {
      */
     message?: string;
 }
+
+
 /**
  * 
  * @export
@@ -836,6 +840,8 @@ export interface TupleChange {
      */
     timestamp?: string;
 }
+
+
 /**
  * 
  * @export
@@ -1068,6 +1074,8 @@ export interface ValidationErrorMessageResponse {
      */
     message?: string;
 }
+
+
 /**
  * 
  * @export

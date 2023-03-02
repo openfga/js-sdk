@@ -3,7 +3,7 @@
 [![npm](https://img.shields.io/npm/v/@openfga/sdk.svg?style=flat)](https://www.npmjs.com/package/@openfga/sdk)
 [![Release](https://img.shields.io/github/v/release/openfga/js-sdk?sort=semver&color=green)](https://github.com/openfga/js-sdk/releases)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](./LICENSE)
-[![FOSSA Status](https://app.fossa.com/api/projects/custom%2B4989%2Fgithub.com%2Fopenfga%2Fjs-sdk.svg?type=shield)](https://app.fossa.com/reports/54ab1f22-5ce4-4c02-b049-dcc8db514cc1)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fopenfga%2Fjs-sdk.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fopenfga%2Fjs-sdk?ref=badge_shield)
 [![Discord Server](https://img.shields.io/discord/759188666072825867?color=7289da&logo=discord "Discord Server")](https://discord.com/channels/759188666072825867/930524706854031421)
 [![Twitter](https://img.shields.io/twitter/follow/openfga?color=%23179CF0&logo=twitter&style=flat-square "@openfga on Twitter")](https://twitter.com/openfga)
 
