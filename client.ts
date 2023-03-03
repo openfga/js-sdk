@@ -111,10 +111,6 @@ export interface ClientWriteResponse {
   deletes: { tuple_key: TupleKey, status: ClientWriteStatus, err?: Error }[];
 }
 
-export interface ClientListRelationsResponse {
-  relations: string[];
-}
-
 export interface ClientReadChangesRequest {
   type: string;
 }
@@ -122,7 +118,6 @@ export interface ClientReadChangesRequest {
 export type ClientExpandRequest = Pick<TupleKey, "relation" | "object">;
 export type ClientReadRequest = ApiTupleKey;
 export type ClientListObjectsRequest = Omit<ListObjectsRequest, "authorization_model_id" | "contextual_tuples"> & { contextual_tuples?: TupleKey[] };
-export type ClientListRelationsRequest = Pick<ClientCheckRequest, "user" | "object" | "contextual_tuples"> & { relations?: string[] };
 export type ClientWriteAssertionsRequest = (TupleKey & Pick<Assertion, "expectation">)[];
 
 function getObjectFromString(objectString: string): { type: string; id: string } {
@@ -414,52 +409,6 @@ export class OpenFgaClient extends BaseAPI {
       type: listObjectsRequest.type,
       contextual_tuples: { tuple_keys: listObjectsRequest.contextual_tuples || [] },
     }, options);
-  }
-
-  /**
-   * ListRelations - List all the relations a user has with an object (evaluates)
-   * @param {object} listRelationsRequest
-   * @param {string} listRelationsRequest.user The user object, must be of the form: `<type>:<id>`
-   * @param {string} listRelationsRequest.object The object, must be of the form: `<type>:<id>`
-   * @param {string[]} [listRelationsRequest.relations] The list of relations to check, if not sent default to the all those for that type int the model
-   * @param options
-   */
-  async listRelations(listRelationsRequest: ClientListRelationsRequest, options: ClientRequestOptsWithAuthZModelId & BatchCheckRequestOpts = {}): Promise<ClientListRelationsResponse> {
-    const { user, object } = listRelationsRequest;
-    let { relations } = listRelationsRequest;
-    const { headers = {}, maxParallelRequests = DEFAULT_MAX_METHOD_PARALLEL_REQS } = options;
-    setHeaderIfNotSet(headers, CLIENT_METHOD_HEADER, "ListRelations");
-    setHeaderIfNotSet(headers, CLIENT_BULK_REQUEST_ID_HEADER, generateRandomIdWithNonUniqueFallback());
-
-    // 1- Get the list of relations on that object type
-    // 2- Filter out/error out on invalid relations
-    // 3- Call check in batch
-    const authorizationModel: AuthorizationModel | undefined = this.getAuthorizationModelId(options) ?
-      (await this.readAuthorizationModel(options))?.authorization_model : (await this.readLatestAuthorizationModel(options))?.authorization_model;
-
-    if (!authorizationModel) {
-      throw new FgaError("authorization_model_not_found");
-    }
-
-    const { type: objectType } = getObjectFromString(object);
-    const availableRelations = Object.keys(authorizationModel?.type_definitions?.find(typeDef => typeDef.type === objectType)?.relations || {});
-
-    if (!relations) {
-      relations = availableRelations;
-    }
-
-    if (relations.some(relation => !availableRelations.includes(relation))) {
-      throw new FgaValidationError("relations", "Not all requested relations are available on this object type");
-    }
-
-    const batchCheckResults = await this.batchCheck(relations.map(relation => ({
-      user,
-      relation,
-      object,
-      contextual_tuples: listRelationsRequest.contextual_tuples,
-    })), { ...options, headers, maxParallelRequests });
-
-    return { relations: batchCheckResults.filter(result => result.allowed).map(result => result._request.relation) };
   }
 
   /**************

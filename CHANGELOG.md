@@ -6,7 +6,6 @@
 
 - feat(client): client wrapper with a slightly changed interface
 - feat(client): implement `batchCheck` to check multiple tuples in parallel
-- feat(client): implement `listRelations` to check what relationships a user has with an object
 - feat(client): add support for a non-transactional `Write`
 - chore(config): bump default max retries to 5
 - fix: retry on 5xx errors
