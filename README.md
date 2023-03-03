@@ -372,7 +372,8 @@ Create and/or delete relationship tuples to update the system state.
 
 > Requires a client initialized with a storeId
 
-Transaction mode (default):
+###### Transaction mode (default)
+
 By default, write runs in a transaction mode where any invalid operation (deleting a non-exiting tuple, creating an existing tuple, one of the tuples was invalid) or a server error will fail the entire operation.
 
 ```javascript
@@ -393,7 +394,8 @@ await fgaClient.deleteTuples([{ user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b
 // if any error is encountered in the transaction mode, an error will be thrown
 ```
 
-Non-transaction mode:
+###### Non-transaction mode
+
 The SDK will split the writes into separate requests and send them sequentially to avoid rate limits.
 
 ```
