@@ -208,13 +208,15 @@ Read all authorization models.
 
 [API Documentation](https://openfga.dev/api/service#/Authorization%20Models/ReadAuthorizationModels)
 
+>  Requires a client initialized with a storeId
+
 ```javascript
 const options = { pageSize: 10, continuationToken: "..." };
 
 const { authorization_models: authorizationModels } = await fgaClient.readAuthorizationModels(options);
 
 /*
-authorizationModelIds = [
+authorizationModels = [
  { id: "1uHxCSuTP0VKPYSnkq1pbb1jeZw", type_definitions: [...] },
  { id: "GtQpMohWezFmIbyXxVEocOCxxgq", type_definitions: [...] }];
 */
@@ -451,7 +453,7 @@ const options = {
   // if you'd like to override the authorization model id for this request
   authorization_model_id: "1uHxCSuTP0VKPYSnkq1pbb1jeZw",
 }
-const result = await fgaClient.batchCheck([{
+const { responses } = await fgaClient.batchCheck([{
   user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
   relation: "viewer",
   object: "document:budget",
@@ -471,7 +473,7 @@ const result = await fgaClient.batchCheck([{
 }], options);
 
 /*
-result = [{
+responses = [{
   allowed: false,
   _request: {
     user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",

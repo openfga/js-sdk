@@ -16,7 +16,6 @@ import { AxiosResponse, AxiosStatic } from "axios";
 import { OpenFgaApi } from "./api";
 import {
   Assertion,
-  AuthorizationModel,
   CheckResponse,
   CreateStoreRequest,
   CreateStoreResponse,
@@ -37,7 +36,7 @@ import {
 import { BaseAPI } from "./base";
 import { CallResult, PromiseResult } from "./common";
 import { Configuration, RetryParams, UserConfigurationParams } from "./configuration";
-import { FgaError, FgaValidationError } from "./errors";
+import { FgaError } from "./errors";
 import {
   chunkSequentialCall,
   generateRandomIdWithNonUniqueFallback,
@@ -83,7 +82,9 @@ export type ClientBatchCheckSingleResponse = {
   error: Error;
 });
 
-export type ClientBatchCheckResponse = ClientBatchCheckSingleResponse[]
+export interface ClientBatchCheckResponse {
+  responses: ClientBatchCheckSingleResponse[];
+}
 
 export interface ClientWriteRequestOpts {
   transaction?: {
@@ -364,7 +365,7 @@ export class OpenFgaClient extends BaseAPI {
     setHeaderIfNotSet(headers, CLIENT_METHOD_HEADER, "BatchCheck");
     setHeaderIfNotSet(headers, CLIENT_BULK_REQUEST_ID_HEADER, generateRandomIdWithNonUniqueFallback());
 
-    return chunkSequentialCall<TupleKey, any>(async (tuples) =>
+    const responses = (await chunkSequentialCall<TupleKey, any>(async (tuples) =>
       Promise.all(tuples.map(tuple => this.check(tuple, { ...options, retryParams: { maxRetry: DEFAULT_MAX_RETRY_OVERRIDE }, headers })
         .then(({ allowed, $response: response }) => {
           const result = {
@@ -378,7 +379,9 @@ export class OpenFgaClient extends BaseAPI {
           error: err,
           _request: tuple,
         }))
-      )), batchCheckRequest, maxParallelRequests).then(results => results.flat());
+      )), batchCheckRequest, maxParallelRequests).then(results => results.flat())) as ClientBatchCheckSingleResponse[];
+
+    return { responses };
   }
 
   /**

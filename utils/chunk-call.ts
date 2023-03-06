@@ -13,15 +13,6 @@
 
 import chunkArray from "./chunk-array";
 
-export async function chunkParallelCall<T = any, W = any>(
-  fnToCall: (chunk: T[]) => Promise<W>,
-  dataArray: T[],
-  maxPerChunk: number,
-): Promise<Awaited<W>[]> {
-  const chunkedSet = chunkArray<T>(dataArray, maxPerChunk);
-  return Promise.all(chunkedSet.map((chunk) => fnToCall(chunk)));
-}
-
 export async function chunkSequentialCall<T = any, W = any>(
   fnToCall: (chunk: T[]) => Promise<W>,
   dataArray: T[],

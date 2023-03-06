@@ -369,8 +369,8 @@ describe("OpenFGA Client", () => {
         expect(scope0.isDone()).toBe(true);
         expect(scope1.isDone()).toBe(true);
         expect(scope2.isDone()).toBe(true);
-        expect(response.length).toBe(3);
-        expect(response.sort((a, b) => String(a._request.object).localeCompare(b._request.object)))
+        expect(response.responses.length).toBe(3);
+        expect(response.responses.sort((a, b) => String(a._request.object).localeCompare(b._request.object)))
           .toMatchObject(expect.arrayContaining([
             { _request: tuples[0], allowed: true, },
             { _request: tuples[1], allowed: false },
