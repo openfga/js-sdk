@@ -83,6 +83,10 @@ yarn add @openfga/sdk
 
 [Learn how to initialize your SDK](https://openfga.dev/docs/getting-started/setup-sdk-client)
 
+The documentation below refers to the `OpenFgaClient`, to read the documentation for `OpenFgaApi`, check out the [`v0.2.2` documentation](https://github.com/openfga/js-sdk/tree/v0.2.2#readme).
+
+> The OpenFgaClient will by default retry API requests up to 15 times on 429 and 5xx errors.
+
 #### No Credentials
 
 ```javascript
@@ -92,6 +96,7 @@ const fgaClient = new OpenFgaClient({
   apiScheme: OPENFGA_API_SCHEME, // optional, defaults to "https"
   apiHost: OPENFGA_API_HOST, // required, define without the scheme (e.g. api.fga.example instead of https://api.fga.example)
   storeId: OPENFGA_STORE_ID, // not needed when calling `CreateStore` or `ListStores`
+  authorizationModelId: OPENFGA_AUTHORIZATION_MODEL_ID, // Optional, can be overridden per request
 });
 ```
 
@@ -104,6 +109,7 @@ const fgaClient = new OpenFgaClient({
   apiScheme: OPENFGA_API_SCHEME, // optional, defaults to "https"
   apiHost: OPENFGA_API_HOST, // required, define without the scheme (e.g. api.fga.example instead of https://api.fga.example)
   storeId: OPENFGA_STORE_ID, // not needed when calling `CreateStore` or `ListStores`
+  authorizationModelId: OPENFGA_AUTHORIZATION_MODEL_ID, // Optional, can be overridden per request
   credentials: {
     method: CredentialsMethod.ApiToken,
     config: {
@@ -122,7 +128,7 @@ const fgaClient = new OpenFgaClient({
   apiScheme: OPENFGA_API_SCHEME, // optional, defaults to "https"
   apiHost: OPENFGA_API_HOST, // required, define without the scheme (e.g. api.fga.example instead of https://api.fga.example)
   storeId: OPENFGA_STORE_ID, // not needed when calling `CreateStore` or `ListStores`
-  authorizationModelId: OPENFGA_AUTHORIZATION_MODEL_ID, // not needed when calling `CreateAuthorizationModel` or `ReadAuthorizationModels`
+  authorizationModelId: OPENFGA_AUTHORIZATION_MODEL_ID, // Optional, can be overridden per request
   credentials: {
     method: CredentialsMethod.ClientCredentials,
     config: {
@@ -271,7 +277,7 @@ const { authorization_model_id: id } = await fgaClient.writeAuthorizationModel({
 const options = {};
 
 // To override the authorization model id for this request
-options.authorization_model_id = "1uHxCSuTP0VKPYSnkq1pbb1jeZw";
+options.authorizationModelId = "1uHxCSuTP0VKPYSnkq1pbb1jeZw";
 
 const { authorization_model: authorizationModel } = await fgaClient.readAuthorizationModel(options);
 
@@ -381,7 +387,7 @@ By default, write runs in a transaction mode where any invalid operation (deleti
 const options = {};
 
 // To override the authorization model id for this request
-options.authorization_model_id = "1uHxCSuTP0VKPYSnkq1pbb1jeZw";
+options.authorizationModelId = "1uHxCSuTP0VKPYSnkq1pbb1jeZw";
 
 await fgaClient.write({
   writes: [{ user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b", relation: "viewer", object: "document:roadmap" }],
@@ -429,7 +435,7 @@ Check if a user has a particular relation with an object.
 ```javascript
 const options = {
   // if you'd like to override the authorization model id for this request
-  authorization_model_id: "1uHxCSuTP0VKPYSnkq1pbb1jeZw",
+  authorizationModelId: "1uHxCSuTP0VKPYSnkq1pbb1jeZw",
 };
 
 const result = await fgaClient.check({
@@ -451,7 +457,7 @@ If 429s or 5xxs are encountered, the underlying check will retry up to 15 times 
 ```javascript
 const options = {
   // if you'd like to override the authorization model id for this request
-  authorization_model_id: "1uHxCSuTP0VKPYSnkq1pbb1jeZw",
+  authorizationModelId: "1uHxCSuTP0VKPYSnkq1pbb1jeZw",
 }
 const { responses } = await fgaClient.batchCheck([{
   user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
@@ -516,7 +522,7 @@ Expands the relationships in userset tree format.
 const options = {};
 
 // To override the authorization model id for this request
-options.authorization_model_id = "1uHxCSuTP0VKPYSnkq1pbb1jeZw";
+options.authorizationModelId = "1uHxCSuTP0VKPYSnkq1pbb1jeZw";
 
 const { tree } = await fgaClient.expand({
   relation: "viewer",
@@ -538,7 +544,7 @@ const { tree } = await fgaClient.expand({
 const options = {};
 
 // To override the authorization model id for this request
-options.authorization_model_id = "1uHxCSuTP0VKPYSnkq1pbb1jeZw";
+options.authorizationModelId = "1uHxCSuTP0VKPYSnkq1pbb1jeZw";
 
 const response = await fgaClient.listObjects({
   user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
@@ -568,7 +574,7 @@ Read assertions for a particular authorization model.
 const options = {};
 
 // To override the authorization model id for this request
-options.authorization_model_id = "1uHxCSuTP0VKPYSnkq1pbb1jeZw";
+options.authorizationModelId = "1uHxCSuTP0VKPYSnkq1pbb1jeZw";
 
 const response = await fgaClient.readAssertions(options);
 
@@ -594,7 +600,7 @@ Update the assertions for a particular authorization model.
 const options = {};
 
 // To override the authorization model id for this request
-options.authorization_model_id = "1uHxCSuTP0VKPYSnkq1pbb1jeZw";
+options.authorizationModelId = "1uHxCSuTP0VKPYSnkq1pbb1jeZw";
 
 const response = await fgaClient.writeAssertions([{
   user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",

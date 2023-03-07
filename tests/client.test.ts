@@ -128,7 +128,7 @@ describe("OpenFGA Client", () => {
         const scope = nocks.readSingleAuthzModel(defaultConfiguration.storeId!, modelId);
 
         expect(scope.isDone()).toBe(false);
-        const data = await fgaClient.readAuthorizationModel({ authorization_model_id: modelId });
+        const data = await fgaClient.readAuthorizationModel({ authorizationModelId: modelId });
 
         expect(scope.isDone()).toBe(true);
         expect(data).toMatchObject({
@@ -205,7 +205,7 @@ describe("OpenFGA Client", () => {
         const data = await fgaClient.write({
           writes: [tuple],
         }, {
-          authorization_model_id: "1uHxCSuTP0VKPYSnkq1pbb1jeZw",
+          authorizationModelId: "1uHxCSuTP0VKPYSnkq1pbb1jeZw",
         });
 
         expect(scope.isDone()).toBe(true);
@@ -232,7 +232,7 @@ describe("OpenFGA Client", () => {
         const data = await fgaClient.write({
           writes: tuples,
         }, {
-          authorization_model_id: "1uHxCSuTP0VKPYSnkq1pbb1jeZw",
+          authorizationModelId: "1uHxCSuTP0VKPYSnkq1pbb1jeZw",
           transaction: { disable: true },
         });
 
@@ -269,7 +269,7 @@ describe("OpenFGA Client", () => {
         const data = await fgaClient.write({
           writes: tuples,
         }, {
-          authorization_model_id: "1uHxCSuTP0VKPYSnkq1pbb1jeZw",
+          authorizationModelId: "1uHxCSuTP0VKPYSnkq1pbb1jeZw",
           transaction: { disable: true },
         });
 
@@ -294,7 +294,7 @@ describe("OpenFGA Client", () => {
 
         expect(scope.isDone()).toBe(false);
         const data = await fgaClient.writeTuples([tuple], {
-          authorization_model_id: "1uHxCSuTP0VKPYSnkq1pbb1jeZw",
+          authorizationModelId: "1uHxCSuTP0VKPYSnkq1pbb1jeZw",
         });
 
         expect(scope.isDone()).toBe(true);
@@ -313,7 +313,7 @@ describe("OpenFGA Client", () => {
 
         expect(scope.isDone()).toBe(false);
         const data = await fgaClient.deleteTuples([tuple], {
-          authorization_model_id: "1uHxCSuTP0VKPYSnkq1pbb1jeZw",
+          authorizationModelId: "1uHxCSuTP0VKPYSnkq1pbb1jeZw",
         });
 
         expect(scope.isDone()).toBe(true);
@@ -389,7 +389,7 @@ describe("OpenFGA Client", () => {
         const scope = nocks.expand(baseConfig.storeId!, tuple);
 
         expect(scope.isDone()).toBe(false);
-        const data = await fgaClient.expand(tuple, { authorization_model_id: "1uHxCSuTP0VKPYSnkq1pbb1jeZw" });
+        const data = await fgaClient.expand(tuple, { authorizationModelId: "1uHxCSuTP0VKPYSnkq1pbb1jeZw" });
 
         expect(scope.isDone()).toBe(true);
         expect(data).toMatchObject({});
@@ -417,7 +417,7 @@ describe("OpenFGA Client", () => {
               object: "document:roadmap"
             }]
         }, {
-          authorization_model_id: "01GAHCE4YVKPQEKZQHT2R89MQV",
+          authorizationModelId: "01GAHCE4YVKPQEKZQHT2R89MQV",
         });
 
         expect(scope.isDone()).toBe(true);
@@ -433,7 +433,7 @@ describe("OpenFGA Client", () => {
         const scope = nocks.readAssertions(defaultConfiguration.storeId!, modelId);
 
         expect(scope.isDone()).toBe(false);
-        const data = await fgaClient.readAssertions({ authorization_model_id: modelId });
+        const data = await fgaClient.readAssertions({ authorizationModelId: modelId });
 
         expect(scope.isDone()).toBe(true);
         expect(data).toMatchObject({
@@ -454,7 +454,7 @@ describe("OpenFGA Client", () => {
           relation: "viewer",
           object: "document:roadmap",
           expectation: true,
-        }], { authorization_model_id: modelId });
+        }], { authorizationModelId: modelId });
 
         expect(scope.isDone()).toBe(true);
       });
