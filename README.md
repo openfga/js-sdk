@@ -408,7 +408,7 @@ await fgaClient.deleteTuples([{ user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b
 
 ###### Non-transaction mode
 
-The SDK will split the writes into separate requests and send them sequentially to avoid rate limits.
+The SDK will split the writes into separate requests and send them sequentially to avoid violating rate limits.
 
 ```
 // if you'd like to disable the transaction mode for writes (requests will be sent in parallel writes)

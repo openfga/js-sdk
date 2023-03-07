@@ -142,8 +142,13 @@ describe("OpenFGA Client", () => {
 
     describe("ReadLatestAuthorizationModel", () => {
       it("should properly call the OpenFga API", async () => {
-        const modelId = "string";
-        const scope = nocks.readAuthorizationModels(defaultConfiguration.storeId!);
+        const modelId = "some-id";
+        const scope = nock(defaultConfiguration.getBasePath())
+          .get(`/stores/${defaultConfiguration.storeId!}/authorization-models`)
+          .query({ page_size: 1 })
+          .reply(200, {
+            authorization_models: [{ id: modelId, type_definitions: [] }],
+          });
 
         expect(scope.isDone()).toBe(false);
         const data = await fgaClient.readLatestAuthorizationModel();

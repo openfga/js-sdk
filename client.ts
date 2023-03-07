@@ -257,7 +257,7 @@ export class OpenFgaClient extends BaseAPI {
   async readLatestAuthorizationModel(options: ClientRequestOpts = {}): PromiseResult<ReadAuthorizationModelResponse> {
     const { headers = {} } = options;
     setHeaderIfNotSet(headers, CLIENT_METHOD_HEADER, "ReadLatestAuthorizationModel");
-    const authorizationModelsResponse = await this.readAuthorizationModels({ ...options, headers });
+    const authorizationModelsResponse = await this.readAuthorizationModels({ ...options, pageSize: 1, headers });
     const response = authorizationModelsResponse as any as CallResult<ReadAuthorizationModelResponse>;
     response.authorization_model = authorizationModelsResponse.authorization_models?.[0];
     delete (response as any).authorization_models;
