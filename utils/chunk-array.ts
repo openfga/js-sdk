@@ -1,5 +1,3 @@
-/* tslint:disable */
-/* eslint-disable */
 /**
  * JavaScript and Node.js SDK for OpenFGA
  *
@@ -13,11 +11,13 @@
  */
 
 
-export * from "./api";
-export * from "./client";
-export * from "./apiModel";
-export { Configuration, UserConfigurationParams, GetDefaultRetryParams } from "./configuration";
-export { Credentials, CredentialsMethod } from "./credentials";
-export * from "./errors";
+export default function chunkArray<T>(inputArray: T[], maxChunkSize: number): T[][] {
+  const arrayOfArrays = [];
 
+  const inputArrayClone = [...inputArray];
+  while (inputArrayClone.length > 0) {
+    arrayOfArrays.push(inputArrayClone.splice(0, maxChunkSize));
+  }
 
+  return arrayOfArrays;
+}

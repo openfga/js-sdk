@@ -36,11 +36,11 @@ export class BaseAPI {
   protected configuration: Configuration;
   protected credentials: Credentials;
 
-  constructor(configuration: UserConfigurationParams | Configuration, protected axios: AxiosStatic = globalAxios) {
+  constructor(configuration: UserConfigurationParams | Configuration, protected axios?: AxiosStatic) {
     if (configuration instanceof Configuration) {
       this.configuration = configuration;
     } else {
-      this.configuration = new Configuration(configuration, axios);
+      this.configuration = new Configuration(configuration, axios || globalAxios);
     }
     this.configuration.isValid();
 

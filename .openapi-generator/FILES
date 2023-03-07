@@ -20,6 +20,7 @@ VERSION.txt
 api.ts
 apiModel.ts
 base.ts
+client.ts
 common.ts
 configuration.ts
 credentials.ts
@@ -28,8 +29,19 @@ git_push.sh
 index.ts
 package-lock.json
 package.json
+tests/client.test.ts
+tests/helpers/default-config.ts
+tests/helpers/index.ts
+tests/helpers/nocks.ts
 tests/index.test.ts
 tests/jest.config.js
 tests/tsconfig.spec.json
 tsconfig.json
+utils/assert-never.ts
+utils/chunk-array.ts
+utils/chunk-call.ts
+utils/generate-random-id.ts
+utils/index.ts
+utils/set-header-if-not-set.ts
+utils/set-not-enumerable-property.ts
 validation.ts

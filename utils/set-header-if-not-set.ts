@@ -1,5 +1,3 @@
-/* tslint:disable */
-/* eslint-disable */
 /**
  * JavaScript and Node.js SDK for OpenFGA
  *
@@ -13,11 +11,8 @@
  */
 
 
-export * from "./api";
-export * from "./client";
-export * from "./apiModel";
-export { Configuration, UserConfigurationParams, GetDefaultRetryParams } from "./configuration";
-export { Credentials, CredentialsMethod } from "./credentials";
-export * from "./errors";
-
-
+export function setHeaderIfNotSet(headers: Record<string, string>, key: string, value: string): void {
+  if (!headers[key] && value) {
+    headers[key] = value;
+  }
+}

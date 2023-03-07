@@ -17,9 +17,14 @@ import { ApiTokenConfig, AuthCredentialsConfig, ClientCredentialsConfig, Credent
 import { FgaValidationError, } from "./errors";
 import { assertParamExists, isWellFormedUriString } from "./validation";
 
+// default maximum number of retry
+const DEFAULT_MAX_RETRY = 5;
+// default minimum wait period in retry - but will backoff exponentially
+const DEFAULT_MIN_WAIT_MS = 100;
+
 export interface RetryParams {
-  maxRetry: number;
-  minWaitInMs: number;
+  maxRetry?: number;
+  minWaitInMs?: number;
 }
 
 export interface UserConfigurationParams {
@@ -31,7 +36,7 @@ export interface UserConfigurationParams {
   retryParams?: RetryParams;
 }
 
-export function GetDefaultRetryParams (maxRetry = 3, minWaitInMs = 100) {
+export function GetDefaultRetryParams (maxRetry = DEFAULT_MAX_RETRY, minWaitInMs = DEFAULT_MIN_WAIT_MS) {
   return {
     maxRetry: maxRetry,
     minWaitInMs: minWaitInMs,
@@ -61,7 +66,7 @@ export class Configuration {
    * @type {string}
    * @memberof Configuration
    */
-  private static sdkVersion = "0.2.2";
+  private static sdkVersion = "0.2.3";
 
   /**
    * provide scheme (e.g. `https`)
@@ -169,8 +174,8 @@ export class Configuration {
         `Configuration.apiScheme (${this.apiScheme}) and Configuration.apiHost (${this.apiHost}) do not form a valid URI (${this.getBasePath()})`);
     }
 
-    if (this.retryParams?.maxRetry && this.retryParams.maxRetry > 5) {
-      throw new FgaValidationError("Configuration.retryParams.maxRetry exceeds maximum allowed limit of 5");
+    if (this.retryParams?.maxRetry && this.retryParams.maxRetry > 15) {
+      throw new FgaValidationError("Configuration.retryParams.maxRetry exceeds maximum allowed limit of 15");
     }
 
     return true;
