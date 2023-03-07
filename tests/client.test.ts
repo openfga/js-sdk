@@ -406,7 +406,7 @@ describe("OpenFGA Client", () => {
           user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
           relation: "can_read",
           type: "document",
-          contextual_tuples:
+          contextualTuples:
             [{
               user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
               relation: "editor",

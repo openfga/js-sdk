@@ -68,7 +68,7 @@ export type ClientRequestOptsWithAuthZModelId = ClientRequestOpts  & Authorizati
 
 export type PaginationOptions = { pageSize?: number, continuationToken?: string; };
 
-export type ClientCheckRequest = TupleKey & { contextual_tuples?: TupleKey[] };
+export type ClientCheckRequest = TupleKey & { contextualTuples?: TupleKey[] };
 
 export type ClientBatchCheckRequest = ClientCheckRequest[];
 
@@ -118,7 +118,7 @@ export interface ClientReadChangesRequest {
 
 export type ClientExpandRequest = Pick<TupleKey, "relation" | "object">;
 export type ClientReadRequest = ApiTupleKey;
-export type ClientListObjectsRequest = Omit<ListObjectsRequest, "authorization_model_id" | "contextual_tuples"> & { contextual_tuples?: TupleKey[] };
+export type ClientListObjectsRequest = Omit<ListObjectsRequest, "authorization_model_id" | "contextual_tuples"> & { contextualTuples?: TupleKey[] };
 export type ClientWriteAssertionsRequest = (TupleKey & Pick<Assertion, "expectation">)[];
 
 function getObjectFromString(objectString: string): { type: string; id: string } {
@@ -419,7 +419,7 @@ export class OpenFgaClient extends BaseAPI {
         relation: body.relation,
         object: body.object,
       },
-      contextual_tuples: { tuple_keys: body.contextual_tuples || [] },
+      contextual_tuples: { tuple_keys: body.contextualTuples || [] },
       authorization_model_id: this.getAuthorizationModelId(options)
     }, options).then(response => ({
       ...response,
@@ -498,7 +498,7 @@ export class OpenFgaClient extends BaseAPI {
       user: body.user,
       relation: body.relation,
       type: body.type,
-      contextual_tuples: { tuple_keys: body.contextual_tuples || [] },
+      contextual_tuples: { tuple_keys: body.contextualTuples || [] },
     }, options);
   }
 

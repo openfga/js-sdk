@@ -150,6 +150,11 @@ If your server is configured with [authentication enabled](https://openfga.dev/d
 
 ### Calling the API
 
+> Note regarding casing in the OpenFgaClient:
+> All input parameters are in `camelCase`, all response parameters will match the API and are in `snake_case`.
+
+> Note: The Client interface might see several changes over the next few months as we get more feedback before it stabilizes.
+
 #### Stores
 
 ##### List Stores
