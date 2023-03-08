@@ -12,16 +12,22 @@
 
 
 import chunkArray from "./chunk-array";
+import sleep from "./sleep";
 
 export async function chunkSequentialCall<T = any, W = any>(
   fnToCall: (chunk: T[]) => Promise<W>,
   dataArray: T[],
-  maxPerChunk: number,
+  { maxPerChunk, waitTimeBetweenChunksInMs }: { maxPerChunk: number, waitTimeBetweenChunksInMs: number },
 ): Promise<Awaited<W>[]> {
   const chunkedSet = chunkArray<T>(dataArray, maxPerChunk);
   const results = [];
+  let chunkIndex = 0;
   for (const chunk of chunkedSet) {
     results.push(await fnToCall(chunk));
+    chunkIndex++;
+    if (chunkIndex < chunkedSet.length) {
+      await sleep(waitTimeBetweenChunksInMs);
+    }
   }
   return results;
 }

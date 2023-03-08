@@ -28,15 +28,17 @@ import {
   ReadAuthorizationModelResponse,
   ReadAuthorizationModelsResponse,
   ReadChangesResponse,
+  ReadRequest,
   ReadResponse,
   TupleKey as ApiTupleKey,
   WriteAuthorizationModelRequest,
   WriteAuthorizationModelResponse,
+  WriteRequest,
 } from "./apiModel";
 import { BaseAPI } from "./base";
 import { CallResult, PromiseResult } from "./common";
 import { Configuration, RetryParams, UserConfigurationParams } from "./configuration";
-import { FgaError } from "./errors";
+import { FgaError, FgaRequiredParamError } from "./errors";
 import {
   chunkSequentialCall,
   generateRandomIdWithNonUniqueFallback,
@@ -44,13 +46,14 @@ import {
   setNotEnumerableProperty,
 } from "./utils";
 
-export type OpenFgaClientConfig = (UserConfigurationParams | Configuration) & {
+export type ClientConfiguration = (UserConfigurationParams | Configuration) & {
   authorizationModelId?: string;
 }
 
-type TupleKey = Required<ApiTupleKey>;
+export type ClientTupleKey = Required<ApiTupleKey>;
 
 const DEFAULT_MAX_METHOD_PARALLEL_REQS = 10;
+const DEFAULT_WAIT_TIME_BETWEEN_CHUNKS_IN_MS = 100;
 const DEFAULT_MAX_RETRY_OVERRIDE = 15;
 const CLIENT_METHOD_HEADER = "X-OpenFGA-Client-Method";
 const CLIENT_BULK_REQUEST_ID_HEADER = "X-OpenFGA-Client-Bulk-Request-Id";
@@ -68,7 +71,7 @@ export type ClientRequestOptsWithAuthZModelId = ClientRequestOpts  & Authorizati
 
 export type PaginationOptions = { pageSize?: number, continuationToken?: string; };
 
-export type ClientCheckRequest = TupleKey & { contextualTuples?: TupleKey[] };
+export type ClientCheckRequest = ClientTupleKey & { contextualTuples?: ClientTupleKey[] };
 
 export type ClientBatchCheckRequest = ClientCheckRequest[];
 
@@ -90,16 +93,18 @@ export interface ClientWriteRequestOpts {
   transaction?: {
     disable?: boolean;
     maxPerChunk?: number;
+    waitTimeBetweenChunksInMs?: number;
   }
 }
 
 export interface BatchCheckRequestOpts {
   maxParallelRequests?: number;
+  waitTimeBetweenChunksInMs?: number;
 }
 
 export interface ClientWriteRequest {
-  writes?: TupleKey[];
-  deletes?: TupleKey[];
+  writes?: ClientTupleKey[];
+  deletes?: ClientTupleKey[];
 }
 
 export enum ClientWriteStatus {
@@ -108,18 +113,18 @@ export enum ClientWriteStatus {
 }
 
 export interface ClientWriteResponse {
-  writes: { tuple_key: TupleKey, status: ClientWriteStatus, err?: Error }[];
-  deletes: { tuple_key: TupleKey, status: ClientWriteStatus, err?: Error }[];
+  writes: { tuple_key: ClientTupleKey, status: ClientWriteStatus, err?: Error }[];
+  deletes: { tuple_key: ClientTupleKey, status: ClientWriteStatus, err?: Error }[];
 }
 
 export interface ClientReadChangesRequest {
   type: string;
 }
 
-export type ClientExpandRequest = Pick<TupleKey, "relation" | "object">;
+export type ClientExpandRequest = Pick<ClientTupleKey, "relation" | "object">;
 export type ClientReadRequest = ApiTupleKey;
-export type ClientListObjectsRequest = Omit<ListObjectsRequest, "authorization_model_id" | "contextual_tuples"> & { contextualTuples?: TupleKey[] };
-export type ClientWriteAssertionsRequest = (TupleKey & Pick<Assertion, "expectation">)[];
+export type ClientListObjectsRequest = Omit<ListObjectsRequest, "authorization_model_id" | "contextual_tuples"> & { contextualTuples?: ClientTupleKey[] };
+export type ClientWriteAssertionsRequest = (ClientTupleKey & Pick<Assertion, "expectation">)[];
 
 function getObjectFromString(objectString: string): { type: string; id: string } {
   const [type, id] = objectString.split(":");
@@ -130,14 +135,14 @@ export class OpenFgaClient extends BaseAPI {
   public api: OpenFgaApi;
   public authorizationModelId?: string;
 
-  constructor(configuration: OpenFgaClientConfig, protected axios?: AxiosStatic) {
+  constructor(configuration: ClientConfiguration, protected axios?: AxiosStatic) {
     super(configuration, axios);
 
     this.api = new OpenFgaApi(this.configuration);
     this.authorizationModelId = configuration.authorizationModelId;
   }
 
-  private getAuthorizationModelId(options: AuthorizationModelIdOpts = {}) {
+  protected getAuthorizationModelId(options: AuthorizationModelIdOpts = {}) {
     return options?.authorizationModelId || this.authorizationModelId;
   }
 
@@ -241,7 +246,7 @@ export class OpenFgaClient extends BaseAPI {
   async readAuthorizationModel(options: ClientRequestOptsWithAuthZModelId = {}): PromiseResult<ReadAuthorizationModelResponse> {
     const authorizationModelId = this.getAuthorizationModelId(options);
     if (!authorizationModelId) {
-      throw new Error("authorization_model_id_required");
+      throw new FgaRequiredParamError("ClientConfiguration", "authorizationModelId");
     }
     return this.api.readAuthorizationModel(authorizationModelId, options);
   }
@@ -294,8 +299,15 @@ export class OpenFgaClient extends BaseAPI {
    * @param {number} [options.retryParams.maxRetry] - Override the max number of retries on each API request
    * @param {number} [options.retryParams.minWaitInMs] - Override the minimum wait before a retry is initiated
    */
-  async read(body: ClientReadRequest, options: ClientRequestOpts = {}): PromiseResult<ReadResponse> {
-    return this.api.read({ tuple_key: body }, options);
+  async read(body: ClientReadRequest = {}, options: ClientRequestOpts & PaginationOptions = {}): PromiseResult<ReadResponse> {
+    const readRequest: ReadRequest = {
+      page_size: options.pageSize,
+      continuation_token: options.continuationToken,
+    };
+    if (body.user || body.object || body.relation) {
+      readRequest.tuple_key = body;
+    }
+    return this.api.read(readRequest, options);
   }
 
   /**
@@ -306,6 +318,7 @@ export class OpenFgaClient extends BaseAPI {
    * @param {object} [options.transaction]
    * @param {boolean} [options.transaction.disable] - Disables running the write in a transaction mode. Defaults to `false`
    * @param {number} [options.transaction.maxPerChunk] - Max number of items to send in a single transaction chunk. Defaults to `1`
+   * @param {number} [options.transaction.waitTimeBetweenChunksInMs] - Time to wait between chunks. Defaults to `100`
    * @param {object} [options.headers] - Custom headers to send alongside the request
    * @param {object} [options.retryParams] - Override the retry parameters for this request
    * @param {number} [options.retryParams.maxRetry] - Override the max number of retries on each API request
@@ -313,16 +326,24 @@ export class OpenFgaClient extends BaseAPI {
    */
   async write(body: ClientWriteRequest, options: ClientRequestOptsWithAuthZModelId & ClientWriteRequestOpts = {}): Promise<ClientWriteResponse> {
     const { transaction = {}, headers = {} } = options;
-    const { maxPerChunk = 1 } = transaction; // 1 has to be the default otherwise the chunks will be sent in transactions
+    const {
+      maxPerChunk = 1, // 1 has to be the default otherwise the chunks will be sent in transactions
+      waitTimeBetweenChunksInMs = DEFAULT_WAIT_TIME_BETWEEN_CHUNKS_IN_MS,
+    } = transaction;
     const { writes, deletes } = body;
     const authorizationModelId = this.getAuthorizationModelId(options);
 
     if (!transaction?.disable) {
-      await this.api.write({
-        writes: { tuple_keys: writes || [] },
-        deletes: { tuple_keys: deletes || [] },
+      const apiBody: WriteRequest = {
         authorization_model_id: authorizationModelId,
-      }, options);
+      };
+      if (writes?.length) {
+        apiBody.writes = { tuple_keys: writes };
+      }
+      if (deletes?.length) {
+        apiBody.deletes = { tuple_keys: deletes };
+      }
+      await this.api.write(apiBody, options);
       return {
         writes: writes?.map(tuple => ({
           tuple_key: tuple,
@@ -338,23 +359,23 @@ export class OpenFgaClient extends BaseAPI {
     setHeaderIfNotSet(headers, CLIENT_METHOD_HEADER, "Write");
     setHeaderIfNotSet(headers, CLIENT_BULK_REQUEST_ID_HEADER, generateRandomIdWithNonUniqueFallback());
     const results: ClientWriteResponse = { writes: [], deletes: [] };
-    await chunkSequentialCall<TupleKey, void>(
+    await chunkSequentialCall<ClientTupleKey, void>(
       (chunk) => this.api.write(
         { writes: { tuple_keys: chunk}, authorization_model_id: authorizationModelId },
         { retryParams: { maxRetry: DEFAULT_MAX_RETRY_OVERRIDE }, headers })
         .then(() => { results.writes.push(...chunk.map(tuple => ({ tuple_key: tuple, status: ClientWriteStatus.SUCCESS }))); })
         .catch((err) => { results.writes.push(...chunk.map(tuple => ({ tuple_key: tuple, status: ClientWriteStatus.FAILURE, err }))); }),
       writes || [],
-      maxPerChunk,
+      { maxPerChunk, waitTimeBetweenChunksInMs },
     );
-    await chunkSequentialCall<TupleKey, void>(
+    await chunkSequentialCall<ClientTupleKey, void>(
       (chunk) => this.api.write(
         { deletes: { tuple_keys: chunk }, authorization_model_id: authorizationModelId },
         { retryParams: { maxRetry: DEFAULT_MAX_RETRY_OVERRIDE }, headers })
         .then(() => { results.deletes.push(...chunk.map(tuple => ({ tuple_key: tuple, status: ClientWriteStatus.SUCCESS }))); })
         .catch((err) => { results.deletes.push(...chunk.map(tuple => ({ tuple_key: tuple, status: ClientWriteStatus.FAILURE, err }))); }),
       deletes || [],
-      maxPerChunk,
+      { maxPerChunk, waitTimeBetweenChunksInMs },
     );
 
     return results;
@@ -362,18 +383,19 @@ export class OpenFgaClient extends BaseAPI {
 
   /**
    * WriteTuples - Utility method to write tuples, wraps Write
-   * @param {TupleKey} tuples
+   * @param {ClientTupleKey[]} tuples
    * @param {ClientRequestOptsWithAuthZModelId & ClientWriteRequestOpts} [options]
    * @param {string} [options.authorizationModelId] - Overrides the authorization model id in the configuration
    * @param {object} [options.transaction]
    * @param {boolean} [options.transaction.disable] - Disables running the write in a transaction mode. Defaults to `false`
    * @param {number} [options.transaction.maxPerChunk] - Max number of items to send in a single transaction chunk. Defaults to `1`
+   * @param {number} [options.transaction.waitTimeBetweenChunksInMs] - Time to wait between chunks. Defaults to `100`
    * @param {object} [options.headers] - Custom headers to send alongside the request
    * @param {object} [options.retryParams] - Override the retry parameters for this request
    * @param {number} [options.retryParams.maxRetry] - Override the max number of retries on each API request
    * @param {number} [options.retryParams.minWaitInMs] - Override the minimum wait before a retry is initiated
    */
-  async writeTuples(tuples: TupleKey[], options: ClientRequestOptsWithAuthZModelId & ClientWriteRequestOpts = {}): Promise<ClientWriteResponse> {
+  async writeTuples(tuples: ClientTupleKey[], options: ClientRequestOptsWithAuthZModelId & ClientWriteRequestOpts = {}): Promise<ClientWriteResponse> {
     const { headers = {} } = options;
     setHeaderIfNotSet(headers, CLIENT_METHOD_HEADER, "WriteTuples");
     return this.write({ writes: tuples }, { ...options, headers });
@@ -381,18 +403,19 @@ export class OpenFgaClient extends BaseAPI {
 
   /**
    * DeleteTuples - Utility method to delete tuples, wraps Write
-   * @param {TupleKey} tuples
+   * @param {ClientTupleKey[]} tuples
    * @param {ClientRequestOptsWithAuthZModelId & ClientWriteRequestOpts} [options]
    * @param {string} [options.authorizationModelId] - Overrides the authorization model id in the configuration
    * @param {object} [options.transaction]
    * @param {boolean} [options.transaction.disable] - Disables running the write in a transaction mode. Defaults to `false`
    * @param {number} [options.transaction.maxPerChunk] - Max number of items to send in a single transaction chunk. Defaults to `1`
+   * @param {number} [options.transaction.waitTimeBetweenChunksInMs] - Time to wait between chunks. Defaults to `100`
    * @param {object} [options.headers] - Custom headers to send alongside the request
    * @param {object} [options.retryParams] - Override the retry parameters for this request
    * @param {number} [options.retryParams.maxRetry] - Override the max number of retries on each API request
    * @param {number} [options.retryParams.minWaitInMs] - Override the minimum wait before a retry is initiated
    */
-  async deleteTuples(tuples: TupleKey[], options: ClientRequestOptsWithAuthZModelId & ClientWriteRequestOpts = {}): Promise<ClientWriteResponse> {
+  async deleteTuples(tuples: ClientTupleKey[], options: ClientRequestOptsWithAuthZModelId & ClientWriteRequestOpts = {}): Promise<ClientWriteResponse> {
     const { headers = {} } = options;
     setHeaderIfNotSet(headers, CLIENT_METHOD_HEADER, "DeleteTuples");
     return this.write({ deletes: tuples }, { ...options, headers });
@@ -431,7 +454,8 @@ export class OpenFgaClient extends BaseAPI {
    * BatchCheck - Run a set of checks (evaluates)
    * @param {ClientBatchCheckRequest} body
    * @param {ClientRequestOptsWithAuthZModelId & BatchCheckRequestOpts} [options]
-   * @param {number} [options.maxParallelRequests] - Max number of requests to issue in parallel
+   * @param {number} [options.maxParallelRequests] - Max number of requests to issue in parallel. Defaults to `10`
+   * @param {number} [options.waitTimeBetweenChunksInMs] - Time to wait between chunks. Defaults to `100`
    * @param {string} [options.authorizationModelId] - Overrides the authorization model id in the configuration
    * @param {object} [options.headers] - Custom headers to send alongside the request
    * @param {object} [options.retryParams] - Override the retry parameters for this request
@@ -439,11 +463,11 @@ export class OpenFgaClient extends BaseAPI {
    * @param {number} [options.retryParams.minWaitInMs] - Override the minimum wait before a retry is initiated
    */
   async batchCheck(body: ClientBatchCheckRequest, options: ClientRequestOptsWithAuthZModelId & BatchCheckRequestOpts = {}): Promise<ClientBatchCheckResponse> {
-    const { headers = {}, maxParallelRequests = DEFAULT_MAX_METHOD_PARALLEL_REQS } = options;
+    const { headers = {}, maxParallelRequests = DEFAULT_MAX_METHOD_PARALLEL_REQS, waitTimeBetweenChunksInMs = DEFAULT_WAIT_TIME_BETWEEN_CHUNKS_IN_MS } = options;
     setHeaderIfNotSet(headers, CLIENT_METHOD_HEADER, "BatchCheck");
     setHeaderIfNotSet(headers, CLIENT_BULK_REQUEST_ID_HEADER, generateRandomIdWithNonUniqueFallback());
 
-    const responses = (await chunkSequentialCall<TupleKey, any>(async (tuples) =>
+    const responses = (await chunkSequentialCall<ClientTupleKey, any>(async (tuples) =>
       Promise.all(tuples.map(tuple => this.check(tuple, { ...options, retryParams: { maxRetry: DEFAULT_MAX_RETRY_OVERRIDE }, headers })
         .then(({ allowed, $response: response }) => {
           const result = {
@@ -457,7 +481,7 @@ export class OpenFgaClient extends BaseAPI {
           error: err,
           _request: tuple,
         }))
-      )), body, maxParallelRequests).then(results => results.flat())) as ClientBatchCheckSingleResponse[];
+      )), body, { maxPerChunk: maxParallelRequests, waitTimeBetweenChunksInMs }).then(results => results.flat())) as ClientBatchCheckSingleResponse[];
 
     return { responses };
   }
@@ -492,9 +516,8 @@ export class OpenFgaClient extends BaseAPI {
    * @param {number} [options.retryParams.minWaitInMs] - Override the minimum wait before a retry is initiated
    */
   async listObjects(body: ClientListObjectsRequest, options: ClientRequestOptsWithAuthZModelId = {}): PromiseResult<ListObjectsResponse> {
-    const authorizationModelId = this.getAuthorizationModelId(options);
     return this.api.listObjects({
-      authorization_model_id: authorizationModelId,
+      authorization_model_id: this.getAuthorizationModelId(options),
       user: body.user,
       relation: body.relation,
       type: body.type,
@@ -516,9 +539,7 @@ export class OpenFgaClient extends BaseAPI {
    * @param {number} [options.retryParams.minWaitInMs] - Override the minimum wait before a retry is initiated
    */
   async readAssertions(options: ClientRequestOptsWithAuthZModelId = {}): PromiseResult<ReadAssertionsResponse> {
-    const authorizationModelId = this.getAuthorizationModelId(options);
-    // Note: authorization model id is validated later
-    return this.api.readAssertions(authorizationModelId!, options);
+    return this.api.readAssertions(this.getAuthorizationModelId(options)!, options);
   }
 
   /**
@@ -532,8 +553,7 @@ export class OpenFgaClient extends BaseAPI {
    * @param {number} [options.retryParams.minWaitInMs] - Override the minimum wait before a retry is initiated
    */
   async writeAssertions(assertions: ClientWriteAssertionsRequest, options: ClientRequestOptsWithAuthZModelId = {}): PromiseResult<void> {
-    const authorizationModelId = this.getAuthorizationModelId(options);
-    return this.api.writeAssertions(authorizationModelId!, {
+    return this.api.writeAssertions(this.getAuthorizationModelId(options)!, {
       assertions: assertions.map(assertion => ({
         tuple_key: {
           user: assertion.user,
