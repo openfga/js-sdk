@@ -1,8 +1,15 @@
 # Changelog
 
+## v0.2.4
+
+### [0.2.4](https://github.com/openfga/js-sdk/compare/v0.2.3...v0.2.4) (2023-03-09)
+
+- fix(client): OpenFgaClient `read` was not passing in pagination options
+- feat(client): implement sleep in batch calls to lower the possibility of hitting rate limits
+
 ## v0.2.3
 
-### [0.2.3](https://github.com/openfga/js-sdk/compare/v0.2.2...v0.2.3) (2023-02-28)
+### [0.2.3](https://github.com/openfga/js-sdk/compare/v0.2.2...v0.2.3) (2023-03-07)
 
 - feat(client): client wrapper with a slightly changed interface
 - feat(client): implement `batchCheck` to check multiple tuples in parallel
