@@ -66,7 +66,7 @@ export class Configuration {
    * @type {string}
    * @memberof Configuration
    */
-  private static sdkVersion = "0.2.4";
+  private static sdkVersion = "0.2.5";
 
   /**
    * provide scheme (e.g. `https`)
