@@ -84,7 +84,7 @@ export const getNocks = ((nock: typeof Nock) => ({
   readAuthorizationModels: (
     storeId: string,
     basePath = defaultConfiguration.getBasePath(),
-    authorizationModels: AuthorizationModel[] = [{ id: "some-id", type_definitions: [] }],
+    authorizationModels: AuthorizationModel[] = [{ id: "some-id", schema_version: "1.1", type_definitions: [] }],
   ) => {
     return nock(basePath)
       .get(`/stores/${storeId}/authorization-models`)
@@ -107,7 +107,7 @@ export const getNocks = ((nock: typeof Nock) => ({
     storeId: string,
     configId: string,
     basePath = defaultConfiguration.getBasePath(),
-    authorizationModel: AuthorizationModel = { id: "some-id", type_definitions: [] },
+    authorizationModel: AuthorizationModel = { id: "some-id", schema_version: "1.1", type_definitions: [] },
   ) => {
     return nock(basePath)
       .get(`/stores/${storeId}/authorization-models/${configId}`)

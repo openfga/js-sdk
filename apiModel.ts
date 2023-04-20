@@ -64,7 +64,7 @@ export interface AuthorizationModel {
      * @type {string}
      * @memberof AuthorizationModel
      */
-    schema_version?: string;
+    schema_version: string;
     /**
      * 
      * @type {Array<TypeDefinition>}

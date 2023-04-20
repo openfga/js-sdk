@@ -16,6 +16,7 @@ import { AxiosResponse, AxiosStatic } from "axios";
 import { OpenFgaApi } from "./api";
 import {
   Assertion,
+  AuthorizationModel,
   CheckResponse,
   CreateStoreRequest,
   CreateStoreResponse,
@@ -38,7 +39,7 @@ import {
 import { BaseAPI } from "./base";
 import { CallResult, PromiseResult } from "./common";
 import { Configuration, RetryParams, UserConfigurationParams } from "./configuration";
-import { FgaError, FgaRequiredParamError } from "./errors";
+import { FgaError, FgaRequiredParamError, FgaValidationError } from "./errors";
 import {
   chunkSequentialCall,
   generateRandomIdWithNonUniqueFallback,
@@ -117,6 +118,10 @@ export interface ClientWriteResponse {
   deletes: { tuple_key: ClientTupleKey, status: ClientWriteStatus, err?: Error }[];
 }
 
+export interface ClientListRelationsResponse {
+  relations: string[];
+}
+
 export interface ClientReadChangesRequest {
   type: string;
 }
@@ -124,6 +129,7 @@ export interface ClientReadChangesRequest {
 export type ClientExpandRequest = Pick<ClientTupleKey, "relation" | "object">;
 export type ClientReadRequest = ApiTupleKey;
 export type ClientListObjectsRequest = Omit<ListObjectsRequest, "authorization_model_id" | "contextual_tuples"> & { contextualTuples?: ClientTupleKey[] };
+export type ClientListRelationsRequest = Pick<ClientCheckRequest, "user" | "object" | "contextualTuples"> & { relations?: string[] };
 export type ClientWriteAssertionsRequest = (ClientTupleKey & Pick<Assertion, "expectation">)[];
 
 function getObjectFromString(objectString: string): { type: string; id: string } {
@@ -523,6 +529,35 @@ export class OpenFgaClient extends BaseAPI {
       type: body.type,
       contextual_tuples: { tuple_keys: body.contextualTuples || [] },
     }, options);
+  }
+
+  /**
+   * ListRelations - List all the relations a user has with an object (evaluates)
+   * @param {object} listRelationsRequest
+   * @param {string} listRelationsRequest.user The user object, must be of the form: `<type>:<id>`
+   * @param {string} listRelationsRequest.object The object, must be of the form: `<type>:<id>`
+   * @param {string[]} [listRelationsRequest.relations] The list of relations to check, if not sent default to the all those for that type int the model
+   * @param options
+   */
+  async listRelations(listRelationsRequest: ClientListRelationsRequest, options: ClientRequestOptsWithAuthZModelId & BatchCheckRequestOpts = {}): Promise<ClientListRelationsResponse> {
+    const { user, object } = listRelationsRequest;
+    const { relations } = listRelationsRequest;
+    const { headers = {}, maxParallelRequests = DEFAULT_MAX_METHOD_PARALLEL_REQS } = options;
+    setHeaderIfNotSet(headers, CLIENT_METHOD_HEADER, "ListRelations");
+    setHeaderIfNotSet(headers, CLIENT_BULK_REQUEST_ID_HEADER, generateRandomIdWithNonUniqueFallback());
+
+    if (!relations?.length) {
+      throw new FgaValidationError("relations", "When calling listRelations, at least one relation must be passed in the relations field");
+    }
+
+    const batchCheckResults = await this.batchCheck(relations.map(relation => ({
+      user,
+      relation,
+      object,
+      contextualTuples: listRelationsRequest.contextualTuples,
+    })), { ...options, headers, maxParallelRequests });
+
+    return { relations: batchCheckResults.responses.filter(result => result.allowed).map(result => result._request.relation) };
   }
 
   /**************

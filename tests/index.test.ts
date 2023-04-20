@@ -381,7 +381,7 @@ describe("OpenFGA SDK", function () {
       });
 
       it("should return allowed", async () => {
-        const result = await fgaApi.check({ tuple_key: tupleKey, authorization_model_id: "1uHxCSuTP0VKPYSnkq1pbb1jeZw"}, {});
+        const result = await fgaApi.check({ tuple_key: tupleKey, authorization_model_id: "01GXSA8YR785C4FYS3C0RTG7B1"}, {});
 
         expect(result.allowed).toBe(true);
       });
@@ -642,7 +642,7 @@ describe("OpenFGA SDK", function () {
         expect(scope.isDone()).toBe(false);
         const data = await fgaApi.write({
           writes: { tuple_keys: [tuple] },
-          authorization_model_id: "1uHxCSuTP0VKPYSnkq1pbb1jeZw",
+          authorization_model_id: "01GXSA8YR785C4FYS3C0RTG7B1",
         });
 
         expect(scope.isDone()).toBe(true);
@@ -662,7 +662,7 @@ describe("OpenFGA SDK", function () {
         expect(scope.isDone()).toBe(false);
         const data = await fgaApi.write({
           deletes: { tuple_keys: [tuple] },
-          authorization_model_id: "1uHxCSuTP0VKPYSnkq1pbb1jeZw",
+          authorization_model_id: "01GXSA8YR785C4FYS3C0RTG7B1",
         });
 
         expect(scope.isDone()).toBe(true);
@@ -680,7 +680,7 @@ describe("OpenFGA SDK", function () {
         const scope = nocks.expand(baseConfig.storeId!, tuple);
 
         expect(scope.isDone()).toBe(false);
-        const data = await fgaApi.expand({ tuple_key: tuple, authorization_model_id: "1uHxCSuTP0VKPYSnkq1pbb1jeZw"});
+        const data = await fgaApi.expand({ tuple_key: tuple, authorization_model_id: "01GXSA8YR785C4FYS3C0RTG7B1"});
 
         expect(scope.isDone()).toBe(true);
         expect(data).toMatchObject({});
@@ -707,6 +707,7 @@ describe("OpenFGA SDK", function () {
     describe("writeAuthorizationModel", () => {
       it("should call the api and return the response", async () => {
         const authorizationModel = {
+          schema_version: "1.1",
           type_definitions: [
             { type: "workspace", relations: { admin: { this: {} } } },
           ],
@@ -738,6 +739,7 @@ describe("OpenFGA SDK", function () {
         expect(data).toMatchObject({
           authorization_model: {
             id: expect.any(String),
+            schema_version: "1.1",
             type_definitions: expect.arrayContaining([]),
           },
         });
@@ -746,14 +748,14 @@ describe("OpenFGA SDK", function () {
 
     describe("readAuthorizationModels", () => {
       it("should call the api and return the response", async () => {
-        const scope = nocks.readAuthorizationModels(baseConfig.storeId!, defaultConfiguration.getBasePath(), [{ id: "1", type_definitions: []}]);
+        const scope = nocks.readAuthorizationModels(baseConfig.storeId!, defaultConfiguration.getBasePath(), [{ id: "1", schema_version: "1.1", type_definitions: []}]);
 
         expect(scope.isDone()).toBe(false);
         const data = await fgaApi.readAuthorizationModels();
 
         expect(scope.isDone()).toBe(true);
         expect(data).toMatchObject({
-          authorization_models: expect.arrayContaining([{ id: "1", type_definitions: []}]),
+          authorization_models: expect.arrayContaining([{ id: "1", schema_version: "1.1", type_definitions: []}]),
         });
       });
     });
