@@ -285,6 +285,7 @@ describe("OpenFGA Client", () => {
         expect(scope1.isDone()).toBe(true);
         expect(scope2.isDone()).toBe(true);
         expect(data.writes.length).toBe(3);
+        expect(data.deletes.length).toBe(0);
         expect(data.writes.find(tuple => tuple.tuple_key.object === tuples[0].object)?.status).toBe(ClientWriteStatus.SUCCESS);
         expect(data.writes.find(tuple => tuple.tuple_key.object === tuples[1].object)?.status).toBe(ClientWriteStatus.SUCCESS);
         expect(data.writes.find(tuple => tuple.tuple_key.object === tuples[2].object)?.status).toBe(ClientWriteStatus.FAILURE);
@@ -382,7 +383,7 @@ describe("OpenFGA Client", () => {
           .toMatchObject(expect.arrayContaining([
             { _request: tuples[0], allowed: true, },
             { _request: tuples[1], allowed: false },
-            { _request: tuples[2], error: expect.any(Error) },
+            { _request: tuples[2], allowed: false, error: expect.any(Error) },
           ]));
       });
     });

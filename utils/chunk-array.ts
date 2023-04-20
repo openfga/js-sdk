@@ -11,7 +11,7 @@
  */
 
 
-export default function chunkArray<T>(inputArray: T[], maxChunkSize: number): T[][] {
+export function chunkArray<T>(inputArray: T[], maxChunkSize: number): T[][] {
   const arrayOfArrays = [];
 
   const inputArrayClone = [...inputArray];
