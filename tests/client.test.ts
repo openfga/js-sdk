@@ -13,7 +13,7 @@
 
 import * as nock from "nock";
 
-import { ClientWriteStatus, CredentialsMethod, OpenFgaClient } from "../index";
+import { ClientWriteStatus, CredentialsMethod, FgaValidationError, OpenFgaClient } from "../index";
 import { baseConfig, defaultConfiguration, getNocks } from "./helpers";
 
 const nocks = getNocks(nock);
@@ -103,6 +103,7 @@ describe("OpenFGA Client", () => {
     describe("WriteAuthorizationModel", () => {
       it("should properly call the OpenFga API", async () => {
         const authorizationModel = {
+          schema_version: "1.1",
           type_definitions: [
             { type: "workspace", relations: { admin: { this: {} } } },
           ],
@@ -134,6 +135,7 @@ describe("OpenFGA Client", () => {
         expect(data).toMatchObject({
           authorization_model: {
             id: expect.any(String),
+            schema_version: "1.1",
             type_definitions: expect.arrayContaining([]),
           },
         });
@@ -147,7 +149,7 @@ describe("OpenFGA Client", () => {
           .get(`/stores/${defaultConfiguration.storeId!}/authorization-models`)
           .query({ page_size: 1 })
           .reply(200, {
-            authorization_models: [{ id: modelId, type_definitions: [] }],
+            authorization_models: [{ id: modelId, schema_version: "1.1", type_definitions: [] }],
           });
 
         expect(scope.isDone()).toBe(false);
@@ -157,6 +159,7 @@ describe("OpenFGA Client", () => {
         expect(data).toMatchObject({
           authorization_model: {
             id: expect.any(String),
+            schema_version: "1.1",
             type_definitions: expect.arrayContaining([]),
           },
         });
@@ -210,7 +213,7 @@ describe("OpenFGA Client", () => {
         const data = await fgaClient.write({
           writes: [tuple],
         }, {
-          authorizationModelId: "1uHxCSuTP0VKPYSnkq1pbb1jeZw",
+          authorizationModelId: "01GXSA8YR785C4FYS3C0RTG7B1",
         });
 
         expect(scope.isDone()).toBe(true);
@@ -237,7 +240,7 @@ describe("OpenFGA Client", () => {
         const data = await fgaClient.write({
           writes: tuples,
         }, {
-          authorizationModelId: "1uHxCSuTP0VKPYSnkq1pbb1jeZw",
+          authorizationModelId: "01GXSA8YR785C4FYS3C0RTG7B1",
           transaction: { disable: true },
         });
 
@@ -274,7 +277,7 @@ describe("OpenFGA Client", () => {
         const data = await fgaClient.write({
           writes: tuples,
         }, {
-          authorizationModelId: "1uHxCSuTP0VKPYSnkq1pbb1jeZw",
+          authorizationModelId: "01GXSA8YR785C4FYS3C0RTG7B1",
           transaction: { disable: true },
         });
 
@@ -282,6 +285,7 @@ describe("OpenFGA Client", () => {
         expect(scope1.isDone()).toBe(true);
         expect(scope2.isDone()).toBe(true);
         expect(data.writes.length).toBe(3);
+        expect(data.deletes.length).toBe(0);
         expect(data.writes.find(tuple => tuple.tuple_key.object === tuples[0].object)?.status).toBe(ClientWriteStatus.SUCCESS);
         expect(data.writes.find(tuple => tuple.tuple_key.object === tuples[1].object)?.status).toBe(ClientWriteStatus.SUCCESS);
         expect(data.writes.find(tuple => tuple.tuple_key.object === tuples[2].object)?.status).toBe(ClientWriteStatus.FAILURE);
@@ -299,7 +303,7 @@ describe("OpenFGA Client", () => {
 
         expect(scope.isDone()).toBe(false);
         const data = await fgaClient.writeTuples([tuple], {
-          authorizationModelId: "1uHxCSuTP0VKPYSnkq1pbb1jeZw",
+          authorizationModelId: "01GXSA8YR785C4FYS3C0RTG7B1",
         });
 
         expect(scope.isDone()).toBe(true);
@@ -318,7 +322,7 @@ describe("OpenFGA Client", () => {
 
         expect(scope.isDone()).toBe(false);
         const data = await fgaClient.deleteTuples([tuple], {
-          authorizationModelId: "1uHxCSuTP0VKPYSnkq1pbb1jeZw",
+          authorizationModelId: "01GXSA8YR785C4FYS3C0RTG7B1",
         });
 
         expect(scope.isDone()).toBe(true);
@@ -379,7 +383,7 @@ describe("OpenFGA Client", () => {
           .toMatchObject(expect.arrayContaining([
             { _request: tuples[0], allowed: true, },
             { _request: tuples[1], allowed: false },
-            { _request: tuples[2], error: expect.any(Error) },
+            { _request: tuples[2], allowed: false, error: expect.any(Error) },
           ]));
       });
     });
@@ -394,7 +398,7 @@ describe("OpenFGA Client", () => {
         const scope = nocks.expand(baseConfig.storeId!, tuple);
 
         expect(scope.isDone()).toBe(false);
-        const data = await fgaClient.expand(tuple, { authorizationModelId: "1uHxCSuTP0VKPYSnkq1pbb1jeZw" });
+        const data = await fgaClient.expand(tuple, { authorizationModelId: "01GXSA8YR785C4FYS3C0RTG7B1" });
 
         expect(scope.isDone()).toBe(true);
         expect(data).toMatchObject({});
@@ -428,6 +432,72 @@ describe("OpenFGA Client", () => {
         expect(scope.isDone()).toBe(true);
         expect(response.objects).toHaveLength(mockedResponse.objects.length);
         expect(response.objects).toEqual(expect.arrayContaining(mockedResponse.objects));
+      });
+    });
+
+    describe("ListRelations", () => {
+      it("should properly pass the request and return an allowed API response", async () => {
+        const tuples = [{
+          user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
+          relation: "admin",
+          object: "workspace:1",
+        }, {
+          user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
+          relation: "guest",
+          object: "workspace:1",
+        }, {
+          user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
+          relation: "reader",
+          object: "workspace:1",
+        }, {
+          user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
+          relation: "viewer",
+          object: "workspace:1",
+        }, {
+          user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
+          relation: "can_read",
+          object: "workspace:1",
+        }];
+        const scope0 = nocks.check(defaultConfiguration.storeId!, tuples[0], defaultConfiguration.getBasePath(), { allowed: true }).matchHeader("X-OpenFGA-Client-Method", "ListRelations");
+        const scope1 = nocks.check(defaultConfiguration.storeId!, tuples[1], defaultConfiguration.getBasePath(), { allowed: false }).matchHeader("X-OpenFGA-Client-Method", "ListRelations");
+        const scope2 = nocks.check(defaultConfiguration.storeId!, tuples[2], defaultConfiguration.getBasePath(), { allowed: true }).matchHeader("X-OpenFGA-Client-Method", "ListRelations");
+        const scope3 = nocks.check(defaultConfiguration.storeId!, tuples[3], defaultConfiguration.getBasePath(), "" as any, 500).matchHeader("X-OpenFGA-Client-Method", "ListRelations");
+        const scope4 = nocks.check(defaultConfiguration.storeId!, tuples[4], defaultConfiguration.getBasePath(), {
+          "code": "validation_error",
+          "message": "relation &#39;workspace#can_read&#39; not found"
+        }, 400).matchHeader("X-OpenFGA-Client-Method", "ListRelations");
+
+        expect(scope0.isDone()).toBe(false);
+        expect(scope1.isDone()).toBe(false);
+        expect(scope2.isDone()).toBe(false);
+        expect(scope3.isDone()).toBe(false);
+        expect(scope4.isDone()).toBe(false);
+        const response = await fgaClient.listRelations({
+          user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
+          object: "workspace:1",
+          relations: ["admin", "guest", "reader", "viewer"],
+        });
+
+        expect(scope0.isDone()).toBe(true);
+        expect(scope1.isDone()).toBe(true);
+        expect(scope2.isDone()).toBe(true);
+        expect(scope3.isDone()).toBe(true);
+        expect(scope4.isDone()).toBe(false);
+        expect(response.relations.length).toBe(2);
+        expect(response.relations.sort()).toEqual(expect.arrayContaining(["admin", "reader"]));
+      });
+
+      it("should throw an error if no relations passed", async () => {
+        try {
+          await fgaClient.listRelations({
+            user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
+            object: "workspace:1",
+          });
+        } catch (err) {
+          expect(err).toBeInstanceOf(FgaValidationError);
+          expect((err as FgaValidationError).field).toBe("relations");
+          expect((err as FgaValidationError).message).toBe("When calling listRelations, at least one relation must be passed in the relations field");
+        }
       });
     });
 

@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.2.5
+
+### [0.2.5](https://github.com/openfga/js-sdk/compare/v0.2.4...v0.2.5) (2023-04-21)
+
+- feat(client): implement `listRelations` to check what relationships a user has with an object
+- feat!: `schema_version` is now required when calling `WriteAuthorizationModel`
+- fix(client): proper parallel limit for batch fns (BatchCheck, etc..)
+- chore(ci): publish provenance data
+- chore(deps): update dependencies
+
 ## v0.2.4
 
 ### [0.2.4](https://github.com/openfga/js-sdk/compare/v0.2.3...v0.2.4) (2023-03-09)

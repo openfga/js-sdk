@@ -18,7 +18,7 @@ import { FgaValidationError, } from "./errors";
 import { assertParamExists, isWellFormedUriString } from "./validation";
 
 // default maximum number of retry
-const DEFAULT_MAX_RETRY = 5;
+const DEFAULT_MAX_RETRY = 15;
 // default minimum wait period in retry - but will backoff exponentially
 const DEFAULT_MIN_WAIT_MS = 100;
 
@@ -66,7 +66,7 @@ export class Configuration {
    * @type {string}
    * @memberof Configuration
    */
-  private static sdkVersion = "0.2.4";
+  private static sdkVersion = "0.2.5";
 
   /**
    * provide scheme (e.g. `https`)
