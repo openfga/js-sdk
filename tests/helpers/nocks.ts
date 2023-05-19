@@ -37,9 +37,10 @@ export const getNocks = ((nock: typeof Nock) => ({
   tokenExchange: (
     apiTokenIssuer: string,
     accessToken = "test-token",
-    expiresIn = 300
+    expiresIn = 300,
+    statusCode = 200,
   ) => {
-    return nock(`https://${apiTokenIssuer}`).post("/oauth/token").reply(200, {
+    return nock(`https://${apiTokenIssuer}`).post("/oauth/token").reply(statusCode, {
       access_token: accessToken,
       expires_in: expiresIn,
     });
@@ -85,10 +86,11 @@ export const getNocks = ((nock: typeof Nock) => ({
     storeId: string,
     basePath = defaultConfiguration.getBasePath(),
     authorizationModels: AuthorizationModel[] = [{ id: "some-id", schema_version: "1.1", type_definitions: [] }],
+    statusCode = 200,
   ) => {
     return nock(basePath)
       .get(`/stores/${storeId}/authorization-models`)
-      .reply(200, {
+      .reply(statusCode, {
         authorization_models: authorizationModels,
       } as ReadAuthorizationModelsResponse);
   },

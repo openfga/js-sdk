@@ -46,6 +46,7 @@ import {
   setHeaderIfNotSet,
   setNotEnumerableProperty,
 } from "./utils";
+import { isWellFormedUlidString } from "./validation";
 
 export type ClientConfiguration = (UserConfigurationParams | Configuration) & {
   authorizationModelId?: string;
@@ -144,10 +145,36 @@ export class OpenFgaClient extends BaseAPI {
 
     this.api = new OpenFgaApi(this.configuration);
     this.authorizationModelId = configuration.authorizationModelId;
+
+    this.getAuthorizationModelId(); // validates the authorization model id
   }
 
-  protected getAuthorizationModelId(options: AuthorizationModelIdOpts = {}) {
-    return options?.authorizationModelId || this.authorizationModelId;
+  protected getAuthorizationModelId(options: AuthorizationModelIdOpts = {}): string | undefined {
+    const authorizationModelId = options?.authorizationModelId || this.authorizationModelId;
+    if (authorizationModelId && !isWellFormedUlidString(authorizationModelId)) {
+      throw new FgaValidationError("authorizationModelId");
+    }
+
+    return authorizationModelId;
+  }
+
+  /**
+   * checkValidApiConnection - Ensures that the credentials are valid for calling the API
+   * If the authorization model id is available, this will attempt to get that model
+   * Otherwise this will attempt to get the latest authorization model
+   * @param {ClientRequestOptsWithAuthZModelId} [options]
+   * @param {string} [options.authorizationModelId] - Overrides the authorization model id in the configuration
+   * @param {object} [options.headers] - Custom headers to send alongside the request
+   * @param {object} [options.retryParams] - Override the retry parameters for this request
+   * @param {number} [options.retryParams.maxRetry] - Override the max number of retries on each API request
+   * @param {number} [options.retryParams.minWaitInMs] - Override the minimum wait before a retry is initiated
+   */
+  public async checkValidApiConnection(options: ClientRequestOptsWithAuthZModelId = {}): Promise<void> {
+    if (this.getAuthorizationModelId(options)) {
+      await this.readAuthorizationModel(options);
+    } else {
+      await this.readLatestAuthorizationModel(options);
+    }
   }
 
   /**********
@@ -360,39 +387,48 @@ export class OpenFgaClient extends BaseAPI {
       };
     }
 
-    setHeaderIfNotSet(headers, CLIENT_METHOD_HEADER, "Write");
-    setHeaderIfNotSet(headers, CLIENT_BULK_REQUEST_ID_HEADER, generateRandomIdWithNonUniqueFallback());
+    // We initiate two chains in parallel (to avoid unnecessary latency)
+    // 1- the actual request that we'll return at the end
+    // 2- a request to check whether the store ID, auth model ID, and credentials are valid
+    return Promise.all([
+      (async () => {
+        setHeaderIfNotSet(headers, CLIENT_METHOD_HEADER, "Write");
+        setHeaderIfNotSet(headers, CLIENT_BULK_REQUEST_ID_HEADER, generateRandomIdWithNonUniqueFallback());
 
-    const writeResponses: ClientWriteSingleResponse[][] = [];
-    if (writes?.length) {
-      for await (const singleChunkResponse of asyncPool(maxParallelRequests, chunkArray(writes, maxPerChunk),
-        (chunk) => this.writeTuples(chunk,{ ...options, headers, transaction: undefined }).catch(err => ({
-          writes: chunk.map(tuple => ({
-            tuple_key: tuple,
-            status: ClientWriteStatus.FAILURE,
-            err,
-          })),
-          deletes: []
-        })))) {
-        writeResponses.push(singleChunkResponse.writes);
-      }
-    }
-    const deleteResponses: ClientWriteSingleResponse[][] = [];
-    if (deletes?.length) {
-      for await (const singleChunkResponse of asyncPool(maxParallelRequests, chunkArray(deletes, maxPerChunk),
-        (chunk) => this.deleteTuples(chunk, { ...options, headers, transaction: undefined }).catch(err => ({
-          writes: [],
-          deletes: chunk.map(tuple => ({
-            tuple_key: tuple,
-            status: ClientWriteStatus.FAILURE,
-            err,
-          }))
-        })))) {
-        deleteResponses.push(singleChunkResponse.deletes);
-      }
-    }
+        const writeResponses: ClientWriteSingleResponse[][] = [];
+        if (writes?.length) {
+          for await (const singleChunkResponse of asyncPool(maxParallelRequests, chunkArray(writes, maxPerChunk),
+            (chunk) => this.writeTuples(chunk,{ ...options, headers, transaction: undefined }).catch(err => ({
+              writes: chunk.map(tuple => ({
+                tuple_key: tuple,
+                status: ClientWriteStatus.FAILURE,
+                err,
+              })),
+              deletes: []
+            })))) {
+            writeResponses.push(singleChunkResponse.writes);
+          }
+        }
 
-    return { writes: writeResponses.flat(), deletes: deleteResponses.flat() };
+        const deleteResponses: ClientWriteSingleResponse[][] = [];
+        if (deletes?.length) {
+          for await (const singleChunkResponse of asyncPool(maxParallelRequests, chunkArray(deletes, maxPerChunk),
+            (chunk) => this.deleteTuples(chunk, { ...options, headers, transaction: undefined }).catch(err => ({
+              writes: [],
+              deletes: chunk.map(tuple => ({
+                tuple_key: tuple,
+                status: ClientWriteStatus.FAILURE,
+                err,
+              }))
+            })))) {
+            deleteResponses.push(singleChunkResponse.deletes);
+          }
+        }
+
+        return { writes: writeResponses.flat(), deletes: deleteResponses.flat() };
+      })(),
+      this.checkValidApiConnection(options),
+    ]).then(res => res[0]);
   }
 
   /**
@@ -476,32 +512,40 @@ export class OpenFgaClient extends BaseAPI {
    * @param {number} [options.retryParams.minWaitInMs] - Override the minimum wait before a retry is initiated
    */
   async batchCheck(body: ClientBatchCheckRequest, options: ClientRequestOptsWithAuthZModelId & BatchCheckRequestOpts = {}): Promise<ClientBatchCheckResponse> {
-    const { headers = {}, maxParallelRequests = DEFAULT_MAX_METHOD_PARALLEL_REQS } = options;
-    setHeaderIfNotSet(headers, CLIENT_METHOD_HEADER, "BatchCheck");
-    setHeaderIfNotSet(headers, CLIENT_BULK_REQUEST_ID_HEADER, generateRandomIdWithNonUniqueFallback());
+    // We initiate two chains in parallel (to avoid unnecessary latency)
+    // 1- the actual request that we'll return at the end
+    // 2- a request to check whether the store ID, auth model ID, and credentials are valid
+    return Promise.all([
+      (async () => {
+        const { headers = {}, maxParallelRequests = DEFAULT_MAX_METHOD_PARALLEL_REQS } = options;
+        setHeaderIfNotSet(headers, CLIENT_METHOD_HEADER, "BatchCheck");
+        setHeaderIfNotSet(headers, CLIENT_BULK_REQUEST_ID_HEADER, generateRandomIdWithNonUniqueFallback());
 
-    const responses: ClientBatchCheckSingleResponse[] = [];
-    for await (const singleCheckResponse of asyncPool(maxParallelRequests, body, (tuple) => this.check(tuple, { ...options, headers })
-      .then(({ allowed, $response: response }) => {
-        const result = {
-          allowed: allowed || false,
-          _request: tuple,
-        };
-        setNotEnumerableProperty(result, "$response", response);
-        return result as ClientBatchCheckSingleResponse;
-      })
-      .catch(err => {
-        return {
-          allowed: false,
-          error: err,
-          _request: tuple,
-        } as unknown as ClientBatchCheckSingleResponse;
-      })
-    )) {
-      responses.push(singleCheckResponse);
-    }
+        const responses: ClientBatchCheckSingleResponse[] = [];
+        for await (const singleCheckResponse of asyncPool(maxParallelRequests, body, (tuple) => this.check(tuple, { ...options, headers })
+          .then(({ allowed, $response: response }) => {
+            const result = {
+              allowed: allowed || false,
+              _request: tuple,
+            };
+            setNotEnumerableProperty(result, "$response", response);
+            return result as ClientBatchCheckSingleResponse;
+          })
+          .catch(err => {
+            return {
+              allowed: false,
+              error: err,
+              _request: tuple,
+            } as unknown as ClientBatchCheckSingleResponse;
+          })
+        )) {
+          responses.push(singleCheckResponse);
+        }
 
-    return { responses };
+        return { responses };
+      })(),
+      this.checkValidApiConnection(options),
+    ]).then(res => res[0]);
   }
 
   /**
@@ -548,7 +592,7 @@ export class OpenFgaClient extends BaseAPI {
    * @param {object} listRelationsRequest
    * @param {string} listRelationsRequest.user The user object, must be of the form: `<type>:<id>`
    * @param {string} listRelationsRequest.object The object, must be of the form: `<type>:<id>`
-   * @param {string[]} [listRelationsRequest.relations] The list of relations to check, if not sent default to the all those for that type int the model
+   * @param {string[]} listRelationsRequest.relations The list of relations to check
    * @param options
    */
   async listRelations(listRelationsRequest: ClientListRelationsRequest, options: ClientRequestOptsWithAuthZModelId & BatchCheckRequestOpts = {}): Promise<ClientListRelationsResponse> {

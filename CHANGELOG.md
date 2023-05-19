@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.2.6
+
+### [0.2.6](https://github.com/openfga/js-sdk/compare/v0.2.5...v0.2.6) (2023-05-19)
+
+- feat(validation): ensure storeId and authorizationModelId are in valid ulid format
+- fix(client): ensure that the api connection is valid
+- fix(credentials): retry on client credential exchange in case of errors
+- chore(deps): update dependencies
+
 ## v0.2.5
 
 ### [0.2.5](https://github.com/openfga/js-sdk/compare/v0.2.4...v0.2.5) (2023-04-21)

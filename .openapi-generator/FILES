@@ -21,7 +21,9 @@ base.ts
 client.ts
 common.ts
 configuration.ts
-credentials.ts
+credentials/credentials.ts
+credentials/index.ts
+credentials/types.ts
 errors.ts
 git_push.sh
 index.ts
@@ -34,6 +36,7 @@ tests/helpers/nocks.ts
 tests/index.test.ts
 tests/jest.config.js
 tests/tsconfig.spec.json
+tests/validation.test.ts
 tsconfig.json
 utils/assert-never.ts
 utils/chunk-array.ts

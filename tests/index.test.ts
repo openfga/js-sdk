@@ -23,6 +23,7 @@ import {
   FgaApiNotFoundError,
   FgaApiRateLimitExceededError,
   FgaApiValidationError,
+  FgaValidationError,
   OpenFgaApi,
 } from "../index";
 import { CallResult } from "../common";
@@ -46,6 +47,12 @@ describe("OpenFGA SDK", function () {
       expect(
         () => new OpenFgaApi({ ...baseConfig, storeId: undefined! })
       ).not.toThrowError();
+    });
+
+    it("should throw an error if the storeId is not in a valid format", async () => {
+      expect(
+        () => new OpenFgaApi({ ...baseConfig, storeId: "abcsa"! })
+      ).toThrowError(FgaValidationError);
     });
 
     it("should require storeId when calling endpoints that require it", () => {
@@ -206,6 +213,23 @@ describe("OpenFGA SDK", function () {
       await fgaApi.readAuthorizationModels();
 
       expect(scope.isDone()).toBe(false);
+
+      nock.cleanAll();
+    });
+
+    it("should retry a failed attempt to request to exchange the credentials", async () => {
+      const scope1 = nocks.tokenExchange(OPENFGA_API_TOKEN_ISSUER, "test-token", 300, 500);
+      const scope2 = nocks.tokenExchange(OPENFGA_API_TOKEN_ISSUER);
+      nocks.readAuthorizationModels(baseConfig.storeId!);
+
+      const fgaApi = new OpenFgaApi(baseConfig);
+      expect(scope1.isDone()).toBe(false);
+      expect(scope2.isDone()).toBe(false);
+
+      await fgaApi.readAuthorizationModels();
+
+      expect(scope1.isDone()).toBe(true);
+      expect(scope2.isDone()).toBe(true);
 
       nock.cleanAll();
     });

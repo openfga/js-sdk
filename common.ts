@@ -1,5 +1,3 @@
-/* tslint:disable */
-/* eslint-disable */
 /**
  * JavaScript and Node.js SDK for OpenFGA
  *
@@ -13,18 +11,18 @@
  */
 
 
-import { AxiosResponse, AxiosStatic } from 'axios';
+import { AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosStatic } from "axios";
 
 import { Configuration } from "./configuration";
 import { Credentials } from "./credentials";
 import {
-    FgaApiError,
-    FgaApiInternalError,
-    FgaApiAuthenticationError,
-    FgaApiNotFoundError,
-    FgaApiRateLimitExceededError,
-    FgaApiValidationError,
-    FgaError
+  FgaApiError,
+  FgaApiInternalError,
+  FgaApiAuthenticationError,
+  FgaApiNotFoundError,
+  FgaApiRateLimitExceededError,
+  FgaApiValidationError,
+  FgaError
 } from "./errors";
 import { setNotEnumerableProperty } from "./utils";
 
@@ -32,7 +30,7 @@ import { setNotEnumerableProperty } from "./utils";
  *
  * @export
  */
-export const DUMMY_BASE_URL = 'https://example.com';
+export const DUMMY_BASE_URL = "https://example.com";
 
 /**
  *
@@ -50,56 +48,72 @@ export interface RequestArgs {
  * @export
  */
 export const setBearerAuthToObject = async function (object: any, credentials: Credentials) {
-    const accessTokenHeader = await credentials.getAccessTokenHeader();
-    if (accessTokenHeader && !object[accessTokenHeader.name]) {
-        object[accessTokenHeader.name] = accessTokenHeader.value;
-    }
-}
+  const accessTokenHeader = await credentials.getAccessTokenHeader();
+  if (accessTokenHeader && !object[accessTokenHeader.name]) {
+    object[accessTokenHeader.name] = accessTokenHeader.value;
+  }
+};
 
 /**
  *
  * @export
  */
 export const setSearchParams = function (url: URL, ...objects: any[]) {
-    const searchParams = new URLSearchParams(url.search);
-    for (const object of objects) {
-        for (const key in object) {
-            if (Array.isArray(object[key])) {
-                searchParams.delete(key);
-                for (const item of object[key]) {
-                    searchParams.append(key, item);
-                }
-            } else {
-                searchParams.set(key, object[key]);
-            }
+  const searchParams = new URLSearchParams(url.search);
+  for (const object of objects) {
+    for (const key in object) {
+      if (Array.isArray(object[key])) {
+        searchParams.delete(key);
+        for (const item of object[key]) {
+          searchParams.append(key, item);
         }
+      } else {
+        searchParams.set(key, object[key]);
+      }
     }
-    url.search = searchParams.toString();
-}
+  }
+  url.search = searchParams.toString();
+};
+
+/**
+* Check if the given MIME is a JSON MIME.
+* JSON MIME examples:
+*   application/json
+*   application/json; charset=UTF8
+*   APPLICATION/JSON
+*   application/vnd.company+json
+* @param mime - MIME (Multipurpose Internet Mail Extensions)
+* @return True if the given MIME is JSON, false otherwise.
+*/
+const isJsonMime = (mime: string): boolean => {
+  // eslint-disable-next-line no-control-regex
+  const jsonMime = new RegExp("^(application/json|[^;/ \t]+/[^;/ \t]+[+]json)[ \t]*(;.*)?$", "i");
+  return mime !== null && (jsonMime.test(mime) || mime.toLowerCase() === "application/json-patch+json");
+};
 
 /**
  *
  * @export
  */
-export const serializeDataIfNeeded = function (value: any, requestOptions: any, configuration: Configuration) {
-    const nonString = typeof value !== 'string';
-    const needsSerialization = nonString && configuration && configuration.isJsonMime
-        ? configuration.isJsonMime(requestOptions.headers['Content-Type'])
-        : nonString;
-    return needsSerialization
-        ? JSON.stringify(value !== undefined ? value : {})
-        : (value || "");
-}
+export const serializeDataIfNeeded = function (value: any, requestOptions: any) {
+  const nonString = typeof value !== "string";
+  const needsSerialization = nonString
+    ? isJsonMime(requestOptions.headers["Content-Type"])
+    : nonString;
+  return needsSerialization
+    ? JSON.stringify(value !== undefined ? value : {})
+    : (value || "");
+};
 
 /**
  *
  * @export
  */
 export const toPathString = function (url: URL) {
-    return url.pathname + url.search + url.hash
-}
+  return url.pathname + url.search + url.hash;
+};
 
-type ObjectOrVoid = {} | void;
+type ObjectOrVoid = object | void;
 
 export type CallResult<T extends ObjectOrVoid> = T & {
     $response: AxiosResponse<T>
@@ -107,59 +121,85 @@ export type CallResult<T extends ObjectOrVoid> = T & {
 
 export type PromiseResult<T extends ObjectOrVoid> = Promise<CallResult<T>>;
 
+/**
+ * Returns true if this error is returned from axios
+ * source: https://github.com/axios/axios/blob/21a5ad34c4a5956d81d338059ac0dd34a19ed094/lib/helpers/isAxiosError.js#L12
+ * @param err
+ */
+function isAxiosError(err: any): boolean {
+  return err && typeof err === "object" && err.isAxiosError === true;
+}
 function randomTime(loopCount: number, minWaitInMs: number): number {
-    const min = Math.ceil(2 ** loopCount * minWaitInMs);
-    const max = Math.ceil(2 ** (loopCount + 1) * minWaitInMs);
-    return Math.floor(Math.random() * (max - min) + min); //The maximum is exclusive and the minimum is inclusive
+  const min = Math.ceil(2 ** loopCount * minWaitInMs);
+  const max = Math.ceil(2 ** (loopCount + 1) * minWaitInMs);
+  return Math.floor(Math.random() * (max - min) + min); //The maximum is exclusive and the minimum is inclusive
+}
+
+export async function attemptHttpRequest<B, R>(
+  request: AxiosRequestConfig<B>,
+  config: {
+        maxRetry: number;
+        minWaitInMs: number;
+    },
+  axiosInstance: AxiosInstance,
+): Promise<AxiosResponse<R> | undefined> {
+  let iterationCount = 0;
+  do {
+    iterationCount++;
+    try {
+      return await axiosInstance(request);
+    } catch (err: any) {
+      if (!isAxiosError(err)) {
+        throw new FgaError(err);
+      }
+      const status = (err as any)?.response?.status;
+      if (status === 400 || status === 422) {
+        throw new FgaApiValidationError(err);
+      } else if (status === 401 || status === 403) {
+        throw new FgaApiAuthenticationError(err);
+      } else if (status === 404) {
+        throw new FgaApiNotFoundError(err);
+      } else if (status === 429 || status >= 500) {
+        if (iterationCount >= config.maxRetry) {
+        // We have reached the max retry limit
+        // Thus, we have no choice but to throw
+          if (status === 429) {
+            throw new FgaApiRateLimitExceededError(err);
+          } else {
+            throw new FgaApiInternalError(err);
+          }
+        }
+        await new Promise(r => setTimeout(r, randomTime(iterationCount, config.minWaitInMs)));
+      } else {
+        throw new FgaApiError(err);
+      }
+    }
+  } while(iterationCount < config.maxRetry + 1);
 }
 
 /**
  * creates an axios request function
  */
 export const createRequestFunction = function (axiosArgs: RequestArgs, globalAxios: AxiosStatic, configuration: Configuration, credentials?: Credentials) {
-    configuration.isValid();
+  configuration.isValid();
 
-    const retryParams = axiosArgs.options?.retryParams ? axiosArgs.options?.retryParams : configuration.retryParams;
-    const maxRetry:number = retryParams ? retryParams.maxRetry : 0;
-    const minWaitInMs:number = retryParams ? retryParams.minWaitInMs : 0;
-    if (!credentials) {
-        credentials = Credentials.init(configuration);
-    }
-    return async (axios: AxiosStatic = globalAxios) : PromiseResult<any> => {
-        await setBearerAuthToObject(axiosArgs.options.headers, credentials!);
-        for (let iterationCount = 0; iterationCount < maxRetry + 1; iterationCount++) {
-            try {
-                const axiosRequestArgs = {...axiosArgs.options, url: configuration.getBasePath() + axiosArgs.url};
-                const response = await axios.request(axiosRequestArgs);
-                const data = typeof response.data === 'undefined' ? {} : response.data;
-                const result: CallResult<any> = { ...data };
-                setNotEnumerableProperty(result, '$response', response);
-                return result;
-            } catch (err: unknown) {
-                if (!axios.isAxiosError(err) || !err.response?.status) {
-                    throw new FgaError(err as Error);
-                }
-                if (err.response?.status === 400 || err.response?.status === 422) {
-                    throw new FgaApiValidationError(err);
-                } else if (err.response?.status === 401 || err.response?.status === 403) {
-                    throw new FgaApiAuthenticationError(err);
-                } else if (err.response?.status === 404) {
-                    throw new FgaApiNotFoundError(err);
-                } else if (err.response?.status === 429 || err.response?.status >= 500) {
-                    if (iterationCount >= maxRetry) {
-                        // We have reached the max retry limit
-                        // Thus, we have no choice but to throw
-                        if (err.response?.status === 429) {
-                          throw new FgaApiRateLimitExceededError(err);
-                        } else {
-                          throw new FgaApiInternalError(err);
-                        }
-                    }
-                    await new Promise(r => setTimeout(r, randomTime(iterationCount, minWaitInMs)));
-                } else {
-                    throw new FgaApiError(err);
-                }
-            }
-        }
-    };
-}
+  const retryParams = axiosArgs.options?.retryParams ? axiosArgs.options?.retryParams : configuration.retryParams;
+  const maxRetry:number = retryParams ? retryParams.maxRetry : 0;
+  const minWaitInMs:number = retryParams ? retryParams.minWaitInMs : 0;
+  if (!credentials) {
+    credentials = Credentials.init(configuration);
+  }
+  return async (axios: AxiosStatic = globalAxios) : PromiseResult<any> => {
+    await setBearerAuthToObject(axiosArgs.options.headers, credentials!);
+
+    const axiosRequestArgs = {...axiosArgs.options, url: configuration.getBasePath() + axiosArgs.url};
+    const response = await attemptHttpRequest(axiosRequestArgs, {
+      maxRetry,
+      minWaitInMs,
+    }, axios);
+    const data = typeof response?.data === "undefined" ? {} : response?.data;
+    const result: CallResult<any> = { ...data };
+    setNotEnumerableProperty(result, "$response", response);
+    return result;
+  };
+};

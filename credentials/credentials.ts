@@ -12,75 +12,11 @@
 
 
 import globalAxios, { AxiosInstance } from "axios";
-import { assertParamExists, isWellFormedUriString } from "./validation";
-import { FgaApiAuthenticationError, FgaError, FgaValidationError } from "./errors";
 
-export enum CredentialsMethod {
-  None = "none",
-  ApiToken = "api_token",
-  ClientCredentials = "client_credentials",
-}
-
-export interface ClientCredentialsConfig {
-  /**
-   * Client ID
-   *
-   * @type {string}
-   * @memberof Configuration
-   */
-  clientId: string;
-  /**
-   * Client Secret
-   *
-   * @type {string}
-   * @memberof Configuration
-   */
-  clientSecret: string;
-  /**
-   * API Token Issuer
-   *
-   * @type {string}
-   */
-  apiTokenIssuer: string;
-  /**
-   * API Audience
-   *
-   * @type {string}
-   */
-  apiAudience: string;
-}
-
-export interface ApiTokenConfig {
-  /**
-   * API Token Value
-   *
-   * @type {string}
-   */
-  token: string;
-  /**
-   * API Token Header Name (default = Authorization)
-   *
-   * @type {string}
-   */
-  headerName: string;
-  /**
-   * API Token Value Prefix (default = Bearer)
-   *
-   * @type {string}
-   */
-  headerValuePrefix: string;
-}
-
-export type AuthCredentialsConfig =
-  {
-    method: CredentialsMethod.None | undefined;
-  } | {
-    method: CredentialsMethod.ApiToken;
-    config: ApiTokenConfig;
-  } | {
-    method: CredentialsMethod.ClientCredentials;
-    config: ClientCredentialsConfig;
-  } | undefined;
+import { assertParamExists, isWellFormedUriString } from "../validation";
+import { FgaApiAuthenticationError, FgaApiError, FgaError, FgaValidationError } from "../errors";
+import { attemptHttpRequest } from "../common";
+import { ApiTokenConfig, AuthCredentialsConfig, ClientCredentialsConfig, CredentialsMethod } from "./types";
 
 export class Credentials {
   private accessToken?: string;
@@ -192,22 +128,44 @@ export class Credentials {
     const clientCredentials = (this.authConfig as { method: CredentialsMethod.ClientCredentials; config: ClientCredentialsConfig })?.config;
 
     try {
-      const response = await this.axios.post(`https://${clientCredentials.apiTokenIssuer}/oauth/token`, {
-        client_id: clientCredentials.clientId,
-        client_secret: clientCredentials.clientSecret,
-        audience: clientCredentials.apiAudience,
-        grant_type: "client_credentials",
-      });
+      const response = await attemptHttpRequest<{
+          client_id: string,
+          client_secret: string,
+          audience: string,
+          grant_type: "client_credentials",
+        }, {
+        access_token: string,
+        expires_in: number,
+      }>({
+        url: `https://${clientCredentials.apiTokenIssuer}/oauth/token`,
+        method: "post",
+        data: {
+          client_id: clientCredentials.clientId,
+          client_secret: clientCredentials.clientSecret,
+          audience: clientCredentials.apiAudience,
+          grant_type: "client_credentials",
+        }
+      }, {
+        maxRetry: 3,
+        minWaitInMs: 100,
+      }, globalAxios);
 
-      this.accessToken = response.data.access_token;
-      this.accessTokenExpiryDate = new Date(Date.now() + response.data.expires_in);
+      if (response) {
+        this.accessToken = response.data.access_token;
+        this.accessTokenExpiryDate = new Date(Date.now() + response.data.expires_in);
+      }
 
       return this.accessToken;
     } catch (err: unknown) {
-      if (globalAxios.isAxiosError(err)) {
-        throw new FgaApiAuthenticationError(err);
+      if (err instanceof FgaApiError) {
+        (err as any).constructor = FgaApiAuthenticationError;
+        (err as any).name = "FgaApiAuthenticationError";
+        (err as any).clientId = clientCredentials.clientId;
+        (err as any).audience = clientCredentials.apiAudience;
+        (err as any).grantType = "client_credentials";
       }
-      throw new FgaError(err);
+
+      throw err;
     }
   }
 }

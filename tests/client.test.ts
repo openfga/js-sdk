@@ -13,7 +13,13 @@
 
 import * as nock from "nock";
 
-import { ClientWriteStatus, CredentialsMethod, FgaValidationError, OpenFgaClient } from "../index";
+import {
+  ClientWriteStatus,
+  CredentialsMethod,
+  FgaApiAuthenticationError,
+  FgaValidationError,
+  OpenFgaClient
+} from "../index";
 import { baseConfig, defaultConfiguration, getNocks } from "./helpers";
 
 const nocks = getNocks(nock);
@@ -125,7 +131,7 @@ describe("OpenFGA Client", () => {
 
     describe("ReadAuthorizationModel", () => {
       it("should properly call the OpenFga API", async () => {
-        const modelId = "string";
+        const modelId = "01H0THVNGCSAZ6SAQVTHPH3F0Q";
         const scope = nocks.readSingleAuthzModel(defaultConfiguration.storeId!, modelId);
 
         expect(scope.isDone()).toBe(false);
@@ -144,7 +150,7 @@ describe("OpenFGA Client", () => {
 
     describe("ReadLatestAuthorizationModel", () => {
       it("should properly call the OpenFga API", async () => {
-        const modelId = "some-id";
+        const modelId = "01H0THVNGCSAZ6SAQVTHPH3F0Q";
         const scope = nock(defaultConfiguration.getBasePath())
           .get(`/stores/${defaultConfiguration.storeId!}/authorization-models`)
           .query({ page_size: 1 })
@@ -233,6 +239,8 @@ describe("OpenFGA Client", () => {
         const scope0 = nocks.write(baseConfig.storeId!).matchHeader("X-OpenFGA-Client-Method", "Write");
         const scope1 = nocks.write(baseConfig.storeId!).matchHeader("X-OpenFGA-Client-Method", "Write");
         const scope2 = nocks.write(baseConfig.storeId!).matchHeader("X-OpenFGA-Client-Method", "Write");
+        const modelId = "01GXSA8YR785C4FYS3C0RTG7B1";
+        const scope3 = nocks.readSingleAuthzModel(defaultConfiguration.storeId!, modelId);
 
         expect(scope0.isDone()).toBe(false);
         expect(scope1.isDone()).toBe(false);
@@ -240,13 +248,14 @@ describe("OpenFGA Client", () => {
         const data = await fgaClient.write({
           writes: tuples,
         }, {
-          authorizationModelId: "01GXSA8YR785C4FYS3C0RTG7B1",
+          authorizationModelId: modelId,
           transaction: { disable: true },
         });
 
         expect(scope0.isDone()).toBe(true);
         expect(scope1.isDone()).toBe(true);
         expect(scope2.isDone()).toBe(false);
+        expect(scope3.isDone()).toBe(true);
         expect(data).toMatchObject({});
       });
 
@@ -270,6 +279,8 @@ describe("OpenFGA Client", () => {
           "code": "validation_error",
           "message": "relation &#39;workspace#reader&#39; not found"
         }, 400).matchHeader("X-OpenFGA-Client-Method", "Write");
+        const modelId = "01GXSA8YR785C4FYS3C0RTG7B1";
+        const scope3 = nocks.readSingleAuthzModel(defaultConfiguration.storeId!, modelId);
 
         expect(scope0.isDone()).toBe(false);
         expect(scope1.isDone()).toBe(false);
@@ -277,18 +288,51 @@ describe("OpenFGA Client", () => {
         const data = await fgaClient.write({
           writes: tuples,
         }, {
-          authorizationModelId: "01GXSA8YR785C4FYS3C0RTG7B1",
+          authorizationModelId: modelId,
           transaction: { disable: true },
         });
 
         expect(scope0.isDone()).toBe(true);
         expect(scope1.isDone()).toBe(true);
         expect(scope2.isDone()).toBe(true);
+        expect(scope3.isDone()).toBe(true);
         expect(data.writes.length).toBe(3);
         expect(data.deletes.length).toBe(0);
         expect(data.writes.find(tuple => tuple.tuple_key.object === tuples[0].object)?.status).toBe(ClientWriteStatus.SUCCESS);
         expect(data.writes.find(tuple => tuple.tuple_key.object === tuples[1].object)?.status).toBe(ClientWriteStatus.SUCCESS);
         expect(data.writes.find(tuple => tuple.tuple_key.object === tuples[2].object)?.status).toBe(ClientWriteStatus.FAILURE);
+      });
+
+      it("should throw an error if auth fails in not transaction mode", async () => {
+        const authModelId = "01GXSA8YR785C4FYS3C0RTG7B1";
+        const tuples = [{
+          user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
+          relation: "admin",
+          object: "workspace:1",
+        }];
+
+        const scope0 = nocks.write(baseConfig.storeId!, defaultConfiguration.getBasePath(), {}, 401).matchHeader("X-OpenFGA-Client-Method", "Write");
+        const scope1 = nock(defaultConfiguration.getBasePath())
+          .get(`/stores/${baseConfig.storeId!}/authorization-models/${authModelId}`)
+          .reply(401, {});
+        try {
+          const tuples = [{
+            user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
+            relation: "admin",
+            object: "workspace:1",
+          }];
+          await fgaClient.write({
+            writes: tuples,
+          }, {
+            authorizationModelId: authModelId,
+            transaction: { disable: true },
+          });
+        } catch (err) {
+          expect(err).toBeInstanceOf(FgaApiAuthenticationError);
+        } finally {
+          expect(scope0.isDone()).toBe(true);
+          expect(scope1.isDone()).toBe(true);
+        }
       });
     });
 
@@ -369,6 +413,12 @@ describe("OpenFGA Client", () => {
           "code": "validation_error",
           "message": "relation &#39;workspace#reader&#39; not found"
         }, 400).matchHeader("X-OpenFGA-Client-Method", "BatchCheck");
+        const scope3 = nock(defaultConfiguration.getBasePath())
+          .get(`/stores/${defaultConfiguration.storeId!}/authorization-models`)
+          .query({ page_size: 1 })
+          .reply(200, {
+            authorization_models: [],
+          });
 
         expect(scope0.isDone()).toBe(false);
         expect(scope1.isDone()).toBe(false);
@@ -378,6 +428,7 @@ describe("OpenFGA Client", () => {
         expect(scope0.isDone()).toBe(true);
         expect(scope1.isDone()).toBe(true);
         expect(scope2.isDone()).toBe(true);
+        expect(scope3.isDone()).toBe(true);
         expect(response.responses.length).toBe(3);
         expect(response.responses.sort((a, b) => String(a._request.object).localeCompare(b._request.object)))
           .toMatchObject(expect.arrayContaining([
@@ -466,12 +517,19 @@ describe("OpenFGA Client", () => {
           "code": "validation_error",
           "message": "relation &#39;workspace#can_read&#39; not found"
         }, 400).matchHeader("X-OpenFGA-Client-Method", "ListRelations");
+        const scope5 = nock(defaultConfiguration.getBasePath())
+          .get(`/stores/${defaultConfiguration.storeId!}/authorization-models`)
+          .query({ page_size: 1 })
+          .reply(200, {
+            authorization_models: [],
+          });
 
         expect(scope0.isDone()).toBe(false);
         expect(scope1.isDone()).toBe(false);
         expect(scope2.isDone()).toBe(false);
         expect(scope3.isDone()).toBe(false);
         expect(scope4.isDone()).toBe(false);
+        expect(scope5.isDone()).toBe(false);
         const response = await fgaClient.listRelations({
           user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
           object: "workspace:1",
@@ -483,6 +541,7 @@ describe("OpenFGA Client", () => {
         expect(scope2.isDone()).toBe(true);
         expect(scope3.isDone()).toBe(true);
         expect(scope4.isDone()).toBe(false);
+        expect(scope5.isDone()).toBe(true);
         expect(response.relations.length).toBe(2);
         expect(response.relations.sort()).toEqual(expect.arrayContaining(["admin", "reader"]));
       });
@@ -499,12 +558,40 @@ describe("OpenFGA Client", () => {
           expect((err as FgaValidationError).message).toBe("When calling listRelations, at least one relation must be passed in the relations field");
         }
       });
+
+      it("should throw an error if auth fails", async () => {
+        const tuples = [{
+          user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
+          relation: "admin",
+          object: "workspace:1",
+        }];
+
+        const scope0 = nocks.check(baseConfig.storeId!, tuples[0], defaultConfiguration.getBasePath(), {} as any,401);
+        const scope1 = nock(defaultConfiguration.getBasePath())
+          .get(`/stores/${defaultConfiguration.storeId!}/authorization-models`)
+          .query({ page_size: 1 })
+          .reply(401, {
+            authorization_models: [],
+          });
+        try {
+          await fgaClient.listRelations({
+            user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
+            object: "workspace:1",
+            relations: ["admin"],
+          });
+        } catch (err) {
+          expect(err).toBeInstanceOf(FgaApiAuthenticationError);
+        } finally {
+          expect(scope0.isDone()).toBe(true);
+          expect(scope1.isDone()).toBe(true);
+        }
+      });
     });
 
     /* Assertions */
     describe("ReadAssertions", () => {
       it("should properly call the OpenFga ReadAssertions API", async () => {
-        const modelId = "string";
+        const modelId = "01H0THVNGCSAZ6SAQVTHPH3F0Q";
         const scope = nocks.readAssertions(defaultConfiguration.storeId!, modelId);
 
         expect(scope.isDone()).toBe(false);
@@ -520,7 +607,7 @@ describe("OpenFGA Client", () => {
 
     describe("WriteAssertions", () => {
       it("should properly call the OpenFga WriteAssertions API", async () => {
-        const modelId = "string";
+        const modelId = "01H0THVNGCSAZ6SAQVTHPH3F0Q";
         const scope = nocks.writeAssertions(defaultConfiguration.storeId!, modelId);
 
         expect(scope.isDone()).toBe(false);
