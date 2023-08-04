@@ -460,7 +460,7 @@ export interface ListStoresResponse {
      */
     stores?: Array<Store>;
     /**
-     * 
+     * The continuation token will be empty if there are no more stores.
      * @type {string}
      * @memberof ListStoresResponse
      */
@@ -627,7 +627,7 @@ export interface ReadAuthorizationModelsResponse {
      */
     authorization_models?: Array<AuthorizationModel>;
     /**
-     * 
+     * The continuation token will be empty if there are no more models.
      * @type {string}
      * @memberof ReadAuthorizationModelsResponse
      */
@@ -646,7 +646,7 @@ export interface ReadChangesResponse {
      */
     changes?: Array<TupleChange>;
     /**
-     * 
+     * The continuation token will be identical if there are no new changes.
      * @type {string}
      * @memberof ReadChangesResponse
      */
@@ -690,7 +690,7 @@ export interface ReadResponse {
      */
     tuples?: Array<Tuple>;
     /**
-     * 
+     * The continuation token will be empty if there are no more tuples.
      * @type {string}
      * @memberof ReadResponse
      */

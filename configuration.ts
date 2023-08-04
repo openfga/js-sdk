@@ -19,8 +19,11 @@ import { assertParamExists, isWellFormedUlidString, isWellFormedUriString } from
 
 // default maximum number of retry
 const DEFAULT_MAX_RETRY = 15;
+
 // default minimum wait period in retry - but will backoff exponentially
 const DEFAULT_MIN_WAIT_MS = 100;
+
+const DEFAULT_USER_AGENT = "openfga-sdk js/0.2.6";
 
 export interface RetryParams {
   maxRetry?: number;
@@ -153,7 +156,7 @@ export class Configuration {
     baseOptions.headers = baseOptions.headers || {};
 
     if (typeof process === "object" && process.title === "node" && !baseOptions.headers["User-Agent"]) {
-      baseOptions.headers["User-Agent"] = "openfga-sdk {sdkId}/{packageVersion}".replace("{sdkId}", "js").replace("{packageVersion}", Configuration.sdkVersion);
+      baseOptions.headers["User-Agent"] = DEFAULT_USER_AGENT;
     }
 
     this.baseOptions = baseOptions;

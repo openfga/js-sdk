@@ -2,8 +2,8 @@
 .eslintrc.js
 .fossa.yml
 .github/CODEOWNERS
-.github/ISSUE_TEMPLATES/bug_report.md
-.github/ISSUE_TEMPLATES/feature_request.md
+.github/ISSUE_TEMPLATE/bug_report.md
+.github/ISSUE_TEMPLATE/feature_request.md
 .github/workflows/main.yaml
 .github/workflows/semgrep.yaml
 .gitignore
