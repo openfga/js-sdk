@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.2.7
+
+### [0.2.7](https://github.com/openfga/js-sdk/compare/v0.2.6...v0.2.7) (2023-08-16)
+
+- fix(credentials): fix calculation of token expiry
+- chore(deps): update dependencies
+
 ## v0.2.6
 
 ### [0.2.6](https://github.com/openfga/js-sdk/compare/v0.2.5...v0.2.6) (2023-05-19)
