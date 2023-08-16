@@ -152,7 +152,7 @@ export class Credentials {
 
       if (response) {
         this.accessToken = response.data.access_token;
-        this.accessTokenExpiryDate = new Date(Date.now() + response.data.expires_in);
+        this.accessTokenExpiryDate = new Date(Date.now() + response.data.expires_in*1000);
       }
 
       return this.accessToken;
