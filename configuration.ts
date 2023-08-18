@@ -11,8 +11,6 @@
  */
 
 
-import globalAxios, { AxiosInstance } from "axios";
-
 import { ApiTokenConfig, AuthCredentialsConfig, ClientCredentialsConfig, CredentialsMethod } from "./credentials/types";
 import { FgaValidationError, } from "./errors";
 import { assertParamExists, isWellFormedUlidString, isWellFormedUriString } from "./validation";
@@ -114,7 +112,7 @@ export class Configuration {
    */
   retryParams?: RetryParams;
 
-  constructor(params: UserConfigurationParams = {} as unknown as UserConfigurationParams, private axios: AxiosInstance = globalAxios) {
+  constructor(params: UserConfigurationParams = {} as unknown as UserConfigurationParams) {
     this.apiScheme = params.apiScheme || this.apiScheme;
     this.apiHost = params.apiHost!;
     this.storeId = params.storeId!;

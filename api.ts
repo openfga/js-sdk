@@ -11,7 +11,7 @@
  */
 
 
-import globalAxios, { AxiosStatic } from "axios";
+import globalAxios, { AxiosInstance } from "axios";
 
 import { BaseAPI } from "./base";
 import {
@@ -121,8 +121,7 @@ export const OpenFgaApiAxiosParamCreator = function (configuration: Configuratio
       localVarHeaderParameter["Content-Type"] = "application/json";
 
       setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
-      const headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-      localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+      localVarRequestOptions.headers = {...localVarHeaderParameter, ...options.headers};
       localVarRequestOptions.data = serializeDataIfNeeded(body, localVarRequestOptions);
 
       return {
@@ -158,8 +157,7 @@ export const OpenFgaApiAxiosParamCreator = function (configuration: Configuratio
       localVarHeaderParameter["Content-Type"] = "application/json";
 
       setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
-      const headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-      localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+      localVarRequestOptions.headers = {...localVarHeaderParameter, ...options.headers};
       localVarRequestOptions.data = serializeDataIfNeeded(body, localVarRequestOptions);
 
       return {
@@ -192,8 +190,7 @@ export const OpenFgaApiAxiosParamCreator = function (configuration: Configuratio
 
     
       setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
-      const headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-      localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+      localVarRequestOptions.headers = {...localVarHeaderParameter, ...options.headers};
 
       return {
         url: toPathString(localVarUrlObj),
@@ -230,8 +227,7 @@ export const OpenFgaApiAxiosParamCreator = function (configuration: Configuratio
       localVarHeaderParameter["Content-Type"] = "application/json";
 
       setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
-      const headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-      localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+      localVarRequestOptions.headers = {...localVarHeaderParameter, ...options.headers};
       localVarRequestOptions.data = serializeDataIfNeeded(body, localVarRequestOptions);
 
       return {
@@ -264,8 +260,7 @@ export const OpenFgaApiAxiosParamCreator = function (configuration: Configuratio
 
     
       setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
-      const headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-      localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+      localVarRequestOptions.headers = {...localVarHeaderParameter, ...options.headers};
 
       return {
         url: toPathString(localVarUrlObj),
@@ -302,8 +297,7 @@ export const OpenFgaApiAxiosParamCreator = function (configuration: Configuratio
       localVarHeaderParameter["Content-Type"] = "application/json";
 
       setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
-      const headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-      localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+      localVarRequestOptions.headers = {...localVarHeaderParameter, ...options.headers};
       localVarRequestOptions.data = serializeDataIfNeeded(body, localVarRequestOptions);
 
       return {
@@ -346,8 +340,7 @@ export const OpenFgaApiAxiosParamCreator = function (configuration: Configuratio
 
     
       setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
-      const headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-      localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+      localVarRequestOptions.headers = {...localVarHeaderParameter, ...options.headers};
 
       return {
         url: toPathString(localVarUrlObj),
@@ -384,8 +377,7 @@ export const OpenFgaApiAxiosParamCreator = function (configuration: Configuratio
       localVarHeaderParameter["Content-Type"] = "application/json";
 
       setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
-      const headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-      localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+      localVarRequestOptions.headers = {...localVarHeaderParameter, ...options.headers};
       localVarRequestOptions.data = serializeDataIfNeeded(body, localVarRequestOptions);
 
       return {
@@ -421,8 +413,7 @@ export const OpenFgaApiAxiosParamCreator = function (configuration: Configuratio
 
     
       setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
-      const headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-      localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+      localVarRequestOptions.headers = {...localVarHeaderParameter, ...options.headers};
 
       return {
         url: toPathString(localVarUrlObj),
@@ -457,8 +448,7 @@ export const OpenFgaApiAxiosParamCreator = function (configuration: Configuratio
 
     
       setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
-      const headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-      localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+      localVarRequestOptions.headers = {...localVarHeaderParameter, ...options.headers};
 
       return {
         url: toPathString(localVarUrlObj),
@@ -500,8 +490,7 @@ export const OpenFgaApiAxiosParamCreator = function (configuration: Configuratio
 
     
       setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
-      const headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-      localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+      localVarRequestOptions.headers = {...localVarHeaderParameter, ...options.headers};
 
       return {
         url: toPathString(localVarUrlObj),
@@ -548,8 +537,7 @@ export const OpenFgaApiAxiosParamCreator = function (configuration: Configuratio
 
     
       setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
-      const headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-      localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+      localVarRequestOptions.headers = {...localVarHeaderParameter, ...options.headers};
 
       return {
         url: toPathString(localVarUrlObj),
@@ -586,8 +574,7 @@ export const OpenFgaApiAxiosParamCreator = function (configuration: Configuratio
       localVarHeaderParameter["Content-Type"] = "application/json";
 
       setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
-      const headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-      localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+      localVarRequestOptions.headers = {...localVarHeaderParameter, ...options.headers};
       localVarRequestOptions.data = serializeDataIfNeeded(body, localVarRequestOptions);
 
       return {
@@ -628,8 +615,7 @@ export const OpenFgaApiAxiosParamCreator = function (configuration: Configuratio
       localVarHeaderParameter["Content-Type"] = "application/json";
 
       setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
-      const headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-      localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+      localVarRequestOptions.headers = {...localVarHeaderParameter, ...options.headers};
       localVarRequestOptions.data = serializeDataIfNeeded(body, localVarRequestOptions);
 
       return {
@@ -667,8 +653,7 @@ export const OpenFgaApiAxiosParamCreator = function (configuration: Configuratio
       localVarHeaderParameter["Content-Type"] = "application/json";
 
       setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
-      const headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-      localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+      localVarRequestOptions.headers = {...localVarHeaderParameter, ...options.headers};
       localVarRequestOptions.data = serializeDataIfNeeded(body, localVarRequestOptions);
 
       return {
@@ -693,7 +678,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    async check(body: CheckRequest, options?: any): Promise<(axios?: AxiosStatic) => PromiseResult<CheckResponse>> {
+    async check(body: CheckRequest, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<CheckResponse>> {
       const localVarAxiosArgs = await localVarAxiosParamCreator.check(body, options);
       return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials);
     },
@@ -704,7 +689,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    async createStore(body: CreateStoreRequest, options?: any): Promise<(axios?: AxiosStatic) => PromiseResult<CreateStoreResponse>> {
+    async createStore(body: CreateStoreRequest, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<CreateStoreResponse>> {
       const localVarAxiosArgs = await localVarAxiosParamCreator.createStore(body, options);
       return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials);
     },
@@ -714,7 +699,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    async deleteStore(options?: any): Promise<(axios?: AxiosStatic) => PromiseResult<void>> {
+    async deleteStore(options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<void>> {
       const localVarAxiosArgs = await localVarAxiosParamCreator.deleteStore(options);
       return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials);
     },
@@ -725,7 +710,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    async expand(body: ExpandRequest, options?: any): Promise<(axios?: AxiosStatic) => PromiseResult<ExpandResponse>> {
+    async expand(body: ExpandRequest, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<ExpandResponse>> {
       const localVarAxiosArgs = await localVarAxiosParamCreator.expand(body, options);
       return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials);
     },
@@ -735,7 +720,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    async getStore(options?: any): Promise<(axios?: AxiosStatic) => PromiseResult<GetStoreResponse>> {
+    async getStore(options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<GetStoreResponse>> {
       const localVarAxiosArgs = await localVarAxiosParamCreator.getStore(options);
       return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials);
     },
@@ -746,7 +731,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    async listObjects(body: ListObjectsRequest, options?: any): Promise<(axios?: AxiosStatic) => PromiseResult<ListObjectsResponse>> {
+    async listObjects(body: ListObjectsRequest, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<ListObjectsResponse>> {
       const localVarAxiosArgs = await localVarAxiosParamCreator.listObjects(body, options);
       return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials);
     },
@@ -758,7 +743,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    async listStores(pageSize?: number, continuationToken?: string, options?: any): Promise<(axios?: AxiosStatic) => PromiseResult<ListStoresResponse>> {
+    async listStores(pageSize?: number, continuationToken?: string, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<ListStoresResponse>> {
       const localVarAxiosArgs = await localVarAxiosParamCreator.listStores(pageSize, continuationToken, options);
       return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials);
     },
@@ -769,7 +754,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    async read(body: ReadRequest, options?: any): Promise<(axios?: AxiosStatic) => PromiseResult<ReadResponse>> {
+    async read(body: ReadRequest, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<ReadResponse>> {
       const localVarAxiosArgs = await localVarAxiosParamCreator.read(body, options);
       return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials);
     },
@@ -780,7 +765,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    async readAssertions(authorizationModelId: string, options?: any): Promise<(axios?: AxiosStatic) => PromiseResult<ReadAssertionsResponse>> {
+    async readAssertions(authorizationModelId: string, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<ReadAssertionsResponse>> {
       const localVarAxiosArgs = await localVarAxiosParamCreator.readAssertions(authorizationModelId, options);
       return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials);
     },
@@ -791,7 +776,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    async readAuthorizationModel(id: string, options?: any): Promise<(axios?: AxiosStatic) => PromiseResult<ReadAuthorizationModelResponse>> {
+    async readAuthorizationModel(id: string, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<ReadAuthorizationModelResponse>> {
       const localVarAxiosArgs = await localVarAxiosParamCreator.readAuthorizationModel(id, options);
       return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials);
     },
@@ -803,7 +788,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    async readAuthorizationModels(pageSize?: number, continuationToken?: string, options?: any): Promise<(axios?: AxiosStatic) => PromiseResult<ReadAuthorizationModelsResponse>> {
+    async readAuthorizationModels(pageSize?: number, continuationToken?: string, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<ReadAuthorizationModelsResponse>> {
       const localVarAxiosArgs = await localVarAxiosParamCreator.readAuthorizationModels(pageSize, continuationToken, options);
       return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials);
     },
@@ -816,7 +801,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    async readChanges(type?: string, pageSize?: number, continuationToken?: string, options?: any): Promise<(axios?: AxiosStatic) => PromiseResult<ReadChangesResponse>> {
+    async readChanges(type?: string, pageSize?: number, continuationToken?: string, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<ReadChangesResponse>> {
       const localVarAxiosArgs = await localVarAxiosParamCreator.readChanges(type, pageSize, continuationToken, options);
       return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials);
     },
@@ -827,7 +812,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    async write(body: WriteRequest, options?: any): Promise<(axios?: AxiosStatic) => PromiseResult<object>> {
+    async write(body: WriteRequest, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<object>> {
       const localVarAxiosArgs = await localVarAxiosParamCreator.write(body, options);
       return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials);
     },
@@ -839,7 +824,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    async writeAssertions(authorizationModelId: string, body: WriteAssertionsRequest, options?: any): Promise<(axios?: AxiosStatic) => PromiseResult<void>> {
+    async writeAssertions(authorizationModelId: string, body: WriteAssertionsRequest, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<void>> {
       const localVarAxiosArgs = await localVarAxiosParamCreator.writeAssertions(authorizationModelId, body, options);
       return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials);
     },
@@ -850,7 +835,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    async writeAuthorizationModel(body: WriteAuthorizationModelRequest, options?: any): Promise<(axios?: AxiosStatic) => PromiseResult<WriteAuthorizationModelResponse>> {
+    async writeAuthorizationModel(body: WriteAuthorizationModelRequest, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<WriteAuthorizationModelResponse>> {
       const localVarAxiosArgs = await localVarAxiosParamCreator.writeAuthorizationModel(body, options);
       return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials);
     },
@@ -861,7 +846,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
  * OpenFgaApi - factory interface
  * @export
  */
-export const OpenFgaApiFactory = function (configuration: Configuration, credentials: Credentials, axios?: AxiosStatic) {
+export const OpenFgaApiFactory = function (configuration: Configuration, credentials: Credentials, axios?: AxiosInstance) {
   const localVarFp = OpenFgaApiFp(configuration, credentials);
   return {
     /**

@@ -11,7 +11,7 @@
  */
 
 
-import { AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosStatic } from "axios";
+import { AxiosInstance, AxiosRequestConfig, AxiosResponse } from "axios";
 
 import { Configuration } from "./configuration";
 import { Credentials } from "./credentials";
@@ -180,7 +180,7 @@ export async function attemptHttpRequest<B, R>(
 /**
  * creates an axios request function
  */
-export const createRequestFunction = function (axiosArgs: RequestArgs, globalAxios: AxiosStatic, configuration: Configuration, credentials?: Credentials) {
+export const createRequestFunction = function (axiosArgs: RequestArgs, axiosInstance: AxiosInstance, configuration: Configuration, credentials?: Credentials) {
   configuration.isValid();
 
   const retryParams = axiosArgs.options?.retryParams ? axiosArgs.options?.retryParams : configuration.retryParams;
@@ -189,7 +189,7 @@ export const createRequestFunction = function (axiosArgs: RequestArgs, globalAxi
   if (!credentials) {
     credentials = Credentials.init(configuration);
   }
-  return async (axios: AxiosStatic = globalAxios) : PromiseResult<any> => {
+  return async (axios: AxiosInstance = axiosInstance) : PromiseResult<any> => {
     await setBearerAuthToObject(axiosArgs.options.headers, credentials!);
 
     const axiosRequestArgs = {...axiosArgs.options, url: configuration.getBasePath() + axiosArgs.url};
