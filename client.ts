@@ -11,7 +11,7 @@
  */
 
 
-import { AxiosResponse, AxiosStatic } from "axios";
+import { AxiosResponse, AxiosInstance } from "axios";
 import asyncPool = require("tiny-async-pool");
 
 import { OpenFgaApi } from "./api";
@@ -140,10 +140,10 @@ export class OpenFgaClient extends BaseAPI {
   public api: OpenFgaApi;
   public authorizationModelId?: string;
 
-  constructor(configuration: ClientConfiguration, protected axios?: AxiosStatic) {
+  constructor(configuration: ClientConfiguration, protected axios?: AxiosInstance) {
     super(configuration, axios);
 
-    this.api = new OpenFgaApi(this.configuration);
+    this.api = new OpenFgaApi(this.configuration, axios);
     this.authorizationModelId = configuration.authorizationModelId;
 
     this.getAuthorizationModelId(); // validates the authorization model id
