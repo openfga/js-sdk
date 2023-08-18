@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.2.8
+
+### [0.2.8](https://github.com/openfga/js-sdk/compare/v0.2.7...v0.2.8) (2023-08-18)
+
+- fix: set http keep-alive to true
+- fix: list relations should throw when an underlying check errors
+- fix: return raw response in client check
+- chore(deps): update dependencies
+
 ## v0.2.7
 
 ### [0.2.7](https://github.com/openfga/js-sdk/compare/v0.2.6...v0.2.7) (2023-08-16)
