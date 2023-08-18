@@ -16,6 +16,7 @@ import * as nock from "nock";
 import {
   ClientWriteStatus,
   CredentialsMethod,
+  FgaApiError,
   FgaApiAuthenticationError,
   FgaValidationError,
   OpenFgaClient
@@ -512,11 +513,8 @@ describe("OpenFGA Client", () => {
         const scope0 = nocks.check(defaultConfiguration.storeId!, tuples[0], defaultConfiguration.getBasePath(), { allowed: true }).matchHeader("X-OpenFGA-Client-Method", "ListRelations");
         const scope1 = nocks.check(defaultConfiguration.storeId!, tuples[1], defaultConfiguration.getBasePath(), { allowed: false }).matchHeader("X-OpenFGA-Client-Method", "ListRelations");
         const scope2 = nocks.check(defaultConfiguration.storeId!, tuples[2], defaultConfiguration.getBasePath(), { allowed: true }).matchHeader("X-OpenFGA-Client-Method", "ListRelations");
-        const scope3 = nocks.check(defaultConfiguration.storeId!, tuples[3], defaultConfiguration.getBasePath(), "" as any, 500).matchHeader("X-OpenFGA-Client-Method", "ListRelations");
-        const scope4 = nocks.check(defaultConfiguration.storeId!, tuples[4], defaultConfiguration.getBasePath(), {
-          "code": "validation_error",
-          "message": "relation &#39;workspace#can_read&#39; not found"
-        }, 400).matchHeader("X-OpenFGA-Client-Method", "ListRelations");
+        const scope3 = nocks.check(defaultConfiguration.storeId!, tuples[3], defaultConfiguration.getBasePath(), { allowed: false }).matchHeader("X-OpenFGA-Client-Method", "ListRelations");
+        const scope4 = nocks.check(defaultConfiguration.storeId!, tuples[4], defaultConfiguration.getBasePath(), { allowed: false }).matchHeader("X-OpenFGA-Client-Method", "ListRelations");
         const scope5 = nock(defaultConfiguration.getBasePath())
           .get(`/stores/${defaultConfiguration.storeId!}/authorization-models`)
           .query({ page_size: 1 })
@@ -544,6 +542,67 @@ describe("OpenFGA Client", () => {
         expect(scope5.isDone()).toBe(true);
         expect(response.relations.length).toBe(2);
         expect(response.relations.sort()).toEqual(expect.arrayContaining(["admin", "reader"]));
+      });
+
+      it("should throw an error if any check returns an error", async () => {
+        const tuples = [{
+          user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
+          relation: "admin",
+          object: "workspace:1",
+        }, {
+          user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
+          relation: "guest",
+          object: "workspace:1",
+        }, {
+          user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
+          relation: "reader",
+          object: "workspace:1",
+        }, {
+          user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
+          relation: "viewer",
+          object: "workspace:1",
+        }, {
+          user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
+          relation: "can_read",
+          object: "workspace:1",
+        }];
+        const scope0 = nocks.check(defaultConfiguration.storeId!, tuples[0], defaultConfiguration.getBasePath(), { allowed: true }).matchHeader("X-OpenFGA-Client-Method", "ListRelations");
+        const scope1 = nocks.check(defaultConfiguration.storeId!, tuples[1], defaultConfiguration.getBasePath(), { allowed: false }).matchHeader("X-OpenFGA-Client-Method", "ListRelations");
+        const scope2 = nocks.check(defaultConfiguration.storeId!, tuples[2], defaultConfiguration.getBasePath(), { allowed: true }).matchHeader("X-OpenFGA-Client-Method", "ListRelations");
+        const scope3 = nocks.check(defaultConfiguration.storeId!, tuples[3], defaultConfiguration.getBasePath(), "" as any, 500).matchHeader("X-OpenFGA-Client-Method", "ListRelations");
+        const scope4 = nocks.check(defaultConfiguration.storeId!, tuples[4], defaultConfiguration.getBasePath(), {
+          "code": "validation_error",
+          "message": "relation &#39;workspace#can_read&#39; not found"
+        }, 400).matchHeader("X-OpenFGA-Client-Method", "ListRelations");
+        const scope5 = nock(defaultConfiguration.getBasePath())
+          .get(`/stores/${defaultConfiguration.storeId!}/authorization-models`)
+          .query({ page_size: 1 })
+          .reply(200, {
+            authorization_models: [],
+          });
+
+        expect(scope0.isDone()).toBe(false);
+        expect(scope1.isDone()).toBe(false);
+        expect(scope2.isDone()).toBe(false);
+        expect(scope3.isDone()).toBe(false);
+        expect(scope4.isDone()).toBe(false);
+        expect(scope5.isDone()).toBe(false);
+
+        try {
+          const response = await fgaClient.listRelations({
+            user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
+            object: "workspace:1",
+            relations: ["admin", "guest", "reader", "viewer"],
+          });
+        } catch (err) {
+          expect(scope0.isDone()).toBe(true);
+          expect(scope1.isDone()).toBe(true);
+          expect(scope2.isDone()).toBe(true);
+          expect(scope3.isDone()).toBe(true);
+          expect(scope4.isDone()).toBe(false);
+          expect(scope5.isDone()).toBe(true);
+          expect(err).toBeInstanceOf(FgaApiError);
+        }
       });
 
       it("should throw an error if no relations passed", async () => {
