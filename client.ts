@@ -613,6 +613,11 @@ export class OpenFgaClient extends BaseAPI {
       contextualTuples: listRelationsRequest.contextualTuples,
     })), { ...options, headers, maxParallelRequests });
 
+    const firstErrorResponse = batchCheckResults.responses.find(response => (response as any).error);
+    if (firstErrorResponse) {
+      throw (firstErrorResponse as any).error;
+    }
+
     return { relations: batchCheckResults.responses.filter(result => result.allowed).map(result => result._request.relation) };
   }
 
