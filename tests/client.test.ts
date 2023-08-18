@@ -434,7 +434,7 @@ describe("OpenFGA Client", () => {
           .toMatchObject(expect.arrayContaining([
             { _request: tuples[0], allowed: true, },
             { _request: tuples[1], allowed: false },
-            { _request: tuples[2], allowed: false, error: expect.any(Error) },
+            { _request: tuples[2], error: expect.any(Error) },
           ]));
       });
     });

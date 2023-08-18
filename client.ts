@@ -494,10 +494,7 @@ export class OpenFgaClient extends BaseAPI {
       },
       contextual_tuples: { tuple_keys: body.contextualTuples || [] },
       authorization_model_id: this.getAuthorizationModelId(options)
-    }, options).then(response => ({
-      ...response,
-      allowed: response.allowed || false,
-    }));
+    }, options);
   }
 
   /**
@@ -523,20 +520,16 @@ export class OpenFgaClient extends BaseAPI {
 
         const responses: ClientBatchCheckSingleResponse[] = [];
         for await (const singleCheckResponse of asyncPool(maxParallelRequests, body, (tuple) => this.check(tuple, { ...options, headers })
-          .then(({ allowed, $response: response }) => {
-            const result = {
-              allowed: allowed || false,
-              _request: tuple,
-            };
-            setNotEnumerableProperty(result, "$response", response);
-            return result as ClientBatchCheckSingleResponse;
+          .then(response => {
+            (response as ClientBatchCheckSingleResponse)._request = tuple;
+            return response as ClientBatchCheckSingleResponse;
           })
           .catch(err => {
             return {
-              allowed: false,
+              allowed: undefined,
               error: err,
               _request: tuple,
-            } as unknown as ClientBatchCheckSingleResponse;
+            };
           })
         )) {
           responses.push(singleCheckResponse);
