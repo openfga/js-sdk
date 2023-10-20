@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.2.9
+
+### [0.2.9](https://github.com/openfga/js-sdk/compare/v0.2.8...v0.2.9) (2023-10-20)
+
+- chore(deps): update dependencies
+
 ## v0.2.8
 
 ### [0.2.8](https://github.com/openfga/js-sdk/compare/v0.2.7...v0.2.8) (2023-08-18)
