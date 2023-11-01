@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.2.10
+
+### [0.2.10](https://github.com/openfga/js-sdk/compare/v0.2.9...v0.2.10) (2023-11-01)
+
+- chore(deps): update dependencies
+  updates axios to `^1.6.0` to resolve [SNYK-JS-AXIOS-6032459](https://security.snyk.io/vuln/SNYK-JS-AXIOS-6032459)
+
 ## v0.2.9
 
 ### [0.2.9](https://github.com/openfga/js-sdk/compare/v0.2.8...v0.2.9) (2023-10-20)
