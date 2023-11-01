@@ -1,6 +1,6 @@
 {
   "name": "@openfga/sdk",
-  "version": "0.2.9",
+  "version": "0.2.10",
   "description": "JavaScript and Node.js SDK for OpenFGA",
   "author": "OpenFGA",
   "keywords": [
@@ -22,18 +22,18 @@
     "lint:fix": "eslint . --ext .ts --fix"
   },
   "dependencies": {
-    "axios": "^0.27.2",
+    "axios": "^1.6.0",
     "tiny-async-pool": "^2.1.0"
   },
   "devDependencies": {
-    "@types/jest": "^29.5.6",
-    "@types/node": "^20.8.7",
+    "@types/jest": "^29.5.7",
+    "@types/node": "^20.8.10",
     "@types/tiny-async-pool": "^2.0.1",
-    "@typescript-eslint/eslint-plugin": "^6.8.0",
-    "@typescript-eslint/parser": "^6.8.0",
-    "eslint": "^8.51.0",
+    "@typescript-eslint/eslint-plugin": "^6.9.1",
+    "@typescript-eslint/parser": "^6.9.1",
+    "eslint": "^8.52.0",
     "jest": "^29.7.0",
-    "nock": "^13.3.6",
+    "nock": "^13.3.7",
     "ts-jest": "^29.1.1",
     "typescript": "^5.2.2"
   },
@@ -52,12 +52,6 @@
     "url": "https://github.com/openfga/js-sdk/issues"
   },
   "homepage": "https://github.com/openfga/js-sdk#readme",
-  "overrides": {
-    "axios": {
-      "follow-redirects": "1.15.2"
-    },
-    "semver": "^7.5.3"
-  },
   "engines": {
     "node": ">=14.17.0"
   },

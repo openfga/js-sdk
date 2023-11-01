@@ -11,7 +11,7 @@
  */
 
 
-import { AxiosError, Method } from "axios";
+import { AxiosError, AxiosHeaderValue, Method } from "axios";
 import {
   ErrorCode,
   InternalErrorCode,
@@ -84,7 +84,7 @@ export class FgaApiError extends FgaError {
   public apiErrorMessage?: string;
   public requestData?: any;
   public responseData?: any;
-  public responseHeader?: Record<string, string>;
+  public responseHeader?: Record<string, AxiosHeaderValue | undefined>;
   public requestId?: string;
 
   constructor(err: AxiosError, msg?: string) {
