@@ -36,10 +36,10 @@ export interface Any {
 export interface Assertion {
     /**
      * 
-     * @type {TupleKey}
+     * @type {CheckRequestTupleKey}
      * @memberof Assertion
      */
-    tuple_key: TupleKey;
+    tuple_key: CheckRequestTupleKey;
     /**
      * 
      * @type {boolean}
@@ -70,7 +70,13 @@ export interface AuthorizationModel {
      * @type {Array<TypeDefinition>}
      * @memberof AuthorizationModel
      */
-    type_definitions?: Array<TypeDefinition>;
+    type_definitions: Array<TypeDefinition>;
+    /**
+     * 
+     * @type {{ [key: string]: Condition; }}
+     * @memberof AuthorizationModel
+     */
+    conditions?: { [key: string]: Condition; };
 }
 /**
  * 
@@ -80,10 +86,10 @@ export interface AuthorizationModel {
 export interface CheckRequest {
     /**
      * 
-     * @type {TupleKey}
+     * @type {CheckRequestTupleKey}
      * @memberof CheckRequest
      */
-    tuple_key: TupleKey;
+    tuple_key: CheckRequestTupleKey;
     /**
      * 
      * @type {ContextualTupleKeys}
@@ -102,6 +108,37 @@ export interface CheckRequest {
      * @memberof CheckRequest
      */
     trace?: boolean;
+    /**
+     * Additional request context that will be used to evaluate any ABAC conditions encountered in the query evaluation.
+     * @type {object}
+     * @memberof CheckRequest
+     */
+    context?: object;
+}
+/**
+ * 
+ * @export
+ * @interface CheckRequestTupleKey
+ */
+export interface CheckRequestTupleKey {
+    /**
+     * 
+     * @type {string}
+     * @memberof CheckRequestTupleKey
+     */
+    user: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof CheckRequestTupleKey
+     */
+    relation: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof CheckRequestTupleKey
+     */
+    object: string;
 }
 /**
  * 
@@ -133,8 +170,54 @@ export interface Computed {
      * @type {string}
      * @memberof Computed
      */
-    userset?: string;
+    userset: string;
 }
+/**
+ * 
+ * @export
+ * @interface Condition
+ */
+export interface Condition {
+    /**
+     * 
+     * @type {string}
+     * @memberof Condition
+     */
+    name: string;
+    /**
+     * A Google CEL expression, expressed as a string.
+     * @type {string}
+     * @memberof Condition
+     */
+    expression: string;
+    /**
+     * A map of parameter names to the parameter\'s defined type reference.
+     * @type {{ [key: string]: ConditionParamTypeRef; }}
+     * @memberof Condition
+     */
+    parameters?: { [key: string]: ConditionParamTypeRef; };
+}
+/**
+ * 
+ * @export
+ * @interface ConditionParamTypeRef
+ */
+export interface ConditionParamTypeRef {
+    /**
+     * 
+     * @type {TypeName}
+     * @memberof ConditionParamTypeRef
+     */
+    type_name: TypeName;
+    /**
+     * 
+     * @type {Array<ConditionParamTypeRef>}
+     * @memberof ConditionParamTypeRef
+     */
+    generic_types?: Array<ConditionParamTypeRef>;
+}
+
+
 /**
  * 
  * @export
@@ -172,25 +255,25 @@ export interface CreateStoreResponse {
      * @type {string}
      * @memberof CreateStoreResponse
      */
-    id?: string;
+    id: string;
     /**
      * 
      * @type {string}
      * @memberof CreateStoreResponse
      */
-    name?: string;
+    name: string;
     /**
      * 
      * @type {string}
      * @memberof CreateStoreResponse
      */
-    created_at?: string;
+    created_at: string;
     /**
      * 
      * @type {string}
      * @memberof CreateStoreResponse
      */
-    updated_at?: string;
+    updated_at: string;
 }
 /**
  * 
@@ -276,16 +359,35 @@ export enum ErrorCode {
 export interface ExpandRequest {
     /**
      * 
-     * @type {TupleKey}
+     * @type {ExpandRequestTupleKey}
      * @memberof ExpandRequest
      */
-    tuple_key: TupleKey;
+    tuple_key: ExpandRequestTupleKey;
     /**
      * 
      * @type {string}
      * @memberof ExpandRequest
      */
     authorization_model_id?: string;
+}
+/**
+ * 
+ * @export
+ * @interface ExpandRequestTupleKey
+ */
+export interface ExpandRequestTupleKey {
+    /**
+     * 
+     * @type {string}
+     * @memberof ExpandRequestTupleKey
+     */
+    relation: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ExpandRequestTupleKey
+     */
+    object: string;
 }
 /**
  * 
@@ -311,25 +413,25 @@ export interface GetStoreResponse {
      * @type {string}
      * @memberof GetStoreResponse
      */
-    id?: string;
+    id: string;
     /**
      * 
      * @type {string}
      * @memberof GetStoreResponse
      */
-    name?: string;
+    name: string;
     /**
      * 
      * @type {string}
      * @memberof GetStoreResponse
      */
-    created_at?: string;
+    created_at: string;
     /**
      * 
      * @type {string}
      * @memberof GetStoreResponse
      */
-    updated_at?: string;
+    updated_at: string;
 }
 /**
  * 
@@ -433,6 +535,12 @@ export interface ListObjectsRequest {
      * @memberof ListObjectsRequest
      */
     contextual_tuples?: ContextualTupleKeys;
+    /**
+     * Additional request context that will be used to evaluate any ABAC conditions encountered in the query evaluation.
+     * @type {object}
+     * @memberof ListObjectsRequest
+     */
+    context?: object;
 }
 /**
  * 
@@ -445,7 +553,7 @@ export interface ListObjectsResponse {
      * @type {Array<string>}
      * @memberof ListObjectsResponse
      */
-    objects?: Array<string>;
+    objects: Array<string>;
 }
 /**
  * 
@@ -458,13 +566,13 @@ export interface ListStoresResponse {
      * @type {Array<Store>}
      * @memberof ListStoresResponse
      */
-    stores?: Array<Store>;
+    stores: Array<Store>;
     /**
      * The continuation token will be empty if there are no more stores.
      * @type {string}
      * @memberof ListStoresResponse
      */
-    continuation_token?: string;
+    continuation_token: string;
 }
 /**
  * 
@@ -490,7 +598,7 @@ export interface Node {
      * @type {string}
      * @memberof Node
      */
-    name?: string;
+    name: string;
     /**
      * 
      * @type {Leaf}
@@ -527,7 +635,7 @@ export interface Nodes {
      * @type {Array<Node>}
      * @memberof Nodes
      */
-    nodes?: Array<Node>;
+    nodes: Array<Node>;
 }
 /**
  * 
@@ -540,6 +648,16 @@ export enum NotFoundErrorCode {
     UndefinedEndpoint = 'undefined_endpoint',
     StoreIdNotFound = 'store_id_not_found',
     Unimplemented = 'unimplemented'
+}
+
+/**
+ * `NullValue` is a singleton enumeration to represent the null value for the `Value` type union.   The JSON representation for `NullValue` is JSON `null`.   - NULL_VALUE: Null value.
+ * @export
+ * @enum {string}
+ */
+
+export enum NullValue {
+    NullValue = 'NULL_VALUE'
 }
 
 /**
@@ -593,7 +711,7 @@ export interface ReadAssertionsResponse {
      * @type {string}
      * @memberof ReadAssertionsResponse
      */
-    authorization_model_id?: string;
+    authorization_model_id: string;
     /**
      * 
      * @type {Array<Assertion>}
@@ -625,7 +743,7 @@ export interface ReadAuthorizationModelsResponse {
      * @type {Array<AuthorizationModel>}
      * @memberof ReadAuthorizationModelsResponse
      */
-    authorization_models?: Array<AuthorizationModel>;
+    authorization_models: Array<AuthorizationModel>;
     /**
      * The continuation token will be empty if there are no more models.
      * @type {string}
@@ -644,7 +762,7 @@ export interface ReadChangesResponse {
      * @type {Array<TupleChange>}
      * @memberof ReadChangesResponse
      */
-    changes?: Array<TupleChange>;
+    changes: Array<TupleChange>;
     /**
      * The continuation token will be identical if there are no new changes.
      * @type {string}
@@ -660,10 +778,10 @@ export interface ReadChangesResponse {
 export interface ReadRequest {
     /**
      * 
-     * @type {TupleKey}
+     * @type {ReadRequestTupleKey}
      * @memberof ReadRequest
      */
-    tuple_key?: TupleKey;
+    tuple_key?: ReadRequestTupleKey;
     /**
      * 
      * @type {number}
@@ -680,6 +798,31 @@ export interface ReadRequest {
 /**
  * 
  * @export
+ * @interface ReadRequestTupleKey
+ */
+export interface ReadRequestTupleKey {
+    /**
+     * 
+     * @type {string}
+     * @memberof ReadRequestTupleKey
+     */
+    user?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ReadRequestTupleKey
+     */
+    relation?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ReadRequestTupleKey
+     */
+    object?: string;
+}
+/**
+ * 
+ * @export
  * @interface ReadResponse
  */
 export interface ReadResponse {
@@ -688,13 +831,13 @@ export interface ReadResponse {
      * @type {Array<Tuple>}
      * @memberof ReadResponse
      */
-    tuples?: Array<Tuple>;
+    tuples: Array<Tuple>;
     /**
      * The continuation token will be empty if there are no more tuples.
      * @type {string}
      * @memberof ReadResponse
      */
-    continuation_token?: string;
+    continuation_token: string;
 }
 /**
  * 
@@ -733,6 +876,31 @@ export interface RelationReference {
      * @memberof RelationReference
      */
     wildcard?: object;
+    /**
+     * The name of a condition that is enforced over the allowed relation.
+     * @type {string}
+     * @memberof RelationReference
+     */
+    condition?: string;
+}
+/**
+ * 
+ * @export
+ * @interface RelationshipCondition
+ */
+export interface RelationshipCondition {
+    /**
+     * A reference (by name) of the relationship condition defined in the authorization model.
+     * @type {string}
+     * @memberof RelationshipCondition
+     */
+    name: string;
+    /**
+     * Additional context/data to persist along with the condition. The keys must match the parameters defined by the condition, and the value types must match the parameter type definitions.
+     * @type {object}
+     * @memberof RelationshipCondition
+     */
+    context: object;
 }
 /**
  * 
@@ -770,31 +938,31 @@ export interface Store {
      * @type {string}
      * @memberof Store
      */
-    id?: string;
+    id: string;
     /**
      * 
      * @type {string}
      * @memberof Store
      */
-    name?: string;
+    name: string;
     /**
      * 
      * @type {string}
      * @memberof Store
      */
-    created_at?: string;
+    created_at: string;
     /**
      * 
      * @type {string}
      * @memberof Store
      */
-    updated_at?: string;
+    updated_at: string;
     /**
      * 
      * @type {string}
      * @memberof Store
      */
-    deleted_at?: string;
+    deleted_at: string;
 }
 /**
  * 
@@ -807,13 +975,13 @@ export interface Tuple {
      * @type {TupleKey}
      * @memberof Tuple
      */
-    key?: TupleKey;
+    key: TupleKey;
     /**
      * 
      * @type {string}
      * @memberof Tuple
      */
-    timestamp?: string;
+    timestamp: string;
 }
 /**
  * 
@@ -826,19 +994,19 @@ export interface TupleChange {
      * @type {TupleKey}
      * @memberof TupleChange
      */
-    tuple_key?: TupleKey;
+    tuple_key: TupleKey;
     /**
      * 
      * @type {TupleOperation}
      * @memberof TupleChange
      */
-    operation?: TupleOperation;
+    operation: TupleOperation;
     /**
      * 
      * @type {string}
      * @memberof TupleChange
      */
-    timestamp?: string;
+    timestamp: string;
 }
 
 
@@ -853,32 +1021,25 @@ export interface TupleKey {
      * @type {string}
      * @memberof TupleKey
      */
-    object?: string;
+    user: string;
     /**
      * 
      * @type {string}
      * @memberof TupleKey
      */
-    relation?: string;
+    relation: string;
     /**
      * 
      * @type {string}
      * @memberof TupleKey
      */
-    user?: string;
-}
-/**
- * 
- * @export
- * @interface TupleKeys
- */
-export interface TupleKeys {
+    object: string;
     /**
      * 
-     * @type {Array<TupleKey>}
-     * @memberof TupleKeys
+     * @type {RelationshipCondition}
+     * @memberof TupleKey
      */
-    tuple_keys: Array<TupleKey>;
+    condition?: RelationshipCondition;
 }
 /**
  * 
@@ -902,13 +1063,13 @@ export interface TupleToUserset {
      * @type {ObjectRelation}
      * @memberof TupleToUserset
      */
-    tupleset?: ObjectRelation;
+    tupleset: ObjectRelation;
     /**
      * 
      * @type {ObjectRelation}
      * @memberof TupleToUserset
      */
-    computedUserset?: ObjectRelation;
+    computedUserset: ObjectRelation;
 }
 /**
  * 
@@ -938,6 +1099,27 @@ export interface TypeDefinition {
 /**
  * 
  * @export
+ * @enum {string}
+ */
+
+export enum TypeName {
+    Unspecified = 'TYPE_NAME_UNSPECIFIED',
+    Any = 'TYPE_NAME_ANY',
+    Bool = 'TYPE_NAME_BOOL',
+    String = 'TYPE_NAME_STRING',
+    Int = 'TYPE_NAME_INT',
+    Uint = 'TYPE_NAME_UINT',
+    Double = 'TYPE_NAME_DOUBLE',
+    Duration = 'TYPE_NAME_DURATION',
+    Timestamp = 'TYPE_NAME_TIMESTAMP',
+    Map = 'TYPE_NAME_MAP',
+    List = 'TYPE_NAME_LIST',
+    Ipaddress = 'TYPE_NAME_IPADDRESS'
+}
+
+/**
+ * 
+ * @export
  * @interface Users
  */
 export interface Users {
@@ -946,7 +1128,7 @@ export interface Users {
      * @type {Array<string>}
      * @memberof Users
      */
-    users?: Array<string>;
+    users: Array<string>;
 }
 /**
  * 
@@ -1015,13 +1197,13 @@ export interface UsersetTreeDifference {
      * @type {Node}
      * @memberof UsersetTreeDifference
      */
-    base?: Node;
+    base: Node;
     /**
      * 
      * @type {Node}
      * @memberof UsersetTreeDifference
      */
-    subtract?: Node;
+    subtract: Node;
 }
 /**
  * 
@@ -1034,13 +1216,13 @@ export interface UsersetTreeTupleToUserset {
      * @type {string}
      * @memberof UsersetTreeTupleToUserset
      */
-    tupleset?: string;
+    tupleset: string;
     /**
      * 
      * @type {Array<Computed>}
      * @memberof UsersetTreeTupleToUserset
      */
-    computed?: Array<Computed>;
+    computed: Array<Computed>;
 }
 /**
  * 
@@ -1053,7 +1235,7 @@ export interface Usersets {
      * @type {Array<Userset>}
      * @memberof Usersets
      */
-    child?: Array<Userset>;
+    child: Array<Userset>;
 }
 /**
  * 
@@ -1106,7 +1288,13 @@ export interface WriteAuthorizationModelRequest {
      * @type {string}
      * @memberof WriteAuthorizationModelRequest
      */
-    schema_version?: string;
+    schema_version: string;
+    /**
+     * 
+     * @type {{ [key: string]: Condition; }}
+     * @memberof WriteAuthorizationModelRequest
+     */
+    conditions?: { [key: string]: Condition; };
 }
 /**
  * 
@@ -1119,7 +1307,7 @@ export interface WriteAuthorizationModelResponse {
      * @type {string}
      * @memberof WriteAuthorizationModelResponse
      */
-    authorization_model_id?: string;
+    authorization_model_id: string;
 }
 /**
  * 
@@ -1129,21 +1317,65 @@ export interface WriteAuthorizationModelResponse {
 export interface WriteRequest {
     /**
      * 
-     * @type {TupleKeys}
+     * @type {WriteRequestTupleKeys}
      * @memberof WriteRequest
      */
-    writes?: TupleKeys;
+    writes?: WriteRequestTupleKeys;
     /**
      * 
-     * @type {TupleKeys}
+     * @type {WriteRequestTupleKeys}
      * @memberof WriteRequest
      */
-    deletes?: TupleKeys;
+    deletes?: WriteRequestTupleKeys;
     /**
      * 
      * @type {string}
      * @memberof WriteRequest
      */
     authorization_model_id?: string;
+}
+/**
+ * 
+ * @export
+ * @interface WriteRequestTupleKey
+ */
+export interface WriteRequestTupleKey {
+    /**
+     * 
+     * @type {string}
+     * @memberof WriteRequestTupleKey
+     */
+    user: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof WriteRequestTupleKey
+     */
+    relation: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof WriteRequestTupleKey
+     */
+    object: string;
+    /**
+     * 
+     * @type {RelationshipCondition}
+     * @memberof WriteRequestTupleKey
+     */
+    condition?: RelationshipCondition;
+}
+/**
+ * 
+ * @export
+ * @interface WriteRequestTupleKeys
+ */
+export interface WriteRequestTupleKeys {
+    /**
+     * 
+     * @type {Array<WriteRequestTupleKey>}
+     * @memberof WriteRequestTupleKeys
+     */
+    tuple_keys: Array<WriteRequestTupleKey>;
 }
 

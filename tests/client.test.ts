@@ -44,7 +44,15 @@ describe("OpenFGA Client", () => {
     describe("ListStores", () => {
       it("should properly call the OpenFga API", async () => {
         const store = { id: "some-id", name: "some-name" };
-        const scope = nocks.listStores(defaultConfiguration.getBasePath(), { stores: [store] });
+        const scope = nocks.listStores(defaultConfiguration.getBasePath(), {
+          continuation_token: "",
+          stores: [{
+            ...store,
+            created_at: "2023-11-02T15:27:47.951Z",
+            updated_at: "2023-11-02T15:27:47.951Z",
+            deleted_at: "2023-11-02T15:27:47.951Z",
+          }],
+        });
 
         expect(scope.isDone()).toBe(false);
         const response = await fgaClient.listStores();
@@ -56,9 +64,13 @@ describe("OpenFGA Client", () => {
     });
 
     describe("CreateStore", () => {
-      it("should properly call the OpenFga API", async () => {
+      it("should create a store", async () => {
         const store = { id: "some-id", name: "some-name" };
-        const scope = nocks.createStore(defaultConfiguration.getBasePath(), store);
+        const scope = nocks.createStore(defaultConfiguration.getBasePath(), {
+          ...store,
+          created_at: "2023-11-02T15:27:47.951Z",
+          updated_at: "2023-11-02T15:27:47.951Z",
+        });
 
         expect(scope.isDone()).toBe(false);
         const response = await fgaClient.createStore(store);
@@ -71,7 +83,11 @@ describe("OpenFGA Client", () => {
     describe("GetStore", () => {
       it("should properly call the OpenFga API", async () => {
         const store = { id: defaultConfiguration.storeId, name: "some-name" };
-        const scope = nocks.getStore(store.id, defaultConfiguration.getBasePath(), store);
+        const scope = nocks.getStore(store.id, defaultConfiguration.getBasePath(), {
+          ...store,
+          created_at: "2023-11-02T15:27:47.951Z",
+          updated_at: "2023-11-02T15:27:47.951Z",
+        });
 
         expect(scope.isDone()).toBe(false);
         const response = await fgaClient.getStore();

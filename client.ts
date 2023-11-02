@@ -17,9 +17,12 @@ import asyncPool = require("tiny-async-pool");
 import { OpenFgaApi } from "./api";
 import {
   Assertion,
+  CheckRequest,
+  CheckRequestTupleKey,
   CheckResponse,
   CreateStoreRequest,
   CreateStoreResponse,
+  ExpandRequestTupleKey,
   ExpandResponse,
   GetStoreResponse,
   ListObjectsRequest,
@@ -30,11 +33,13 @@ import {
   ReadAuthorizationModelsResponse,
   ReadChangesResponse,
   ReadRequest,
+  ReadRequestTupleKey,
   ReadResponse,
-  TupleKey as ApiTupleKey,
+  TupleKey,
   WriteAuthorizationModelRequest,
   WriteAuthorizationModelResponse,
   WriteRequest,
+  WriteRequestTupleKey,
 } from "./apiModel";
 import { BaseAPI } from "./base";
 import { CallResult, PromiseResult } from "./common";
@@ -44,15 +49,12 @@ import {
   chunkArray,
   generateRandomIdWithNonUniqueFallback,
   setHeaderIfNotSet,
-  setNotEnumerableProperty,
 } from "./utils";
 import { isWellFormedUlidString } from "./validation";
 
 export type ClientConfiguration = (UserConfigurationParams | Configuration) & {
   authorizationModelId?: string;
 }
-
-export type ClientTupleKey = Required<ApiTupleKey>;
 
 const DEFAULT_MAX_METHOD_PARALLEL_REQS = 10;
 const CLIENT_METHOD_HEADER = "X-OpenFGA-Client-Method";
@@ -67,11 +69,13 @@ export interface AuthorizationModelIdOpts {
   authorizationModelId?: string;
 }
 
-export type ClientRequestOptsWithAuthZModelId = ClientRequestOpts  & AuthorizationModelIdOpts;
+export type ClientRequestOptsWithAuthZModelId = ClientRequestOpts & AuthorizationModelIdOpts;
 
 export type PaginationOptions = { pageSize?: number, continuationToken?: string; };
 
-export type ClientCheckRequest = ClientTupleKey & { contextualTuples?: ClientTupleKey[] };
+export type ClientCheckRequest = CheckRequestTupleKey &
+    Pick<CheckRequest, "context"> &
+    { contextualTuples?: Array<TupleKey> };
 
 export type ClientBatchCheckRequest = ClientCheckRequest[];
 
@@ -102,8 +106,8 @@ export interface BatchCheckRequestOpts {
 }
 
 export interface ClientWriteRequest {
-  writes?: ClientTupleKey[];
-  deletes?: ClientTupleKey[];
+  writes?: WriteRequestTupleKey[];
+  deletes?: WriteRequestTupleKey[];
 }
 
 export enum ClientWriteStatus {
@@ -112,7 +116,7 @@ export enum ClientWriteStatus {
 }
 
 export interface ClientWriteSingleResponse {
-  tuple_key: ClientTupleKey;
+  tuple_key: WriteRequestTupleKey;
   status: ClientWriteStatus;
   err?: Error;
 }
@@ -130,11 +134,15 @@ export interface ClientReadChangesRequest {
   type: string;
 }
 
-export type ClientExpandRequest = Pick<ClientTupleKey, "relation" | "object">;
-export type ClientReadRequest = ApiTupleKey;
-export type ClientListObjectsRequest = Omit<ListObjectsRequest, "authorization_model_id" | "contextual_tuples"> & { contextualTuples?: ClientTupleKey[] };
-export type ClientListRelationsRequest = Pick<ClientCheckRequest, "user" | "object" | "contextualTuples"> & { relations?: string[] };
-export type ClientWriteAssertionsRequest = (ClientTupleKey & Pick<Assertion, "expectation">)[];
+export type ClientExpandRequest = ExpandRequestTupleKey;
+export type ClientReadRequest = ReadRequestTupleKey;
+export type ClientListObjectsRequest = Omit<ListObjectsRequest, "authorization_model_id" | "contextual_tuples"> & {
+    contextualTuples?: Array<TupleKey>
+};
+export type ClientListRelationsRequest = Omit<ClientCheckRequest, "relation"> & {
+    relations?: string[],
+};
+export type ClientWriteAssertionsRequest = (CheckRequestTupleKey & Pick<Assertion, "expectation">)[];
 
 export class OpenFgaClient extends BaseAPI {
   public api: OpenFgaApi;
@@ -433,7 +441,7 @@ export class OpenFgaClient extends BaseAPI {
 
   /**
    * WriteTuples - Utility method to write tuples, wraps Write
-   * @param {ClientTupleKey[]} tuples
+   * @param {WriteRequestTupleKey[]} tuples
    * @param {ClientRequestOptsWithAuthZModelId & ClientWriteRequestOpts} [options]
    * @param {string} [options.authorizationModelId] - Overrides the authorization model id in the configuration
    * @param {object} [options.transaction]
@@ -445,7 +453,7 @@ export class OpenFgaClient extends BaseAPI {
    * @param {number} [options.retryParams.maxRetry] - Override the max number of retries on each API request
    * @param {number} [options.retryParams.minWaitInMs] - Override the minimum wait before a retry is initiated
    */
-  async writeTuples(tuples: ClientTupleKey[], options: ClientRequestOptsWithAuthZModelId & ClientWriteRequestOpts = {}): Promise<ClientWriteResponse> {
+  async writeTuples(tuples: WriteRequestTupleKey[], options: ClientRequestOptsWithAuthZModelId & ClientWriteRequestOpts = {}): Promise<ClientWriteResponse> {
     const { headers = {} } = options;
     setHeaderIfNotSet(headers, CLIENT_METHOD_HEADER, "WriteTuples");
     return this.write({ writes: tuples }, { ...options, headers });
@@ -453,7 +461,7 @@ export class OpenFgaClient extends BaseAPI {
 
   /**
    * DeleteTuples - Utility method to delete tuples, wraps Write
-   * @param {ClientTupleKey[]} tuples
+   * @param {WriteRequestTupleKey[]} tuples
    * @param {ClientRequestOptsWithAuthZModelId & ClientWriteRequestOpts} [options]
    * @param {string} [options.authorizationModelId] - Overrides the authorization model id in the configuration
    * @param {object} [options.transaction]
@@ -465,7 +473,7 @@ export class OpenFgaClient extends BaseAPI {
    * @param {number} [options.retryParams.maxRetry] - Override the max number of retries on each API request
    * @param {number} [options.retryParams.minWaitInMs] - Override the minimum wait before a retry is initiated
    */
-  async deleteTuples(tuples: ClientTupleKey[], options: ClientRequestOptsWithAuthZModelId & ClientWriteRequestOpts = {}): Promise<ClientWriteResponse> {
+  async deleteTuples(tuples: WriteRequestTupleKey[], options: ClientRequestOptsWithAuthZModelId & ClientWriteRequestOpts = {}): Promise<ClientWriteResponse> {
     const { headers = {} } = options;
     setHeaderIfNotSet(headers, CLIENT_METHOD_HEADER, "DeleteTuples");
     return this.write({ deletes: tuples }, { ...options, headers });
@@ -492,6 +500,7 @@ export class OpenFgaClient extends BaseAPI {
         relation: body.relation,
         object: body.object,
       },
+      context: body.context,
       contextual_tuples: { tuple_keys: body.contextualTuples || [] },
       authorization_model_id: this.getAuthorizationModelId(options)
     }, options);
@@ -576,6 +585,7 @@ export class OpenFgaClient extends BaseAPI {
       user: body.user,
       relation: body.relation,
       type: body.type,
+      context: body.context,
       contextual_tuples: { tuple_keys: body.contextualTuples || [] },
     }, options);
   }
@@ -586,11 +596,12 @@ export class OpenFgaClient extends BaseAPI {
    * @param {string} listRelationsRequest.user The user object, must be of the form: `<type>:<id>`
    * @param {string} listRelationsRequest.object The object, must be of the form: `<type>:<id>`
    * @param {string[]} listRelationsRequest.relations The list of relations to check
+   * @param {TupleKey[]} listRelationsRequest.contextualTuples The contextual tuples to send
+   * @param {object} listRelationsRequest.context The contextual tuples to send
    * @param options
    */
   async listRelations(listRelationsRequest: ClientListRelationsRequest, options: ClientRequestOptsWithAuthZModelId & BatchCheckRequestOpts = {}): Promise<ClientListRelationsResponse> {
-    const { user, object } = listRelationsRequest;
-    const { relations } = listRelationsRequest;
+    const { user, object, relations, contextualTuples, context } = listRelationsRequest;
     const { headers = {}, maxParallelRequests = DEFAULT_MAX_METHOD_PARALLEL_REQS } = options;
     setHeaderIfNotSet(headers, CLIENT_METHOD_HEADER, "ListRelations");
     setHeaderIfNotSet(headers, CLIENT_BULK_REQUEST_ID_HEADER, generateRandomIdWithNonUniqueFallback());
@@ -603,7 +614,8 @@ export class OpenFgaClient extends BaseAPI {
       user,
       relation,
       object,
-      contextualTuples: listRelationsRequest.contextualTuples,
+      contextualTuples,
+      context,
     })), { ...options, headers, maxParallelRequests });
 
     const firstErrorResponse = batchCheckResults.responses.find(response => (response as any).error);

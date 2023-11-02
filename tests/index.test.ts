@@ -278,8 +278,9 @@ describe("OpenFGA SDK", function () {
 
     describe("400 level error should result in FgaApiValidationError", () => {
       const tupleKey = {
-        object: "foobar:x",
         user: "user:xyz",
+        relation: "viewer",
+        object: "foobar:x",
       };
 
       beforeEach(async () => {
@@ -330,8 +331,9 @@ describe("OpenFGA SDK", function () {
 
     describe("429 level error should result in FgaApiRateLimitExceededError", () => {
       const tupleKey = {
-        object: "foobar:x",
         user: "user:xyz",
+        relation: "viewer",
+        object: "foobar:x",
       };
 
       beforeEach(async () => {
@@ -370,8 +372,9 @@ describe("OpenFGA SDK", function () {
 
     describe("429 with retry in config and retry is successful", () => {
       const tupleKey = {
-        object: "foobar:x",
         user: "user:xyz",
+        relation: "viewer",
+        object: "foobar:x",
       };
 
       beforeEach(async () => {
@@ -413,8 +416,9 @@ describe("OpenFGA SDK", function () {
 
     describe("429 with retry in call and retry is successful", () => {
       const tupleKey = {
-        object: "foobar:x",
         user: "user:xyz",
+        relation: "viewer",
+        object: "foobar:x",
       };
 
       beforeEach(async () => {
@@ -453,8 +457,9 @@ describe("OpenFGA SDK", function () {
 
     describe("500 level error should result in FgaApiInternalError", () => {
       const tupleKey = {
-        object: "foobar:x",
         user: "user:xyz",
+        relation: "viewer",
+        object: "foobar:x",
       };
 
       beforeEach(async () => {
@@ -517,8 +522,9 @@ describe("OpenFGA SDK", function () {
 
     describe("404 level error should result in FgaApiNotFoundError", () => {
       const tupleKey = {
-        object: "foobar:x",
         user: "user:xyz",
+        relation: "viewer",
+        object: "foobar:x",
       };
 
       beforeEach(async () => {
@@ -551,8 +557,9 @@ describe("OpenFGA SDK", function () {
 
     describe("401 during authentication should result in FgaApiAuthenticationError", () => {
       const tupleKey = {
-        object: "foobar:x",
         user: "user:xyz",
+        relation: "viewer",
+        object: "foobar:x",
       };
 
       beforeEach(async () => {
