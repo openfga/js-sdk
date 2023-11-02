@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.3.0
+
+### [0.3.0](https://github.com/openfga/js-sdk/compare/v0.2.10...v0.3.0) (2023-11-01)
+
+- feat!: support for conditions
+
 ## v0.2.10
 
 ### [0.2.10](https://github.com/openfga/js-sdk/compare/v0.2.9...v0.2.10) (2023-11-01)
