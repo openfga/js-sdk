@@ -32,14 +32,18 @@ import {
   Assertion,
   AuthorizationModel,
   CheckRequest,
+  CheckRequestTupleKey,
   CheckResponse,
   Computed,
+  Condition,
+  ConditionParamTypeRef,
   ContextualTupleKeys,
   CreateStoreRequest,
   CreateStoreResponse,
   Difference,
   ErrorCode,
   ExpandRequest,
+  ExpandRequestTupleKey,
   ExpandResponse,
   GetStoreResponse,
   InternalErrorCode,
@@ -52,6 +56,7 @@ import {
   Node,
   Nodes,
   NotFoundErrorCode,
+  NullValue,
   ObjectRelation,
   PathUnknownErrorMessageResponse,
   ReadAssertionsResponse,
@@ -59,18 +64,20 @@ import {
   ReadAuthorizationModelsResponse,
   ReadChangesResponse,
   ReadRequest,
+  ReadRequestTupleKey,
   ReadResponse,
   RelationMetadata,
   RelationReference,
+  RelationshipCondition,
   Status,
   Store,
   Tuple,
   TupleChange,
   TupleKey,
-  TupleKeys,
   TupleOperation,
   TupleToUserset,
   TypeDefinition,
+  TypeName,
   Users,
   Userset,
   UsersetTree,
@@ -82,6 +89,8 @@ import {
   WriteAuthorizationModelRequest,
   WriteAuthorizationModelResponse,
   WriteRequest,
+  WriteRequestTupleKey,
+  WriteRequestTupleKeys,
 } from "./apiModel";
 
 
@@ -268,7 +277,7 @@ export const OpenFgaApiAxiosParamCreator = function (configuration: Configuratio
       };
     },
     /**
-         * The ListObjects API returns a list of all the objects of the given type that the user has a relation with. To achieve this, both the store tuples and the authorization model are used. An `authorization_model_id` may be specified in the body. If it is not specified, the latest authorization model ID will be used. It is strongly recommended to specify authorization model id for better performance. You may also specify `contextual_tuples` that will be treated as regular tuples. The response will contain the related objects in an array in the \"objects\" field of the response and they will be strings in the object format `<type>:<id>` (e.g. \"document:roadmap\"). The number of objects in the response array will be limited by the execution timeout specified in the flag OPENFGA_LIST_OBJECTS_DEADLINE and by the upper bound specified in the flag OPENFGA_LIST_OBJECTS_MAX_RESULTS, whichever is hit first. The objects given will not be sorted, and therefore two identical calls can give a given different set of objects.
+         * The ListObjects API returns a list of all the objects of the given type that the user has a relation with. To achieve this, both the store tuples and the authorization model are used. An `authorization_model_id` may be specified in the body. If it is not specified, the latest authorization model ID will be used. It is strongly recommended to specify authorization model id for better performance. You may also specify `contextual_tuples` that will be treated as regular tuples. The response will contain the related objects in an array in the \"objects\" field of the response and they will be strings in the object format `<type>:<id>` (e.g. \"document:roadmap\"). The number of objects in the response array will be limited by the execution timeout specified in the flag OPENFGA_LIST_OBJECTS_DEADLINE and by the upper bound specified in the flag OPENFGA_LIST_OBJECTS_MAX_RESULTS, whichever is hit first.
          * @summary List all objects of the given type that the user has a relation with
          * @param {ListObjectsRequest} body
          * @param {*} [options] Override http request option.
@@ -725,7 +734,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
       return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials);
     },
     /**
-         * The ListObjects API returns a list of all the objects of the given type that the user has a relation with. To achieve this, both the store tuples and the authorization model are used. An `authorization_model_id` may be specified in the body. If it is not specified, the latest authorization model ID will be used. It is strongly recommended to specify authorization model id for better performance. You may also specify `contextual_tuples` that will be treated as regular tuples. The response will contain the related objects in an array in the \"objects\" field of the response and they will be strings in the object format `<type>:<id>` (e.g. \"document:roadmap\"). The number of objects in the response array will be limited by the execution timeout specified in the flag OPENFGA_LIST_OBJECTS_DEADLINE and by the upper bound specified in the flag OPENFGA_LIST_OBJECTS_MAX_RESULTS, whichever is hit first. The objects given will not be sorted, and therefore two identical calls can give a given different set of objects.
+         * The ListObjects API returns a list of all the objects of the given type that the user has a relation with. To achieve this, both the store tuples and the authorization model are used. An `authorization_model_id` may be specified in the body. If it is not specified, the latest authorization model ID will be used. It is strongly recommended to specify authorization model id for better performance. You may also specify `contextual_tuples` that will be treated as regular tuples. The response will contain the related objects in an array in the \"objects\" field of the response and they will be strings in the object format `<type>:<id>` (e.g. \"document:roadmap\"). The number of objects in the response array will be limited by the execution timeout specified in the flag OPENFGA_LIST_OBJECTS_DEADLINE and by the upper bound specified in the flag OPENFGA_LIST_OBJECTS_MAX_RESULTS, whichever is hit first.
          * @summary List all objects of the given type that the user has a relation with
          * @param {ListObjectsRequest} body
          * @param {*} [options] Override http request option.
@@ -898,7 +907,7 @@ export const OpenFgaApiFactory = function (configuration: Configuration, credent
       return localVarFp.getStore(options).then((request) => request(axios));
     },
     /**
-         * The ListObjects API returns a list of all the objects of the given type that the user has a relation with. To achieve this, both the store tuples and the authorization model are used. An `authorization_model_id` may be specified in the body. If it is not specified, the latest authorization model ID will be used. It is strongly recommended to specify authorization model id for better performance. You may also specify `contextual_tuples` that will be treated as regular tuples. The response will contain the related objects in an array in the \"objects\" field of the response and they will be strings in the object format `<type>:<id>` (e.g. \"document:roadmap\"). The number of objects in the response array will be limited by the execution timeout specified in the flag OPENFGA_LIST_OBJECTS_DEADLINE and by the upper bound specified in the flag OPENFGA_LIST_OBJECTS_MAX_RESULTS, whichever is hit first. The objects given will not be sorted, and therefore two identical calls can give a given different set of objects.
+         * The ListObjects API returns a list of all the objects of the given type that the user has a relation with. To achieve this, both the store tuples and the authorization model are used. An `authorization_model_id` may be specified in the body. If it is not specified, the latest authorization model ID will be used. It is strongly recommended to specify authorization model id for better performance. You may also specify `contextual_tuples` that will be treated as regular tuples. The response will contain the related objects in an array in the \"objects\" field of the response and they will be strings in the object format `<type>:<id>` (e.g. \"document:roadmap\"). The number of objects in the response array will be limited by the execution timeout specified in the flag OPENFGA_LIST_OBJECTS_DEADLINE and by the upper bound specified in the flag OPENFGA_LIST_OBJECTS_MAX_RESULTS, whichever is hit first.
          * @summary List all objects of the given type that the user has a relation with
          * @param {ListObjectsRequest} body
          * @param {*} [options] Override http request option.
@@ -1071,7 +1080,7 @@ export class OpenFgaApi extends BaseAPI {
   }
 
   /**
-     * The ListObjects API returns a list of all the objects of the given type that the user has a relation with. To achieve this, both the store tuples and the authorization model are used. An `authorization_model_id` may be specified in the body. If it is not specified, the latest authorization model ID will be used. It is strongly recommended to specify authorization model id for better performance. You may also specify `contextual_tuples` that will be treated as regular tuples. The response will contain the related objects in an array in the \"objects\" field of the response and they will be strings in the object format `<type>:<id>` (e.g. \"document:roadmap\"). The number of objects in the response array will be limited by the execution timeout specified in the flag OPENFGA_LIST_OBJECTS_DEADLINE and by the upper bound specified in the flag OPENFGA_LIST_OBJECTS_MAX_RESULTS, whichever is hit first. The objects given will not be sorted, and therefore two identical calls can give a given different set of objects.
+     * The ListObjects API returns a list of all the objects of the given type that the user has a relation with. To achieve this, both the store tuples and the authorization model are used. An `authorization_model_id` may be specified in the body. If it is not specified, the latest authorization model ID will be used. It is strongly recommended to specify authorization model id for better performance. You may also specify `contextual_tuples` that will be treated as regular tuples. The response will contain the related objects in an array in the \"objects\" field of the response and they will be strings in the object format `<type>:<id>` (e.g. \"document:roadmap\"). The number of objects in the response array will be limited by the execution timeout specified in the flag OPENFGA_LIST_OBJECTS_DEADLINE and by the upper bound specified in the flag OPENFGA_LIST_OBJECTS_MAX_RESULTS, whichever is hit first.
      * @summary List all objects of the given type that the user has a relation with
      * @param {ListObjectsRequest} body
      * @param {*} [options] Override http request option.

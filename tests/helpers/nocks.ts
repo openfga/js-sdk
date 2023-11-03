@@ -47,7 +47,16 @@ export const getNocks = ((nock: typeof Nock) => ({
   },
   listStores: (
     basePath = defaultConfiguration.getBasePath(),
-    response: ListStoresResponse = { stores: [{ id: "some-id", name: "some-name" }] },
+    response: ListStoresResponse = {
+      continuation_token: "...",
+      stores: [{
+        id: "some-id",
+        name: "some-name",
+        created_at: "2023-11-02T15:27:47.951Z",
+        updated_at: "2023-11-02T15:27:47.951Z",
+        deleted_at: "2023-11-02T15:27:47.951Z",
+      }]
+    },
     responseCode = 200,
   ) => {
     return nock(basePath)
@@ -56,7 +65,12 @@ export const getNocks = ((nock: typeof Nock) => ({
   },
   createStore: (
     basePath = defaultConfiguration.getBasePath(),
-    response: CreateStoreResponse = { id: "some-id", name: "some-name" },
+    response: CreateStoreResponse = {
+      id: "some-id",
+      name: "some-name",
+      created_at: "2023-11-02T15:27:47.951Z",
+      updated_at: "2023-11-02T15:27:47.951Z",
+    },
     responseCode = 200,
   ) => {
     return nock(basePath)
@@ -66,7 +80,12 @@ export const getNocks = ((nock: typeof Nock) => ({
   getStore: (
     storeId: string,
     basePath = defaultConfiguration.getBasePath(),
-    response: GetStoreResponse = { id: "some-id", name: "some-name" },
+    response: GetStoreResponse = {
+      id: "some-id",
+      name: "some-name",
+      created_at: "2023-11-02T15:27:47.951Z",
+      updated_at: "2023-11-02T15:27:47.951Z",
+    },
     responseCode = 200,
   ) => {
     return nock(basePath)
@@ -145,7 +164,7 @@ export const getNocks = ((nock: typeof Nock) => ({
   ) => {
     return nock(basePath)
       .post(`/stores/${storeId}/read`)
-      .reply(200, { tuples: [] } as ReadResponse);
+      .reply(200, { tuples: [], continuation_token: "" } as ReadResponse);
   },
   write: (
     storeId: string,
