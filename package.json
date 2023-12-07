@@ -22,7 +22,7 @@
     "lint:fix": "eslint . --ext .ts --fix"
   },
   "dependencies": {
-    "axios": "^1.6.1",
+    "axios": "^1.6.2",
     "tiny-async-pool": "^2.1.0"
   },
   "devDependencies": {
