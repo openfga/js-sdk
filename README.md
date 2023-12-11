@@ -94,10 +94,10 @@ The documentation below refers to the `OpenFgaClient`, to read the documentation
 const { OpenFgaClient } = require('@openfga/sdk'); // OR import { OpenFgaClient } from '@openfga/sdk';
 
 const fgaClient = new OpenFgaClient({
-  apiScheme: OPENFGA_API_SCHEME, // optional, defaults to "https"
-  apiHost: OPENFGA_API_HOST, // required, define without the scheme (e.g. api.fga.example instead of https://api.fga.example)
-  storeId: OPENFGA_STORE_ID, // not needed when calling `CreateStore` or `ListStores`
-  authorizationModelId: OPENFGA_AUTHORIZATION_MODEL_ID, // Optional, can be overridden per request
+  apiScheme: process.env.FGA_API_SCHEME, // optional, defaults to "https"
+  apiHost: process.env.FGA_API_HOST, // required, define without the scheme (e.g. api.fga.example instead of https://api.fga.example)
+  storeId: process.env.FGA_STORE_ID, // not needed when calling `CreateStore` or `ListStores`
+  authorizationModelId: process.env.FGA_AUTHORIZATION_MODEL_ID, // Optional, can be overridden per request
 });
 ```
 
@@ -107,14 +107,14 @@ const fgaClient = new OpenFgaClient({
 const { OpenFgaClient } = require('@openfga/sdk'); // OR import { OpenFgaClient } from '@openfga/sdk';
 
 const fgaClient = new OpenFgaClient({
-  apiScheme: OPENFGA_API_SCHEME, // optional, defaults to "https"
-  apiHost: OPENFGA_API_HOST, // required, define without the scheme (e.g. api.fga.example instead of https://api.fga.example)
-  storeId: OPENFGA_STORE_ID, // not needed when calling `CreateStore` or `ListStores`
-  authorizationModelId: OPENFGA_AUTHORIZATION_MODEL_ID, // Optional, can be overridden per request
+  apiScheme: process.env.FGA_API_SCHEME, // optional, defaults to "https"
+  apiHost: process.env.FGA_API_HOST, // required, define without the scheme (e.g. api.fga.example instead of https://api.fga.example)
+  storeId: process.env.FGA_STORE_ID, // not needed when calling `CreateStore` or `ListStores`
+  authorizationModelId: process.env.FGA_AUTHORIZATION_MODEL_ID, // Optional, can be overridden per request
   credentials: {
     method: CredentialsMethod.ApiToken,
     config: {
-      token: OPENFGA_API_TOKEN, // will be passed as the "Authorization: Bearer ${ApiToken}" request header
+      token: process.env.FGA_API_TOKEN, // will be passed as the "Authorization: Bearer ${ApiToken}" request header
     }
   }
 });
@@ -126,17 +126,17 @@ const fgaClient = new OpenFgaClient({
 const { OpenFgaClient } = require('@openfga/sdk'); // OR import { OpenFgaClient } from '@openfga/sdk';
 
 const fgaClient = new OpenFgaClient({
-  apiScheme: OPENFGA_API_SCHEME, // optional, defaults to "https"
-  apiHost: OPENFGA_API_HOST, // required, define without the scheme (e.g. api.fga.example instead of https://api.fga.example)
-  storeId: OPENFGA_STORE_ID, // not needed when calling `CreateStore` or `ListStores`
-  authorizationModelId: OPENFGA_AUTHORIZATION_MODEL_ID, // Optional, can be overridden per request
+  apiScheme: process.env.FGA_API_SCHEME, // optional, defaults to "https"
+  apiHost: process.env.FGA_API_HOST, // required, define without the scheme (e.g. api.fga.example instead of https://api.fga.example)
+  storeId: process.env.FGA_STORE_ID, // not needed when calling `CreateStore` or `ListStores`
+  authorizationModelId: process.env.FGA_AUTHORIZATION_MODEL_ID, // Optional, can be overridden per request
   credentials: {
     method: CredentialsMethod.ClientCredentials,
     config: {
-      apiTokenIssuer: OPENFGA_API_TOKEN_ISSUER,
-      apiAudience: OPENFGA_API_AUDIENCE,
-      clientId: OPENFGA_CLIENT_ID,
-      clientSecret: OPENFGA_CLIENT_SECRET,
+      apiTokenIssuer: process.env.FGA_API_TOKEN_ISSUER,
+      apiAudience: process.env.FGA_API_AUDIENCE,
+      clientId: process.env.FGA_CLIENT_ID,
+      clientSecret: process.env.FGA_CLIENT_SECRET,
     }
   }
 });

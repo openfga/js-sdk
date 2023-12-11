@@ -2,9 +2,11 @@
 
 ## v0.3.0
 
-### [0.3.0](https://github.com/openfga/js-sdk/compare/v0.2.10...v0.3.0) (2023-11-01)
+### [0.3.0](https://github.com/openfga/js-sdk/compare/v0.2.10...v0.3.0) (2023-12-11)
 
-- feat!: support for conditions
+- feat: support for conditions
+- chore: use latest API interfaces
+- chore: dependency updates
 
 ## v0.2.10
 
