@@ -36,16 +36,41 @@ export interface Any {
 export interface Assertion {
     /**
      * 
-     * @type {CheckRequestTupleKey}
+     * @type {AssertionTupleKey}
      * @memberof Assertion
      */
-    tuple_key: CheckRequestTupleKey;
+    tuple_key: AssertionTupleKey;
     /**
      * 
      * @type {boolean}
      * @memberof Assertion
      */
     expectation: boolean;
+}
+/**
+ * 
+ * @export
+ * @interface AssertionTupleKey
+ */
+export interface AssertionTupleKey {
+    /**
+     * 
+     * @type {string}
+     * @memberof AssertionTupleKey
+     */
+    object: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof AssertionTupleKey
+     */
+    relation: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof AssertionTupleKey
+     */
+    user: string;
 }
 /**
  * 
@@ -58,7 +83,7 @@ export interface AuthorizationModel {
      * @type {string}
      * @memberof AuthorizationModel
      */
-    id?: string;
+    id: string;
     /**
      * 
      * @type {string}
@@ -651,7 +676,7 @@ export enum NotFoundErrorCode {
 }
 
 /**
- * `NullValue` is a singleton enumeration to represent the null value for the `Value` type union.   The JSON representation for `NullValue` is JSON `null`.   - NULL_VALUE: Null value.
+ * `NullValue` is a singleton enumeration to represent the null value for the `Value` type union.  The JSON representation for `NullValue` is JSON `null`.   - NULL_VALUE: Null value.
  * @export
  * @enum {string}
  */
@@ -900,7 +925,7 @@ export interface RelationshipCondition {
      * @type {object}
      * @memberof RelationshipCondition
      */
-    context: object;
+    context?: object;
 }
 /**
  * 
@@ -1040,6 +1065,31 @@ export interface TupleKey {
      * @memberof TupleKey
      */
     condition?: RelationshipCondition;
+}
+/**
+ * 
+ * @export
+ * @interface TupleKeyWithoutCondition
+ */
+export interface TupleKeyWithoutCondition {
+    /**
+     * 
+     * @type {string}
+     * @memberof TupleKeyWithoutCondition
+     */
+    user: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof TupleKeyWithoutCondition
+     */
+    relation: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof TupleKeyWithoutCondition
+     */
+    object: string;
 }
 /**
  * 
@@ -1317,16 +1367,16 @@ export interface WriteAuthorizationModelResponse {
 export interface WriteRequest {
     /**
      * 
-     * @type {WriteRequestTupleKeys}
+     * @type {WriteRequestWrites}
      * @memberof WriteRequest
      */
-    writes?: WriteRequestTupleKeys;
+    writes?: WriteRequestWrites;
     /**
      * 
-     * @type {WriteRequestTupleKeys}
+     * @type {WriteRequestDeletes}
      * @memberof WriteRequest
      */
-    deletes?: WriteRequestTupleKeys;
+    deletes?: WriteRequestDeletes;
     /**
      * 
      * @type {string}
@@ -1337,45 +1387,27 @@ export interface WriteRequest {
 /**
  * 
  * @export
- * @interface WriteRequestTupleKey
+ * @interface WriteRequestDeletes
  */
-export interface WriteRequestTupleKey {
+export interface WriteRequestDeletes {
     /**
      * 
-     * @type {string}
-     * @memberof WriteRequestTupleKey
+     * @type {Array<TupleKeyWithoutCondition>}
+     * @memberof WriteRequestDeletes
      */
-    user: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof WriteRequestTupleKey
-     */
-    relation: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof WriteRequestTupleKey
-     */
-    object: string;
-    /**
-     * 
-     * @type {RelationshipCondition}
-     * @memberof WriteRequestTupleKey
-     */
-    condition?: RelationshipCondition;
+    tuple_keys: Array<TupleKeyWithoutCondition>;
 }
 /**
  * 
  * @export
- * @interface WriteRequestTupleKeys
+ * @interface WriteRequestWrites
  */
-export interface WriteRequestTupleKeys {
+export interface WriteRequestWrites {
     /**
      * 
-     * @type {Array<WriteRequestTupleKey>}
-     * @memberof WriteRequestTupleKeys
+     * @type {Array<TupleKey>}
+     * @memberof WriteRequestWrites
      */
-    tuple_keys: Array<WriteRequestTupleKey>;
+    tuple_keys: Array<TupleKey>;
 }
 

@@ -36,10 +36,10 @@ import {
   ReadRequestTupleKey,
   ReadResponse,
   TupleKey,
+  TupleKeyWithoutCondition,
   WriteAuthorizationModelRequest,
   WriteAuthorizationModelResponse,
   WriteRequest,
-  WriteRequestTupleKey,
 } from "./apiModel";
 import { BaseAPI } from "./base";
 import { CallResult, PromiseResult } from "./common";
@@ -106,8 +106,8 @@ export interface BatchCheckRequestOpts {
 }
 
 export interface ClientWriteRequest {
-  writes?: WriteRequestTupleKey[];
-  deletes?: WriteRequestTupleKey[];
+  writes?: TupleKey[];
+  deletes?: TupleKeyWithoutCondition[];
 }
 
 export enum ClientWriteStatus {
@@ -116,7 +116,7 @@ export enum ClientWriteStatus {
 }
 
 export interface ClientWriteSingleResponse {
-  tuple_key: WriteRequestTupleKey;
+  tuple_key: TupleKey;
   status: ClientWriteStatus;
   err?: Error;
 }
@@ -441,7 +441,7 @@ export class OpenFgaClient extends BaseAPI {
 
   /**
    * WriteTuples - Utility method to write tuples, wraps Write
-   * @param {WriteRequestTupleKey[]} tuples
+   * @param {TupleKey[]} tuples
    * @param {ClientRequestOptsWithAuthZModelId & ClientWriteRequestOpts} [options]
    * @param {string} [options.authorizationModelId] - Overrides the authorization model id in the configuration
    * @param {object} [options.transaction]
@@ -453,7 +453,7 @@ export class OpenFgaClient extends BaseAPI {
    * @param {number} [options.retryParams.maxRetry] - Override the max number of retries on each API request
    * @param {number} [options.retryParams.minWaitInMs] - Override the minimum wait before a retry is initiated
    */
-  async writeTuples(tuples: WriteRequestTupleKey[], options: ClientRequestOptsWithAuthZModelId & ClientWriteRequestOpts = {}): Promise<ClientWriteResponse> {
+  async writeTuples(tuples: TupleKey[], options: ClientRequestOptsWithAuthZModelId & ClientWriteRequestOpts = {}): Promise<ClientWriteResponse> {
     const { headers = {} } = options;
     setHeaderIfNotSet(headers, CLIENT_METHOD_HEADER, "WriteTuples");
     return this.write({ writes: tuples }, { ...options, headers });
@@ -461,7 +461,7 @@ export class OpenFgaClient extends BaseAPI {
 
   /**
    * DeleteTuples - Utility method to delete tuples, wraps Write
-   * @param {WriteRequestTupleKey[]} tuples
+   * @param {TupleKeyWithoutCondition[]} tuples
    * @param {ClientRequestOptsWithAuthZModelId & ClientWriteRequestOpts} [options]
    * @param {string} [options.authorizationModelId] - Overrides the authorization model id in the configuration
    * @param {object} [options.transaction]
@@ -473,7 +473,7 @@ export class OpenFgaClient extends BaseAPI {
    * @param {number} [options.retryParams.maxRetry] - Override the max number of retries on each API request
    * @param {number} [options.retryParams.minWaitInMs] - Override the minimum wait before a retry is initiated
    */
-  async deleteTuples(tuples: WriteRequestTupleKey[], options: ClientRequestOptsWithAuthZModelId & ClientWriteRequestOpts = {}): Promise<ClientWriteResponse> {
+  async deleteTuples(tuples: TupleKeyWithoutCondition[], options: ClientRequestOptsWithAuthZModelId & ClientWriteRequestOpts = {}): Promise<ClientWriteResponse> {
     const { headers = {} } = options;
     setHeaderIfNotSet(headers, CLIENT_METHOD_HEADER, "DeleteTuples");
     return this.write({ deletes: tuples }, { ...options, headers });
