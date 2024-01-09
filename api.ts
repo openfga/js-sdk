@@ -28,6 +28,7 @@ import { Credentials } from "./credentials";
 import { assertParamExists } from "./validation";
 
 import {
+  AbortedMessageResponse,
   Any,
   Assertion,
   AssertionTupleKey,
