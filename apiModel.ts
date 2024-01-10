@@ -16,6 +16,25 @@
 /**
  * 
  * @export
+ * @interface AbortedMessageResponse
+ */
+export interface AbortedMessageResponse {
+    /**
+     * 
+     * @type {string}
+     * @memberof AbortedMessageResponse
+     */
+    code?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof AbortedMessageResponse
+     */
+    message?: string;
+}
+/**
+ * 
+ * @export
  * @interface Any
  */
 export interface Any {
@@ -457,6 +476,12 @@ export interface GetStoreResponse {
      * @memberof GetStoreResponse
      */
     updated_at: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof GetStoreResponse
+     */
+    deleted_at?: string;
 }
 /**
  * 
@@ -987,7 +1012,7 @@ export interface Store {
      * @type {string}
      * @memberof Store
      */
-    deleted_at: string;
+    deleted_at?: string;
 }
 /**
  * 
