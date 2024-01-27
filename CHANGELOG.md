@@ -1,10 +1,17 @@
 # Changelog
 
+## v0.3.1
+
+### [0.3.1](https://github.com/openfga/js-sdk/compare/v0.3.0...v0.3.1) (2024-01-26)
+
+- chore: use latest API interfaces
+- chore: dependency updates
+
 ## v0.3.0
 
 ### [0.3.0](https://github.com/openfga/js-sdk/compare/v0.2.10...v0.3.0) (2023-12-11)
 
-- feat: support for conditions
+- feat: support for [conditions](https://openfga.dev/blog/conditional-tuples-announcement)
 - chore: use latest API interfaces
 - chore: dependency updates
 
