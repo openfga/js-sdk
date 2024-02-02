@@ -29,8 +29,15 @@ export interface RetryParams {
 }
 
 export interface UserConfigurationParams {
+  apiUrl?: string;
+  /**
+   * @deprecated Replace usage of `apiScheme` + `apiHost` with `apiUrl`
+   */
   apiScheme?: string;
-  apiHost: string;
+  /**
+   * @deprecated Replace usage of `apiScheme` + `apiHost` with `apiUrl`
+   */
+  apiHost?: string;
   storeId?: string;
   credentials?: CredentialsConfig;
   baseOptions?: any;
@@ -70,10 +77,19 @@ export class Configuration {
   private static sdkVersion = "0.3.1";
 
   /**
+   * provide the full api URL
+   *
+   * @type {string}
+   * @memberof Configuration
+   */
+  apiUrl: string;
+
+  /**
    * provide scheme (e.g. `https`)
    *
    * @type {string}
    * @memberof Configuration
+   * @deprecated
    */
   apiScheme = "https";
   /**
@@ -81,6 +97,7 @@ export class Configuration {
    *
    * @type {string}
    * @memberof Configuration
+   * @deprecated
    */
   apiHost: string;
   /**
@@ -115,6 +132,7 @@ export class Configuration {
   constructor(params: UserConfigurationParams = {} as unknown as UserConfigurationParams) {
     this.apiScheme = params.apiScheme || this.apiScheme;
     this.apiHost = params.apiHost!;
+    this.apiUrl = params.apiUrl!;
     this.storeId = params.storeId!;
 
     const credentialParams = params.credentials;
@@ -167,12 +185,17 @@ export class Configuration {
    * @throws {FgaValidationError}
    */
   public isValid(): boolean {
-    assertParamExists("Configuration", "apiScheme", this.apiScheme);
-    assertParamExists("Configuration", "apiHost", this.apiHost);
+    if (!this.apiUrl) {
+      assertParamExists("Configuration", "apiScheme", this.apiScheme);
+      assertParamExists("Configuration", "apiHost", this.apiHost);
+    }
 
     if (!isWellFormedUriString(this.getBasePath())) {
       throw new FgaValidationError(
-        `Configuration.apiScheme (${this.apiScheme}) and Configuration.apiHost (${this.apiHost}) do not form a valid URI (${this.getBasePath()})`);
+        this.apiUrl ?
+          `Configuration.apiUrl (${this.apiUrl}) is not a valid URI (${this.getBasePath()})` : 
+          `Configuration.apiScheme (${this.apiScheme}) and Configuration.apiHost (${this.apiHost}) do not form a valid URI (${this.getBasePath()})`
+      );
     }
 
     if (this.storeId && !isWellFormedUlidString(this.storeId)) {
@@ -189,5 +212,11 @@ export class Configuration {
   /**
    * Returns the API base path (apiScheme+apiHost)
    */
-  public getBasePath: () => string = () => `${this.apiScheme}://${this.apiHost}`;
+  public getBasePath: () => string = () => {
+    if (this.apiUrl) {
+      return this.apiUrl;
+    } else {
+      return `${this.apiScheme}://${this.apiHost}`;
+    }
+  };
 }
