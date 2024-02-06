@@ -77,7 +77,7 @@ export class Configuration {
   private static sdkVersion = "0.3.1";
 
   /**
-   * provide the full api URL
+   * provide the full api URL (e.g. `https://api.fga.example`)
    *
    * @type {string}
    * @memberof Configuration
