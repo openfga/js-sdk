@@ -94,8 +94,7 @@ The documentation below refers to the `OpenFgaClient`, to read the documentation
 const { OpenFgaClient } = require('@openfga/sdk'); // OR import { OpenFgaClient } from '@openfga/sdk';
 
 const fgaClient = new OpenFgaClient({
-  apiScheme: process.env.FGA_API_SCHEME, // optional, defaults to "https"
-  apiHost: process.env.FGA_API_HOST, // required, define without the scheme (e.g. api.fga.example instead of https://api.fga.example)
+  apiUrl: process.env.FGA_API_URL, // required
   storeId: process.env.FGA_STORE_ID, // not needed when calling `CreateStore` or `ListStores`
   authorizationModelId: process.env.FGA_AUTHORIZATION_MODEL_ID, // Optional, can be overridden per request
 });
@@ -107,8 +106,7 @@ const fgaClient = new OpenFgaClient({
 const { OpenFgaClient } = require('@openfga/sdk'); // OR import { OpenFgaClient } from '@openfga/sdk';
 
 const fgaClient = new OpenFgaClient({
-  apiScheme: process.env.FGA_API_SCHEME, // optional, defaults to "https"
-  apiHost: process.env.FGA_API_HOST, // required, define without the scheme (e.g. api.fga.example instead of https://api.fga.example)
+  apiUrl: process.env.FGA_API_URL, // required
   storeId: process.env.FGA_STORE_ID, // not needed when calling `CreateStore` or `ListStores`
   authorizationModelId: process.env.FGA_AUTHORIZATION_MODEL_ID, // Optional, can be overridden per request
   credentials: {
@@ -126,8 +124,7 @@ const fgaClient = new OpenFgaClient({
 const { OpenFgaClient } = require('@openfga/sdk'); // OR import { OpenFgaClient } from '@openfga/sdk';
 
 const fgaClient = new OpenFgaClient({
-  apiScheme: process.env.FGA_API_SCHEME, // optional, defaults to "https"
-  apiHost: process.env.FGA_API_HOST, // required, define without the scheme (e.g. api.fga.example instead of https://api.fga.example)
+  apiUrl: process.env.FGA_API_URL, // required
   storeId: process.env.FGA_STORE_ID, // not needed when calling `CreateStore` or `ListStores`
   authorizationModelId: process.env.FGA_AUTHORIZATION_MODEL_ID, // Optional, can be overridden per request
   credentials: {

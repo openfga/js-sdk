@@ -15,7 +15,7 @@ import { Configuration, UserConfigurationParams } from "../../configuration";
 import { CredentialsMethod } from "../../credentials";
 
 export const OPENFGA_STORE_ID = "01H0H015178Y2V4CX10C2KGHF4";
-export const OPENFGA_API_HOST = "api.fga.example";
+export const OPENFGA_API_URL = "http://api.fga.example";
 export const OPENFGA_API_TOKEN_ISSUER = "tokenissuer.fga.example";
 export const OPENFGA_API_AUDIENCE = "https://api.fga.example/";
 export const OPENFGA_CLIENT_ID = "01H0H3D8TD07EWAQHXY9BWJG3V";
@@ -24,7 +24,7 @@ export const OPENFGA_API_TOKEN = "fga_abcdef";
 
 export const baseConfig: UserConfigurationParams = {
   storeId: OPENFGA_STORE_ID,
-  apiHost: OPENFGA_API_HOST,
+  apiUrl: OPENFGA_API_URL,
   credentials: {
     method: CredentialsMethod.ClientCredentials,
     config: {

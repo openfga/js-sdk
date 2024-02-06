@@ -32,7 +32,7 @@ import { AuthCredentialsConfig } from "../credentials";
 import {
   baseConfig,
   defaultConfiguration,
-  OPENFGA_API_HOST,
+  OPENFGA_API_URL,
   OPENFGA_API_TOKEN_ISSUER,
   OPENFGA_STORE_ID
 } from "./helpers/default-config";
@@ -64,14 +64,26 @@ describe("OpenFGA SDK", function () {
 
     it("should require host in configuration", () => {
       expect(
-        () => new OpenFgaApi({ ...baseConfig, apiHost: undefined! })
+        () => new OpenFgaApi({ ...baseConfig, apiUrl: undefined! })
       ).toThrowError();
     });
 
     it("should validate host in configuration (adding scheme as part of the host)", () => {
       expect(
-        () => new OpenFgaApi({ ...baseConfig, apiHost: "https://api.fga.example" })
+        () => new OpenFgaApi({ ...baseConfig, apiUrl: "//api.fga.example" })
       ).toThrowError();
+    });
+
+    it("should allow using apiHost if apiUrl is not provided", () => {
+      expect(
+        () => new OpenFgaApi({ ...baseConfig, apiHost: "api.fga.example" })
+      ).not.toThrowError();
+    });
+
+    it("should still validate apiHost", () => {
+      expect(
+        () => new OpenFgaApi({ ...baseConfig, apiHost: "//api.fga.example" })
+      ).not.toThrowError();
     });
 
     it("should validate apiTokenIssuer in configuration (should not allow scheme as part of the apiTokenIssuer)", () => {
@@ -94,7 +106,7 @@ describe("OpenFGA SDK", function () {
         () =>
           new OpenFgaApi({
             storeId: baseConfig.storeId!,
-            apiHost: baseConfig.apiHost,
+            apiUrl: baseConfig.apiUrl,
           })
       ).not.toThrowError();
     });
@@ -104,7 +116,7 @@ describe("OpenFGA SDK", function () {
         () =>
           new OpenFgaApi({
             storeId: baseConfig.storeId!,
-            apiHost: baseConfig.apiHost,
+            apiUrl: baseConfig.apiUrl,
             credentials: {
               method: CredentialsMethod.ApiToken as any
             }
@@ -240,7 +252,7 @@ describe("OpenFGA SDK", function () {
 
       const fgaApi = new OpenFgaApi({
         storeId: baseConfig.storeId!,
-        apiHost: baseConfig.apiHost,
+        apiUrl: baseConfig.apiUrl,
       });
       expect(scope.isDone()).toBe(false);
 
@@ -258,7 +270,7 @@ describe("OpenFGA SDK", function () {
 
     it("should allow updating the storeId after initialization", async () => {
       const fgaApi = new OpenFgaApi({
-        apiHost: OPENFGA_API_HOST
+        apiUrl: OPENFGA_API_URL
       });
       expect(fgaApi.storeId).toBe(undefined);
       fgaApi.storeId = OPENFGA_STORE_ID;
