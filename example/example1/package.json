@@ -1,0 +1,17 @@
+{
+  "name": "example1",
+  "private": "true",
+  "version": "1.0.0",
+  "description": "A bare bones example of using the OpenFGA SDK",
+  "author": "OpenFGA",
+  "license": "Apache-2.0",
+  "scripts": {
+    "run-example": "node example1.mjs"
+  },
+  "dependencies": {
+    "@openfga/sdk": "^0.3.1"
+  },
+  "engines": {
+    "node": ">=16.13.0"
+  }
+}

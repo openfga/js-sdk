@@ -26,6 +26,10 @@ credentials/credentials.ts
 credentials/index.ts
 credentials/types.ts
 errors.ts
+example/Makefile
+example/README.md
+example/example1/example1.mjs
+example/example1/package.json
 git_push.sh
 index.ts
 package-lock.json
