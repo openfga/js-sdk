@@ -140,9 +140,9 @@ export const getNocks = ((nock: typeof Nock) => ({
     return nock(basePath)
       .get(`/stores/${storeId}/changes`)
       .query({
-        type,
         page_size: pageSize,
-        continuation_token: contToken
+        continuation_token: contToken,
+        ...(type ? { type } : { })
       })
       .reply(200, {
         changes: [{

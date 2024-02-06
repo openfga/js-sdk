@@ -314,7 +314,7 @@ export class OpenFgaClient extends BaseAPI {
 
   /**
    * Read Changes - Read the list of historical relationship tuple writes and deletes
-   * @param {ClientReadChangesRequest} body
+   * @param {ClientReadChangesRequest} [body]
    * @param {ClientRequestOpts & PaginationOptions} [options]
    * @param {number} [options.pageSize]
    * @param {string} [options.continuationToken]
@@ -323,8 +323,8 @@ export class OpenFgaClient extends BaseAPI {
    * @param {number} [options.retryParams.maxRetry] - Override the max number of retries on each API request
    * @param {number} [options.retryParams.minWaitInMs] - Override the minimum wait before a retry is initiated
    */
-  async readChanges(body: ClientReadChangesRequest, options: ClientRequestOpts & PaginationOptions = {}): PromiseResult<ReadChangesResponse> {
-    return this.api.readChanges(body.type, options.pageSize, options.continuationToken, options);
+  async readChanges(body?: ClientReadChangesRequest, options: ClientRequestOpts & PaginationOptions = {}): PromiseResult<ReadChangesResponse> {
+    return this.api.readChanges(body?.type, options.pageSize, options.continuationToken, options);
   }
 
   /**
