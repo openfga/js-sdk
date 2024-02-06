@@ -204,6 +204,19 @@ describe("OpenFGA Client", () => {
         expect(scope.isDone()).toBe(true);
         expect(response).toMatchObject({ changes: expect.arrayContaining([]) });
       });
+
+      it("should properly call the OpenFga ReadChanges API with no type", async () => {
+        const pageSize = 25;
+        const continuationToken = "eyJwayI6IkxBVEVTVF9OU0NPTkZJR19hdXRoMHN0b3JlIiwic2siOiIxem1qbXF3MWZLZExTcUoyN01MdTdqTjh0cWgifQ==";
+
+        const scope = nocks.readChanges(baseConfig.storeId!, "", pageSize, continuationToken);
+
+        expect(scope.isDone()).toBe(false);
+        const response = await fgaClient.readChanges(undefined, { pageSize, continuationToken });
+
+        expect(scope.isDone()).toBe(true);
+        expect(response).toMatchObject({ changes: expect.arrayContaining([]) });
+      });
     });
 
     describe("Read", () => {
