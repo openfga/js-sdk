@@ -1,89 +1,59 @@
 import { Credentials, CredentialsMethod, FgaApiValidationError, OpenFgaClient, TypeName } from "@openfga/sdk";
 
-let credentials;
-if (process.env.FGA_CLIENT_ID) {
-  credentials = new Credentials({
-    method: CredentialsMethod.ClientCredentials,
-    config: {
-      clientId: process.env.FGA_CLIENT_ID,
-      clientSecret: process.env.FGA_CLIENT_SECRET,
-      apiAudience: process.env.FGA_API_AUDIENCE,
-      apiTokenIssuer: process.env.FGA_API_TOKEN_ISSUER
-    }
+async function main () {
+  let credentials;
+  if (process.env.FGA_CLIENT_ID) {
+    credentials = new Credentials({
+      method: CredentialsMethod.ClientCredentials,
+      config: {
+        clientId: process.env.FGA_CLIENT_ID,
+        clientSecret: process.env.FGA_CLIENT_SECRET,
+        apiAudience: process.env.FGA_API_AUDIENCE,
+        apiTokenIssuer: process.env.FGA_API_TOKEN_ISSUER
+      }
+    });
+  }
+  
+  const fgaClient = new OpenFgaClient({
+    apiUrl: process.env.FGA_API_URL || "http://localhost:8080",
+    storeId: process.env.FGA_STORE_ID, // not needed when calling `createStore` or `listStores`
+    authorizationModelId: process.env.FGA_AUTHORIZATION_MODEL_ID, // optional, recommended for production,
+    credentials
   });
-}
+  
+  console.log("Listing stores");
+  const initialStores = await fgaClient.listStores();
+  console.log(`Stores count: ${initialStores.stores.length}`);
 
-const fgaClient = new OpenFgaClient({
-  apiUrl: process.env.FGA_API_URL || "http://localhost:8080",
-  storeId: process.env.FGA_STORE_ID, // not needed when calling `createStore` or `listStores`
-  authorizationModelId: process.env.FGA_AUTHORIZATION_MODEL_ID, // optional, recommended for production,
-  credentials
-});
-
-console.log("Listing stores");
-try {
-  const stores = await fgaClient.listStores();
-  console.log(`Stores count: ${stores.stores.length}`);
-} catch (error) {
-  console.error(`error: ${error}`);
-  process.exit(1);
-}
-
-console.log("Creating Test Store");
-let store;
-try {
+  console.log("Creating Test Store");
   const createdStore = await fgaClient.createStore({name: "Test Store"});
-  store = createdStore;
+  const store = createdStore;
   console.log(`Test Store ID: ${store.id}`);
+
+  // Set the store ID
   fgaClient.storeId = store.id;
-} catch (error) {
-  console.error(`error: ${error}`);
-  process.exit(1);
-}
 
-console.log("Listing Stores");
-try {
-  const stores = await fgaClient.listStores();
-  console.log(`Stores count: ${stores.stores.length}`);
-} catch (error) {
-  console.error(`error: ${error}`);
-  process.exit(1);
-}
-
-console.log("Getting Current Store");
-try {
+  console.log("Listing Stores");
+  const { stores } = await fgaClient.listStores();
+  console.log(`Stores count: ${stores.length}`);
+  
+  console.log("Getting Current Store");
   const currentStore = await fgaClient.getStore();
   console.log(`Current Store Name ${currentStore.name}`);
-} catch (error) {
-  console.error(`error: ${error}`);
-  process.exit(1);
-}
+  
+  console.log("Reading Authorization Models");
+  const { authorization_models } = await fgaClient.readAuthorizationModels();
+  console.log(`Models Count: ${authorization_models.length}`);
 
-console.log("Reading Authorization Models");
-try {
-  const models = await fgaClient.readAuthorizationModels();
-  console.log(`Models Count: ${models.authorization_models.length}`);
-} catch (error) {
-  console.error(`error: ${error}`);
-  process.exit(1);
-}
-
-console.log("Reading Latest Authorization Model");
-try {
-  const latestModel = await fgaClient.readLatestAuthorizationModel();
-  if (latestModel.authorization_model) {
+  console.log("Reading Latest Authorization Model");
+  const { authorization_model } = await fgaClient.readLatestAuthorizationModel();
+  if (authorization_model) {
     console.log(`Latest Authorization Model ID: ${latestModel.authorization_model.id}`);
   } else {
     console.log("Latest Authorization Model not found");
   }
-} catch (error) {
-  console.error(`error: ${error}`);
-  process.exit(1);
-}
 
-let authorizationModelId;
-console.log("Writing an Authorization Model");
-try {
+  console.log("Writing an Authorization Model");
   const model = await fgaClient.writeAuthorizationModel({
     schema_version: "1.1",
     type_definitions: [
@@ -142,33 +112,18 @@ try {
       }
     }
   });
-  authorizationModelId = model.authorization_model_id;
+  const authorizationModelId = model.authorization_model_id;
   console.log(`Authorization Model ID: ${authorizationModelId}`);
-} catch (error) {
-  console.error(`error: ${error}`);
-  process.exit(1);
-}
 
-console.log("Reading Authorization Models");
-try {
+  console.log("Reading Authorization Models");
   const models = await fgaClient.readAuthorizationModels();
   console.log(`Models Count: ${models.authorization_models.length}`);
-} catch (error) {
-  console.error(`error: ${error}`);
-  process.exit(1);
-}
 
-console.log("Reading Latest Authorization Model");
-try {
+  console.log("Reading Latest Authorization Model");
   const latestModel = await fgaClient.readLatestAuthorizationModel();
   console.log(`Latest Authorization Model ID: ${latestModel.authorization_model.id}`);
-} catch (error) {
-  console.error(`error: ${error}`);
-  process.exit(1);
-}
 
-console.log("Writing Tuples");
-try {
+  console.log("Writing Tuples");
   await fgaClient.write({
     writes: [
       {
@@ -186,51 +141,35 @@ try {
     ]
   }, { authorizationModelId });
   console.log("Done Writing Tuples");
-} catch (error) {
-  console.error(`error: ${error}`);
-  process.exit(1);
-}
 
-// Set the model ID
-fgaClient.authorizationModelId = authorizationModelId;
+  // Set the model ID
+  fgaClient.authorizationModelId = authorizationModelId;
 
-console.log("Reading Tuples");
-try {
+  console.log("Reading Tuples");
   const { tuples } = await fgaClient.read();
   console.log(`Read Tuples: ${JSON.stringify(tuples)}`);
-} catch (error) {
-  console.error(`error: ${error}`);
-  process.exit(1);
-}
 
-console.log("Reading Tuple Changes");
-try {
+  console.log("Reading Tuple Changes");
   const { changes } = await fgaClient.readChanges();
   console.log(`Tuple Changes: ${JSON.stringify(changes)}`);
-} catch (error) {
-  console.error(`error: ${error}`);
-  process.exit(1);
-}
 
-console.log("Checking for access");
-try {
-  const { allowed } = await fgaClient.check({
-    user: "user:anne",
-    relation: "viewer",
-    object: "document:roadmap"
-  });
-  console.log(`Allowed: ${allowed}`);
-} catch (error) {
-  if (error instanceof FgaApiValidationError) {
-    console.log(`Failed due to ${error.apiErrorMessage}`);
-  } else {
-    console.error(`Error: ${error}`);
-    process.exit(1);
+  console.log("Checking for access");
+  try {
+    const { allowed } = await fgaClient.check({
+      user: "user:anne",
+      relation: "viewer",
+      object: "document:roadmap"
+    });
+    console.log(`Allowed: ${allowed}`);
+  } catch (error) {
+    if (error instanceof FgaApiValidationError) {
+      console.log(`Failed due to ${error.apiErrorMessage}`);
+    } else {
+      throw error;
+    }
   }
-}
 
-console.log("Checking for access with context");
-try {
+  console.log("Checking for access with context");
   const { allowed } = await fgaClient.check({
     user: "user:anne",
     relation: "viewer",
@@ -240,13 +179,8 @@ try {
     }
   });
   console.log(`Allowed: ${allowed}`);
-} catch (error) {
-  console.error(`error: ${error}`);
-  process.exit(1);
-}
-
-console.log("Writing Assertions");
-try {
+ 
+  console.log("Writing Assertions");
   await fgaClient.writeAssertions([
     {
       user: "user:carl",
@@ -262,25 +196,18 @@ try {
     }
   ]);
   console.log("Assertions Updated");
-} catch (error) {
-  console.error(`error: ${error}`);
-  process.exit(1);
-}
-
-console.log("Reading Assertions");
-try {
+  
+  console.log("Reading Assertions");
   const { assertions} = await fgaClient.readAssertions();
   console.log(`Assertions: ${JSON.stringify(assertions)}`);
-} catch (error) {
-  console.error(`error: ${error}`);
-  process.exit(1);
+  
+  console.log("Deleting Current Store");
+  await fgaClient.deleteStore();
+  console.log(`Deleted Store Count: ${store.id}`);  
 }
 
-console.log("Deleting Current Store");
-try {
-  await fgaClient.deleteStore();
-  console.log(`Deleted Store Count: ${store.id}`);
-} catch (error) {
-  console.error(`error: ${error}`);
-  process.exit(1);
-}
+main()
+  .catch(error => {
+    console.error(`error: ${error}`);
+    process.exitCode = 1;
+  });

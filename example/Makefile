@@ -4,11 +4,10 @@ project_name=example1
 openfga_version=latest
 
 setup:
-	cd "${project_name}/" && npm install && cd -
+	npm --prefix "${project_name}" install
 
 run:
-	cd "${project_name}" && \
-		npm run run-example
+	npm --prefix "${project_name}" run start
 
 run-openfga:
 	docker pull docker.io/openfga/openfga:${openfga_version} && \

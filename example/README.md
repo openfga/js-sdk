@@ -25,14 +25,14 @@ Steps
 
 Steps
 1. Build the SDK
-2. In the Example `package.json` change the `@openfga/sdk` dependency from a semver range to `file:../../`
+2. In the Example `package.json` change the `@openfga/sdk` dependency from a semver range like below
 ```json
 "dependencies": {
     "@openfga/sdk": "^0.3.1"
   }
 ```
-and replace it with one pointing to the local gradle project, e.g.
-```groovy
+to a `file:` reference like below
+```json
 "dependencies": {
     "@openfga/sdk": "file:../../"
   }
