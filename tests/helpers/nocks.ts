@@ -40,10 +40,12 @@ export const getNocks = ((nock: typeof Nock) => ({
     expiresIn = 300,
     statusCode = 200,
   ) => {
-    return nock(`https://${apiTokenIssuer}`).post("/oauth/token").reply(statusCode, {
-      access_token: accessToken,
-      expires_in: expiresIn,
-    });
+    return nock(`https://${apiTokenIssuer}`, { reqheaders: { "Content-Type": "application/x-www-form-urlencoded"} })
+      .post("/oauth/token")
+      .reply(statusCode, {
+        access_token: accessToken,
+        expires_in: expiresIn,
+      });
   },
   listStores: (
     basePath = defaultConfiguration.getBasePath(),

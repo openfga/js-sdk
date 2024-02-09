@@ -144,6 +144,9 @@ export class Credentials {
           client_secret: clientCredentials.clientSecret,
           audience: clientCredentials.apiAudience,
           grant_type: "client_credentials",
+        },
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded"
         }
       }, {
         maxRetry: 3,
