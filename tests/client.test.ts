@@ -364,6 +364,27 @@ describe("OpenFGA Client", () => {
           expect(scope1.isDone()).toBe(true);
         }
       });
+
+      it("should properly call the OpenFga Write API when providing one empty array", async () => {
+        const tuple = {
+          user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
+          relation: "admin",
+          object: "workspace:1",
+        };
+        const scope = nocks.write(baseConfig.storeId!);
+
+        expect(scope.isDone()).toBe(false);
+        const data = await fgaClient.write({
+          writes: [tuple],
+          deletes: []
+        }, {
+          authorizationModelId: "01GXSA8YR785C4FYS3C0RTG7B1",
+        });
+
+        expect(scope.isDone()).toBe(true);
+        expect(data.writes.length).toBe(1);
+        expect(data.deletes.length).toBe(0);
+      });
     });
 
     describe("WriteTuples", () => {
