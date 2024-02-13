@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.3.2
+
+### [0.3.1](https://github.com/openfga/js-sdk/compare/v0.3.1...v0.3.2) (2024-02-13)
+
+- feat: add example project
+- feat: add support for `apiUrl` configuration option and deprecate `apiScheme` and `apiHost`
+- fix: use correct content type for token request
+- fix: make body in `readChanges` optional
+
 ## v0.3.1
 
 ### [0.3.1](https://github.com/openfga/js-sdk/compare/v0.3.0...v0.3.1) (2024-01-26)
