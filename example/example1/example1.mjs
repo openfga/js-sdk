@@ -1,9 +1,9 @@
-import { Credentials, CredentialsMethod, FgaApiValidationError, OpenFgaClient, TypeName } from "@openfga/sdk";
+import { CredentialsMethod, FgaApiValidationError, OpenFgaClient, TypeName } from "@openfga/sdk";
 
 async function main () {
   let credentials;
   if (process.env.FGA_CLIENT_ID) {
-    credentials = new Credentials({
+    credentials = {
       method: CredentialsMethod.ClientCredentials,
       config: {
         clientId: process.env.FGA_CLIENT_ID,
@@ -11,7 +11,7 @@ async function main () {
         apiAudience: process.env.FGA_API_AUDIENCE,
         apiTokenIssuer: process.env.FGA_API_TOKEN_ISSUER
       }
-    });
+    };
   }
   
   const fgaClient = new OpenFgaClient({
