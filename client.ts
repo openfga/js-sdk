@@ -44,7 +44,7 @@ import {
 import { BaseAPI } from "./base";
 import { CallResult, PromiseResult } from "./common";
 import { Configuration, RetryParams, UserConfigurationParams } from "./configuration";
-import { FgaRequiredParamError, FgaValidationError } from "./errors";
+import {FgaApiAuthenticationError, FgaRequiredParamError, FgaValidationError} from "./errors";
 import {
   chunkArray,
   generateRandomIdWithNonUniqueFallback,
@@ -395,48 +395,50 @@ export class OpenFgaClient extends BaseAPI {
       };
     }
 
-    // We initiate two chains in parallel (to avoid unnecessary latency)
-    // 1- the actual request that we'll return at the end
-    // 2- a request to check whether the store ID, auth model ID, and credentials are valid
-    return Promise.all([
-      (async () => {
-        setHeaderIfNotSet(headers, CLIENT_METHOD_HEADER, "Write");
-        setHeaderIfNotSet(headers, CLIENT_BULK_REQUEST_ID_HEADER, generateRandomIdWithNonUniqueFallback());
+    setHeaderIfNotSet(headers, CLIENT_METHOD_HEADER, "Write");
+    setHeaderIfNotSet(headers, CLIENT_BULK_REQUEST_ID_HEADER, generateRandomIdWithNonUniqueFallback());
 
-        const writeResponses: ClientWriteSingleResponse[][] = [];
-        if (writes?.length) {
-          for await (const singleChunkResponse of asyncPool(maxParallelRequests, chunkArray(writes, maxPerChunk),
-            (chunk) => this.writeTuples(chunk,{ ...options, headers, transaction: undefined }).catch(err => ({
-              writes: chunk.map(tuple => ({
-                tuple_key: tuple,
-                status: ClientWriteStatus.FAILURE,
-                err,
-              })),
-              deletes: []
-            })))) {
-            writeResponses.push(singleChunkResponse.writes);
+    const writeResponses: ClientWriteSingleResponse[][] = [];
+    if (writes?.length) {
+      for await (const singleChunkResponse of asyncPool(maxParallelRequests, chunkArray(writes, maxPerChunk),
+        (chunk) => this.writeTuples(chunk,{ ...options, headers, transaction: undefined }).catch(err => {
+          if (err instanceof FgaApiAuthenticationError) {
+            throw err;
           }
-        }
+          return {
+            writes: chunk.map(tuple => ({
+              tuple_key: tuple,
+              status: ClientWriteStatus.FAILURE,
+              err,
+            })),
+            deletes: []
+          };
+        }))) {
+        writeResponses.push(singleChunkResponse.writes);
+      }
+    }
 
-        const deleteResponses: ClientWriteSingleResponse[][] = [];
-        if (deletes?.length) {
-          for await (const singleChunkResponse of asyncPool(maxParallelRequests, chunkArray(deletes, maxPerChunk),
-            (chunk) => this.deleteTuples(chunk, { ...options, headers, transaction: undefined }).catch(err => ({
-              writes: [],
-              deletes: chunk.map(tuple => ({
-                tuple_key: tuple,
-                status: ClientWriteStatus.FAILURE,
-                err,
-              }))
-            })))) {
-            deleteResponses.push(singleChunkResponse.deletes);
+    const deleteResponses: ClientWriteSingleResponse[][] = [];
+    if (deletes?.length) {
+      for await (const singleChunkResponse of asyncPool(maxParallelRequests, chunkArray(deletes, maxPerChunk),
+        (chunk) => this.deleteTuples(chunk, { ...options, headers, transaction: undefined }).catch(err => {
+          if (err instanceof FgaApiAuthenticationError) {
+            throw err;
           }
-        }
+          return {
+            writes: [],
+            deletes: chunk.map(tuple => ({
+              tuple_key: tuple,
+              status: ClientWriteStatus.FAILURE,
+              err,
+            })),
+          };
+        }))) {
+        deleteResponses.push(singleChunkResponse.deletes);
+      }
+    }
 
-        return { writes: writeResponses.flat(), deletes: deleteResponses.flat() };
-      })(),
-      this.checkValidApiConnection(options),
-    ]).then(res => res[0]);
+    return { writes: writeResponses.flat(), deletes: deleteResponses.flat() };
   }
 
   /**
@@ -518,36 +520,32 @@ export class OpenFgaClient extends BaseAPI {
    * @param {number} [options.retryParams.minWaitInMs] - Override the minimum wait before a retry is initiated
    */
   async batchCheck(body: ClientBatchCheckRequest, options: ClientRequestOptsWithAuthZModelId & BatchCheckRequestOpts = {}): Promise<ClientBatchCheckResponse> {
-    // We initiate two chains in parallel (to avoid unnecessary latency)
-    // 1- the actual request that we'll return at the end
-    // 2- a request to check whether the store ID, auth model ID, and credentials are valid
-    return Promise.all([
-      (async () => {
-        const { headers = {}, maxParallelRequests = DEFAULT_MAX_METHOD_PARALLEL_REQS } = options;
-        setHeaderIfNotSet(headers, CLIENT_METHOD_HEADER, "BatchCheck");
-        setHeaderIfNotSet(headers, CLIENT_BULK_REQUEST_ID_HEADER, generateRandomIdWithNonUniqueFallback());
+    const { headers = {}, maxParallelRequests = DEFAULT_MAX_METHOD_PARALLEL_REQS } = options;
+    setHeaderIfNotSet(headers, CLIENT_METHOD_HEADER, "BatchCheck");
+    setHeaderIfNotSet(headers, CLIENT_BULK_REQUEST_ID_HEADER, generateRandomIdWithNonUniqueFallback());
 
-        const responses: ClientBatchCheckSingleResponse[] = [];
-        for await (const singleCheckResponse of asyncPool(maxParallelRequests, body, (tuple) => this.check(tuple, { ...options, headers })
-          .then(response => {
-            (response as ClientBatchCheckSingleResponse)._request = tuple;
-            return response as ClientBatchCheckSingleResponse;
-          })
-          .catch(err => {
-            return {
-              allowed: undefined,
-              error: err,
-              _request: tuple,
-            };
-          })
-        )) {
-          responses.push(singleCheckResponse);
+    const responses: ClientBatchCheckSingleResponse[] = [];
+    for await (const singleCheckResponse of asyncPool(maxParallelRequests, body, (tuple) => this.check(tuple, { ...options, headers })
+      .then(response => {
+        (response as ClientBatchCheckSingleResponse)._request = tuple;
+        return response as ClientBatchCheckSingleResponse;
+      })
+      .catch(err => {
+        if (err instanceof FgaApiAuthenticationError) {
+          throw err;
         }
 
-        return { responses };
-      })(),
-      this.checkValidApiConnection(options),
-    ]).then(res => res[0]);
+        return {
+          allowed: undefined,
+          error: err,
+          _request: tuple,
+        };
+      })
+    )) {
+      responses.push(singleCheckResponse);
+    }
+
+    return { responses };
   }
 
   /**

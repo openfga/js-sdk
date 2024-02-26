@@ -270,7 +270,6 @@ describe("OpenFGA Client", () => {
         const scope1 = nocks.write(baseConfig.storeId!).matchHeader("X-OpenFGA-Client-Method", "Write");
         const scope2 = nocks.write(baseConfig.storeId!).matchHeader("X-OpenFGA-Client-Method", "Write");
         const modelId = "01GXSA8YR785C4FYS3C0RTG7B1";
-        const scope3 = nocks.readSingleAuthzModel(defaultConfiguration.storeId!, modelId);
 
         expect(scope0.isDone()).toBe(false);
         expect(scope1.isDone()).toBe(false);
@@ -285,7 +284,6 @@ describe("OpenFGA Client", () => {
         expect(scope0.isDone()).toBe(true);
         expect(scope1.isDone()).toBe(true);
         expect(scope2.isDone()).toBe(false);
-        expect(scope3.isDone()).toBe(true);
         expect(data).toMatchObject({});
       });
 
@@ -310,7 +308,6 @@ describe("OpenFGA Client", () => {
           "message": "relation &#39;workspace#reader&#39; not found"
         }, 400).matchHeader("X-OpenFGA-Client-Method", "Write");
         const modelId = "01GXSA8YR785C4FYS3C0RTG7B1";
-        const scope3 = nocks.readSingleAuthzModel(defaultConfiguration.storeId!, modelId);
 
         expect(scope0.isDone()).toBe(false);
         expect(scope1.isDone()).toBe(false);
@@ -325,7 +322,6 @@ describe("OpenFGA Client", () => {
         expect(scope0.isDone()).toBe(true);
         expect(scope1.isDone()).toBe(true);
         expect(scope2.isDone()).toBe(true);
-        expect(scope3.isDone()).toBe(true);
         expect(data.writes.length).toBe(3);
         expect(data.deletes.length).toBe(0);
         expect(data.writes.find(tuple => tuple.tuple_key.object === tuples[0].object)?.status).toBe(ClientWriteStatus.SUCCESS);
@@ -342,9 +338,6 @@ describe("OpenFGA Client", () => {
         }];
 
         const scope0 = nocks.write(baseConfig.storeId!, defaultConfiguration.getBasePath(), {}, 401).matchHeader("X-OpenFGA-Client-Method", "Write");
-        const scope1 = nock(defaultConfiguration.getBasePath())
-          .get(`/stores/${baseConfig.storeId!}/authorization-models/${authModelId}`)
-          .reply(401, {});
         try {
           const tuples = [{
             user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
@@ -361,7 +354,6 @@ describe("OpenFGA Client", () => {
           expect(err).toBeInstanceOf(FgaApiAuthenticationError);
         } finally {
           expect(scope0.isDone()).toBe(true);
-          expect(scope1.isDone()).toBe(true);
         }
       });
 
@@ -464,12 +456,6 @@ describe("OpenFGA Client", () => {
           "code": "validation_error",
           "message": "relation &#39;workspace#reader&#39; not found"
         }, 400).matchHeader("X-OpenFGA-Client-Method", "BatchCheck");
-        const scope3 = nock(defaultConfiguration.getBasePath())
-          .get(`/stores/${defaultConfiguration.storeId!}/authorization-models`)
-          .query({ page_size: 1 })
-          .reply(200, {
-            authorization_models: [],
-          });
 
         expect(scope0.isDone()).toBe(false);
         expect(scope1.isDone()).toBe(false);
@@ -479,7 +465,6 @@ describe("OpenFGA Client", () => {
         expect(scope0.isDone()).toBe(true);
         expect(scope1.isDone()).toBe(true);
         expect(scope2.isDone()).toBe(true);
-        expect(scope3.isDone()).toBe(true);
         expect(response.responses.length).toBe(3);
         expect(response.responses.sort((a, b) => String(a._request.object).localeCompare(b._request.object)))
           .toMatchObject(expect.arrayContaining([
@@ -589,7 +574,7 @@ describe("OpenFGA Client", () => {
         expect(scope2.isDone()).toBe(true);
         expect(scope3.isDone()).toBe(true);
         expect(scope4.isDone()).toBe(false);
-        expect(scope5.isDone()).toBe(true);
+        expect(scope5.isDone()).toBe(false);
         expect(response.relations.length).toBe(2);
         expect(response.relations.sort()).toEqual(expect.arrayContaining(["admin", "reader"]));
       });
@@ -650,7 +635,7 @@ describe("OpenFGA Client", () => {
           expect(scope2.isDone()).toBe(true);
           expect(scope3.isDone()).toBe(true);
           expect(scope4.isDone()).toBe(false);
-          expect(scope5.isDone()).toBe(true);
+          expect(scope5.isDone()).toBe(false);
           expect(err).toBeInstanceOf(FgaApiError);
         }
       });
@@ -692,7 +677,7 @@ describe("OpenFGA Client", () => {
           expect(err).toBeInstanceOf(FgaApiAuthenticationError);
         } finally {
           expect(scope0.isDone()).toBe(true);
-          expect(scope1.isDone()).toBe(true);
+          expect(scope1.isDone()).toBe(false);
         }
       });
     });
