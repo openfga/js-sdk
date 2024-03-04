@@ -38,6 +38,7 @@ import {
   CheckResponse,
   Computed,
   Condition,
+  ConditionMetadata,
   ConditionParamTypeRef,
   ContextualTupleKeys,
   CreateStoreRequest,

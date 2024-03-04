@@ -240,6 +240,31 @@ export interface Condition {
      * @memberof Condition
      */
     parameters?: { [key: string]: ConditionParamTypeRef; };
+    /**
+     * 
+     * @type {ConditionMetadata}
+     * @memberof Condition
+     */
+    metadata?: ConditionMetadata;
+}
+/**
+ * 
+ * @export
+ * @interface ConditionMetadata
+ */
+export interface ConditionMetadata {
+    /**
+     * 
+     * @type {string}
+     * @memberof ConditionMetadata
+     */
+    file?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ConditionMetadata
+     */
+    module?: string;
 }
 /**
  * 
@@ -636,6 +661,18 @@ export interface Metadata {
      * @memberof Metadata
      */
     relations?: { [key: string]: RelationMetadata; };
+    /**
+     * 
+     * @type {string}
+     * @memberof Metadata
+     */
+    file?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof Metadata
+     */
+    module?: string;
 }
 /**
  * 
@@ -932,6 +969,18 @@ export interface RelationReference {
      * @memberof RelationReference
      */
     condition?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof RelationReference
+     */
+    file?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof RelationReference
+     */
+    module?: string;
 }
 /**
  * 
