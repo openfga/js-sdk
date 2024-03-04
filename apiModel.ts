@@ -938,6 +938,18 @@ export interface RelationMetadata {
      * @memberof RelationMetadata
      */
     directly_related_user_types?: Array<RelationReference>;
+    /**
+     * 
+     * @type {string}
+     * @memberof RelationMetadata
+     */
+    file?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof RelationMetadata
+     */
+    module?: string;
 }
 /**
  * RelationReference represents a relation of a particular object type (e.g. \'document#viewer\').
