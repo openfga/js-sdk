@@ -981,18 +981,6 @@ export interface RelationReference {
      * @memberof RelationReference
      */
     condition?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof RelationReference
-     */
-    file?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof RelationReference
-     */
-    module?: string;
 }
 /**
  * 
