@@ -258,13 +258,13 @@ export interface ConditionMetadata {
      * @type {string}
      * @memberof ConditionMetadata
      */
-    file?: string;
+    module?: string;
     /**
      * 
-     * @type {string}
+     * @type {SourceInfo}
      * @memberof ConditionMetadata
      */
-    module?: string;
+    source_info?: SourceInfo;
 }
 /**
  * 
@@ -666,13 +666,13 @@ export interface Metadata {
      * @type {string}
      * @memberof Metadata
      */
-    file?: string;
+    module?: string;
     /**
      * 
-     * @type {string}
+     * @type {SourceInfo}
      * @memberof Metadata
      */
-    module?: string;
+    source_info?: SourceInfo;
 }
 /**
  * 
@@ -943,13 +943,13 @@ export interface RelationMetadata {
      * @type {string}
      * @memberof RelationMetadata
      */
-    file?: string;
+    module?: string;
     /**
      * 
-     * @type {string}
+     * @type {SourceInfo}
      * @memberof RelationMetadata
      */
-    module?: string;
+    source_info?: SourceInfo;
 }
 /**
  * RelationReference represents a relation of a particular object type (e.g. \'document#viewer\').
@@ -1000,6 +1000,19 @@ export interface RelationshipCondition {
      * @memberof RelationshipCondition
      */
     context?: object;
+}
+/**
+ * 
+ * @export
+ * @interface SourceInfo
+ */
+export interface SourceInfo {
+    /**
+     * 
+     * @type {string}
+     * @memberof SourceInfo
+     */
+    file?: string;
 }
 /**
  * 

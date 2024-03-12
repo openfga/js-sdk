@@ -72,6 +72,7 @@ import {
   RelationMetadata,
   RelationReference,
   RelationshipCondition,
+  SourceInfo,
   Status,
   Store,
   Tuple,
