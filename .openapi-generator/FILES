@@ -33,7 +33,6 @@ example/example1/example1.mjs
 example/example1/package.json
 git_push.sh
 index.ts
-package-lock.json
 package.json
 tests/client.test.ts
 tests/helpers/default-config.ts
