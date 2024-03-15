@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.3.4
+
+### [0.3.4](https://github.com/openfga/js-sdk/compare/v0.3.3...v0.3.4) (2024-03-15)
+
+- chore: bump deps. resolves [CVE-2024-28849](https://nvd.nist.gov/vuln/detail/CVE-2024-28849) in
+[follow-redirects](https://www.npmjs.com/package/follow-redirects)
+
 ## v0.3.3
 
 ### [0.3.3](https://github.com/openfga/js-sdk/compare/v0.3.2...v0.3.3) (2024-02-26)
