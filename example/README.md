@@ -28,7 +28,7 @@ Steps
 2. In the Example `package.json` change the `@openfga/sdk` dependency from a semver range like below
 ```json
 "dependencies": {
-    "@openfga/sdk": "^0.3.4"
+    "@openfga/sdk": "^0.3.5"
   }
 ```
 to a `file:` reference like below
