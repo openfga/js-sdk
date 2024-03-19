@@ -240,6 +240,31 @@ export interface Condition {
      * @memberof Condition
      */
     parameters?: { [key: string]: ConditionParamTypeRef; };
+    /**
+     * 
+     * @type {ConditionMetadata}
+     * @memberof Condition
+     */
+    metadata?: ConditionMetadata;
+}
+/**
+ * 
+ * @export
+ * @interface ConditionMetadata
+ */
+export interface ConditionMetadata {
+    /**
+     * 
+     * @type {string}
+     * @memberof ConditionMetadata
+     */
+    module?: string;
+    /**
+     * 
+     * @type {SourceInfo}
+     * @memberof ConditionMetadata
+     */
+    source_info?: SourceInfo;
 }
 /**
  * 
@@ -636,6 +661,18 @@ export interface Metadata {
      * @memberof Metadata
      */
     relations?: { [key: string]: RelationMetadata; };
+    /**
+     * 
+     * @type {string}
+     * @memberof Metadata
+     */
+    module?: string;
+    /**
+     * 
+     * @type {SourceInfo}
+     * @memberof Metadata
+     */
+    source_info?: SourceInfo;
 }
 /**
  * 
@@ -901,6 +938,18 @@ export interface RelationMetadata {
      * @memberof RelationMetadata
      */
     directly_related_user_types?: Array<RelationReference>;
+    /**
+     * 
+     * @type {string}
+     * @memberof RelationMetadata
+     */
+    module?: string;
+    /**
+     * 
+     * @type {SourceInfo}
+     * @memberof RelationMetadata
+     */
+    source_info?: SourceInfo;
 }
 /**
  * RelationReference represents a relation of a particular object type (e.g. \'document#viewer\').
@@ -951,6 +1000,19 @@ export interface RelationshipCondition {
      * @memberof RelationshipCondition
      */
     context?: object;
+}
+/**
+ * 
+ * @export
+ * @interface SourceInfo
+ */
+export interface SourceInfo {
+    /**
+     * 
+     * @type {string}
+     * @memberof SourceInfo
+     */
+    file?: string;
 }
 /**
  * 
