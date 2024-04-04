@@ -1,4 +1,6 @@
 module.exports = {
+  collectCoverage: true,
+  coverageReporters: ['text', 'cobertura'],
   testEnvironment: "node",
   preset: "ts-jest",
   coveragePathIgnorePatterns: ["/node_modules/", "/tests/"],
