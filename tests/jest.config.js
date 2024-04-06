@@ -1,8 +1,18 @@
 module.exports = {
-  collectCoverage: true,
-  coverageReporters: ['text', 'cobertura'],
-  testEnvironment: "node",
   preset: "ts-jest",
-  coveragePathIgnorePatterns: ["/node_modules/", "/tests/"],
+  rootDir: "../",
+  testEnvironment: "node",
   moduleFileExtensions: ["js", "d.ts", "ts", "json"],
+  collectCoverage: true,
+  coverageReporters: ["text", "cobertura", "lcov"],
+  collectCoverageFrom: [
+    "**/**.{ts,tsx,js,jsx}",
+    "!**/**.d.ts",
+    "!**/**.eslintrc.js",
+    "!**/coverage/**",
+    "!**/dist/**",
+    "!**/example/**",
+    "!**/node_modules/**",
+    "!**/tests/**",
+  ],
 };

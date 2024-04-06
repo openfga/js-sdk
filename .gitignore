@@ -2,7 +2,7 @@ wwwroot/*.js
 node_modules
 typings
 dist
-tests/coverage
+coverage
 
 
 # IDEs
