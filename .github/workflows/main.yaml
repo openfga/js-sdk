@@ -15,7 +15,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [14.x, 16.x, 18.x, 20.x]
+        node-version: [14, 16, 18, 20]
 
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
@@ -48,7 +48,7 @@ jobs:
       - name: Set up node
         uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
         with:
-          node-version: "20"
+          node-version: 20
           cache: "npm"
 
       - name: Install dependencies
@@ -71,9 +71,10 @@ jobs:
           slug: openfga/js-sdk
 
   publish:
-    runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/v')
     needs: [build, test]
+    runs-on: ubuntu-latest
+
     permissions:
       contents: read
       id-token: write
@@ -86,7 +87,7 @@ jobs:
       - name: Set up node
         uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
         with:
-          node-version: "20"
+          node-version: 20
           registry-url: "https://registry.npmjs.org"
           scope: "@openfga"
           always-auth: false
@@ -101,9 +102,10 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   create-release:
-    runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/v')
-    needs: publish
+    needs: [publish]
+    runs-on: ubuntu-latest
+
     permissions:
       contents: write
 
