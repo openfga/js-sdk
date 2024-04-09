@@ -16,3 +16,5 @@ updates:
      dependencies:
         patterns:
           - "*"
+        exclude-patterns:
+          - "eslint"
