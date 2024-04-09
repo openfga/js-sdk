@@ -14,7 +14,7 @@
 import { AxiosInstance, AxiosRequestConfig, AxiosResponse } from "axios";
 
 import { Configuration } from "./configuration";
-import { Credentials } from "./credentials";
+import type { Credentials } from "./credentials";
 import {
   FgaApiError,
   FgaApiInternalError,
@@ -180,15 +180,13 @@ export async function attemptHttpRequest<B, R>(
 /**
  * creates an axios request function
  */
-export const createRequestFunction = function (axiosArgs: RequestArgs, axiosInstance: AxiosInstance, configuration: Configuration, credentials?: Credentials) {
+export const createRequestFunction = function (axiosArgs: RequestArgs, axiosInstance: AxiosInstance, configuration: Configuration, credentials: Credentials) {
   configuration.isValid();
 
   const retryParams = axiosArgs.options?.retryParams ? axiosArgs.options?.retryParams : configuration.retryParams;
   const maxRetry:number = retryParams ? retryParams.maxRetry : 0;
   const minWaitInMs:number = retryParams ? retryParams.minWaitInMs : 0;
-  if (!credentials) {
-    credentials = Credentials.init(configuration);
-  }
+
   return async (axios: AxiosInstance = axiosInstance) : PromiseResult<any> => {
     await setBearerAuthToObject(axiosArgs.options.headers, credentials!);
 
