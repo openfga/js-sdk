@@ -11,6 +11,7 @@
 .github/workflows/semgrep.yaml
 .gitignore
 .gitignore
+.madgerc
 .npmrc
 CHANGELOG.md
 CONTRIBUTING.md
