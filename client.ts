@@ -28,6 +28,8 @@ import {
   ListObjectsRequest,
   ListObjectsResponse,
   ListStoresResponse,
+  ListUsersRequest,
+  ListUsersResponse,
   ReadAssertionsResponse,
   ReadAuthorizationModelResponse,
   ReadAuthorizationModelsResponse,
@@ -178,6 +180,9 @@ export interface ClientReadChangesRequest {
 export type ClientExpandRequest = ExpandRequestTupleKey;
 export type ClientReadRequest = ReadRequestTupleKey;
 export type ClientListObjectsRequest = Omit<ListObjectsRequest, "authorization_model_id" | "contextual_tuples"> & {
+    contextualTuples?: Array<TupleKey>
+};
+export type ClientListUsersRequest = Omit<ListUsersRequest, "authorization_model_id" | "contextual_tuples"> & {
     contextualTuples?: Array<TupleKey>
 };
 export type ClientListRelationsRequest = Omit<ClientCheckRequest, "relation"> & {
@@ -685,6 +690,27 @@ export class OpenFgaClient extends BaseAPI {
     }
 
     return { relations: batchCheckResults.responses.filter(result => result.allowed).map(result => result._request.relation) };
+  }
+
+  /**
+   * ListUsers - List the objects of a particular type that the user has a certain relation to (evaluates)
+   * @param {ClientListUsersRequest} body
+   * @param {ClientRequestOptsWithAuthZModelId} [options]
+   * @param {string} [options.authorizationModelId] - Overrides the authorization model id in the configuration
+   * @param {object} [options.headers] - Custom headers to send alongside the request
+   * @param {object} [options.retryParams] - Override the retry parameters for this request
+   * @param {number} [options.retryParams.maxRetry] - Override the max number of retries on each API request
+   * @param {number} [options.retryParams.minWaitInMs] - Override the minimum wait before a retry is initiated
+   */
+  async listUsers(body: ClientListUsersRequest, options: ClientRequestOptsWithAuthZModelId = {}): PromiseResult<ListUsersResponse> {
+    return this.api.listUsers(this.getStoreId(options)!, {
+      authorization_model_id: this.getAuthorizationModelId(options),
+      relation: body.relation,
+      object: body.object,
+      user_filters: body.user_filters,
+      context: body.context,
+      contextual_tuples: body.contextualTuples || [],
+    }, options);
   }
 
   /**************

@@ -652,6 +652,68 @@ export interface ListStoresResponse {
 /**
  * 
  * @export
+ * @interface ListUsersRequest
+ */
+export interface ListUsersRequest {
+    /**
+     * 
+     * @type {string}
+     * @memberof ListUsersRequest
+     */
+    authorization_model_id?: string;
+    /**
+     * 
+     * @type {ModelObject}
+     * @memberof ListUsersRequest
+     */
+    object: ModelObject;
+    /**
+     * 
+     * @type {string}
+     * @memberof ListUsersRequest
+     */
+    relation: string;
+    /**
+     * 
+     * @type {Array<UserTypeFilter>}
+     * @memberof ListUsersRequest
+     */
+    user_filters: Array<UserTypeFilter>;
+    /**
+     * 
+     * @type {Array<TupleKey>}
+     * @memberof ListUsersRequest
+     */
+    contextual_tuples?: Array<TupleKey>;
+    /**
+     * Additional request context that will be used to evaluate any ABAC conditions encountered in the query evaluation.
+     * @type {object}
+     * @memberof ListUsersRequest
+     */
+    context?: object;
+}
+/**
+ * 
+ * @export
+ * @interface ListUsersResponse
+ */
+export interface ListUsersResponse {
+    /**
+     * 
+     * @type {Array<User>}
+     * @memberof ListUsersResponse
+     */
+    users: Array<User>;
+    /**
+     * 
+     * @type {Array<ObjectOrUserset>}
+     * @memberof ListUsersResponse
+     */
+    excluded_users: Array<ObjectOrUserset>;
+}
+/**
+ * 
+ * @export
  * @interface Metadata
  */
 export interface Metadata {
@@ -673,6 +735,25 @@ export interface Metadata {
      * @memberof Metadata
      */
     source_info?: SourceInfo;
+}
+/**
+ * Object represents an OpenFGA Object.  An Object is composed of a type and identifier (e.g. \'document:1\')  See https://openfga.dev/docs/concepts#what-is-an-object
+ * @export
+ * @interface ModelObject
+ */
+export interface ModelObject {
+    /**
+     * 
+     * @type {string}
+     * @memberof ModelObject
+     */
+    type: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ModelObject
+     */
+    id: string;
 }
 /**
  * 
@@ -747,6 +828,25 @@ export enum NullValue {
     NullValue = 'NULL_VALUE'
 }
 
+/**
+ * 
+ * @export
+ * @interface ObjectOrUserset
+ */
+export interface ObjectOrUserset {
+    /**
+     * 
+     * @type {ModelObject}
+     * @memberof ObjectOrUserset
+     */
+    object?: ModelObject;
+    /**
+     * 
+     * @type {UsersetUser}
+     * @memberof ObjectOrUserset
+     */
+    userset?: UsersetUser;
+}
 /**
  * 
  * @export
@@ -1257,35 +1357,60 @@ export enum TypeName {
 /**
  * 
  * @export
- * @enum {string}
+ * @interface TypedWildcard
  */
-
-export enum UnprocessableContentErrorCode {
-    NoThrottledErrorCode = 'no_throttled_error_code',
-    ThrottledTimeoutError = 'throttled_timeout_error'
-}
-
-/**
- * 
- * @export
- * @interface UnprocessableContentMessageResponse
- */
-export interface UnprocessableContentMessageResponse {
-    /**
-     * 
-     * @type {UnprocessableContentErrorCode}
-     * @memberof UnprocessableContentMessageResponse
-     */
-    code?: UnprocessableContentErrorCode;
+export interface TypedWildcard {
     /**
      * 
      * @type {string}
-     * @memberof UnprocessableContentMessageResponse
+     * @memberof TypedWildcard
      */
-    message?: string;
+    type: string;
 }
-
-
+/**
+ * 
+ * @export
+ * @interface User
+ */
+export interface User {
+    /**
+     * 
+     * @type {ModelObject}
+     * @memberof User
+     */
+    object?: ModelObject;
+    /**
+     * 
+     * @type {UsersetUser}
+     * @memberof User
+     */
+    userset?: UsersetUser;
+    /**
+     * 
+     * @type {TypedWildcard}
+     * @memberof User
+     */
+    wildcard?: TypedWildcard;
+}
+/**
+ * 
+ * @export
+ * @interface UserTypeFilter
+ */
+export interface UserTypeFilter {
+    /**
+     * 
+     * @type {string}
+     * @memberof UserTypeFilter
+     */
+    type: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UserTypeFilter
+     */
+    relation?: string;
+}
 /**
  * 
  * @export
@@ -1392,6 +1517,31 @@ export interface UsersetTreeTupleToUserset {
      * @memberof UsersetTreeTupleToUserset
      */
     computed: Array<Computed>;
+}
+/**
+ * 
+ * @export
+ * @interface UsersetUser
+ */
+export interface UsersetUser {
+    /**
+     * 
+     * @type {string}
+     * @memberof UsersetUser
+     */
+    type: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UsersetUser
+     */
+    id: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UsersetUser
+     */
+    relation: string;
 }
 /**
  * 

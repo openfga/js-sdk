@@ -19,7 +19,8 @@ import {
   FgaApiError,
   FgaApiAuthenticationError,
   FgaValidationError,
-  OpenFgaClient
+  OpenFgaClient,
+  ListUsersResponse,
 } from "../index";
 import { baseConfig, defaultConfiguration, getNocks } from "./helpers";
 
@@ -758,6 +759,105 @@ describe("OpenFGA Client", () => {
           expect(scope0.isDone()).toBe(true);
           expect(scope1.isDone()).toBe(false);
         }
+      });
+    });
+
+    describe("ListUsers", () => {
+      it("should call the api and return the response", async () => {
+        const mockedResponse: ListUsersResponse = {
+          users: [{
+            object: {
+              type: "user",
+              id: "81684243-9356-4421-8fbf-a4f8d36aa31b"
+            },
+          }, {
+            userset: {
+              type: "team",
+              id: "engineering",
+              relation: "member"
+            },
+          }, {
+            wildcard: {
+              type: "employee"
+            }
+          }],
+          excluded_users: [{
+            object: {
+              type: "user",
+              id: "76cebb86-6569-4440-b653-db3525a85831"
+            },
+          }, {
+            userset: {
+              type: "team",
+              id: "marketing",
+              relation: "member"
+            },
+          }] };
+        const scope = nocks.listUsers(baseConfig.storeId!, mockedResponse);
+
+        expect(scope.isDone()).toBe(false);
+        const response = await fgaClient.listUsers({
+          object: {
+            type: "document",
+            id: "roadmap"
+          },
+          relation: "can_read",
+          user_filters: [{
+            type: "user"
+          }, {
+            type: "team",
+            relation: "member"
+          }],
+          context: {},
+          contextualTuples:
+            [{
+              user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
+              relation: "editor",
+              object: "folder:product"
+            }, {
+              user: "folder:product",
+              relation: "parent",
+              object: "document:roadmap"
+            }]
+        }, {
+          authorizationModelId: "01GAHCE4YVKPQEKZQHT2R89MQV",
+        });
+
+        expect(scope.isDone()).toBe(true);
+        expect(response.users).toHaveLength(mockedResponse.users.length);
+        expect(response.users[0]).toMatchObject({
+          object: {
+            type: "user",
+            id: "81684243-9356-4421-8fbf-a4f8d36aa31b"
+          },
+        });
+        expect(response.users[1]).toMatchObject({
+          userset: {
+            type: "team",
+            id: "engineering",
+            relation: "member"
+          },
+        });
+        expect(response.users[2]).toMatchObject({
+          wildcard: {
+            type: "employee"
+          }
+        });
+        expect(response.excluded_users).toHaveLength(mockedResponse.excluded_users.length);
+        expect(response.excluded_users[0]).toMatchObject({
+          object: {
+            type: "user",
+            id: "76cebb86-6569-4440-b653-db3525a85831"
+          },
+        });
+        expect(response.excluded_users[1]).toMatchObject({
+          userset: {
+            type: "team",
+            id: "marketing",
+            relation: "member"
+          },
+        });
+        expect(response).toEqual(mockedResponse);
       });
     });
 
