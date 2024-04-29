@@ -472,6 +472,25 @@ export interface ExpandResponse {
     tree?: UsersetTree;
 }
 /**
+ * Object represents an OpenFGA Object.  An Object is composed of a type and identifier (e.g. \'document:1\')  See https://openfga.dev/docs/concepts#what-is-an-object
+ * @export
+ * @interface FgaObject
+ */
+export interface FgaObject {
+    /**
+     * 
+     * @type {string}
+     * @memberof FgaObject
+     */
+    type: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof FgaObject
+     */
+    id: string;
+}
+/**
  * 
  * @export
  * @interface GetStoreResponse
@@ -663,10 +682,10 @@ export interface ListUsersRequest {
     authorization_model_id?: string;
     /**
      * 
-     * @type {ModelObject}
+     * @type {FgaObject}
      * @memberof ListUsersRequest
      */
-    object: ModelObject;
+    object: FgaObject;
     /**
      * 
      * @type {string}
@@ -735,25 +754,6 @@ export interface Metadata {
      * @memberof Metadata
      */
     source_info?: SourceInfo;
-}
-/**
- * Object represents an OpenFGA Object.  An Object is composed of a type and identifier (e.g. \'document:1\')  See https://openfga.dev/docs/concepts#what-is-an-object
- * @export
- * @interface ModelObject
- */
-export interface ModelObject {
-    /**
-     * 
-     * @type {string}
-     * @memberof ModelObject
-     */
-    type: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof ModelObject
-     */
-    id: string;
 }
 /**
  * 
@@ -836,10 +836,10 @@ export enum NullValue {
 export interface ObjectOrUserset {
     /**
      * 
-     * @type {ModelObject}
+     * @type {FgaObject}
      * @memberof ObjectOrUserset
      */
-    object?: ModelObject;
+    object?: FgaObject;
     /**
      * 
      * @type {UsersetUser}
@@ -1375,10 +1375,10 @@ export interface TypedWildcard {
 export interface User {
     /**
      * 
-     * @type {ModelObject}
+     * @type {FgaObject}
      * @memberof User
      */
-    object?: ModelObject;
+    object?: FgaObject;
     /**
      * 
      * @type {UsersetUser}
