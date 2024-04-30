@@ -463,7 +463,7 @@ const { responses } = await fgaClient.batchCheck([{
   user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
   relation: "viewer",
   object: "document:roadmap",
-  contextualTuples: [{
+  contextual_tuples: [{
     user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
     relation: "writer",
     object: "document:roadmap"
@@ -492,7 +492,7 @@ responses = [{
     user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
     relation: "viewer",
     object: "document:roadmap",
-    contextualTuples: [{
+    contextual_tuples: [{
       user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
       relation: "writer",
       object: "document:roadmap"
@@ -538,7 +538,7 @@ const response = await fgaClient.listObjects({
   user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
   relation: "viewer",
   type: "document",
-  contextualTuples: [{
+  contextual_tuples: [{
     user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
     relation: "writer",
     object: "document:budget"
@@ -564,7 +564,7 @@ const response = await fgaClient.listRelations({
   user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
   object: "document:roadmap",
   relations: ["can_view", "can_edit", "can_delete"],
-  contextualTuples: [{
+  contextual_tuples: [{
     user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
     relation: "writer",
     object: "document:roadmap"
