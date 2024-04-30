@@ -52,8 +52,44 @@ import {
 } from "./utils";
 import { isWellFormedUlidString } from "./validation";
 
-export type ClientConfiguration = (UserConfigurationParams | Configuration) & {
+export type UserClientConfigurationParams = UserConfigurationParams & {
+  storeId?: string;
   authorizationModelId?: string;
+}
+
+export class ClientConfiguration extends Configuration {
+  /**
+   * provide storeId
+   *
+   * @type {string}
+   * @memberof ClientConfiguration
+   */
+  storeId?: string;
+  /**
+   * provide authorizationModelId
+   *
+   * @type {string}
+   * @memberof ClientConfiguration
+   */
+  authorizationModelId?: string;
+
+  constructor(params: UserClientConfigurationParams = {} as unknown as UserConfigurationParams) {
+    super(params);
+    this.storeId = params.storeId!;
+    this.authorizationModelId = params.authorizationModelId!;
+  }
+
+  public isValid(): boolean {
+    super.isValid();
+    if (this.storeId && !isWellFormedUlidString(this.storeId)) {
+      throw new FgaValidationError("storeId", "storeId must be in ULID format");
+    }
+    if (this.authorizationModelId && !isWellFormedUlidString(this.authorizationModelId)) {
+      throw new FgaValidationError("authorizationModelId", "authorizationModelId must be in ULID format");
+    }
+
+    return true;
+  }
 }
 
 const DEFAULT_MAX_METHOD_PARALLEL_REQS = 10;
@@ -65,11 +101,16 @@ export interface ClientRequestOpts {
   headers?: Record<string, string>;
 }
 
+export interface StoreIdOpts {
+  storeId?: string;
+}
+
 export interface AuthorizationModelIdOpts {
   authorizationModelId?: string;
 }
 
-export type ClientRequestOptsWithAuthZModelId = ClientRequestOpts & AuthorizationModelIdOpts;
+export type ClientRequestOptsWithStoreId = ClientRequestOpts & StoreIdOpts;
+export type ClientRequestOptsWithAuthZModelId = ClientRequestOpts & StoreIdOpts & AuthorizationModelIdOpts;
 
 export type PaginationOptions = { pageSize?: number, continuationToken?: string; };
 
@@ -147,20 +188,42 @@ export type ClientWriteAssertionsRequest = (CheckRequestTupleKey & Pick<Assertio
 export class OpenFgaClient extends BaseAPI {
   public api: OpenFgaApi;
   public authorizationModelId?: string;
+  public storeId?: string;
+  protected configuration: ClientConfiguration;
 
-  constructor(configuration: ClientConfiguration, protected axios?: AxiosInstance) {
+  constructor(configuration: ClientConfiguration | UserClientConfigurationParams, protected axios?: AxiosInstance) {
     super(configuration, axios);
 
-    this.api = new OpenFgaApi(this.configuration, axios);
-    this.authorizationModelId = configuration.authorizationModelId;
+    if (configuration instanceof ClientConfiguration) {
+      this.configuration = configuration;
+    } else {
+      this.configuration = new ClientConfiguration(configuration);
+    }
+    this.configuration.isValid();
 
-    this.getAuthorizationModelId(); // validates the authorization model id
+
+    this.api = new OpenFgaApi(this.configuration, axios);
+    this.storeId = configuration.storeId;
+    this.authorizationModelId = configuration.authorizationModelId;
+  }
+
+  protected getStoreId(options: StoreIdOpts = {}, isOptional: boolean = false): string | undefined {
+    const storeId = options?.storeId || this.storeId;
+    if (storeId && !isWellFormedUlidString(storeId)) {
+      throw new FgaValidationError("storeId", "storeId must be in ULID format");
+    }
+
+    if (!isOptional && !storeId) {
+      throw new FgaValidationError("storeId", "storeId is required");
+    }
+
+    return storeId;
   }
 
   protected getAuthorizationModelId(options: AuthorizationModelIdOpts = {}): string | undefined {
     const authorizationModelId = options?.authorizationModelId || this.authorizationModelId;
     if (authorizationModelId && !isWellFormedUlidString(authorizationModelId)) {
-      throw new FgaValidationError("authorizationModelId");
+      throw new FgaValidationError("authorizationModelId", "authorizationModelId must be in ULID format");
     }
 
     return authorizationModelId;
@@ -220,26 +283,26 @@ export class OpenFgaClient extends BaseAPI {
 
   /**
    * GetStore - Get information about the current store
-   * @param {ClientRequestOpts} [options]
+   * @param {ClientRequestOptsWithStoreId} [options]
    * @param {object} [options.headers] - Custom headers to send alongside the request
    * @param {object} [options.retryParams] - Override the retry parameters for this request
    * @param {number} [options.retryParams.maxRetry] - Override the max number of retries on each API request
    * @param {number} [options.retryParams.minWaitInMs] - Override the minimum wait before a retry is initiated
    */
-  async getStore(options: ClientRequestOpts = {}): PromiseResult<GetStoreResponse> {
-    return this.api.getStore(options);
+  async getStore(options: ClientRequestOptsWithStoreId = {}): PromiseResult<GetStoreResponse> {
+    return this.api.getStore(this.getStoreId(options)!, options);
   }
 
   /**
    * DeleteStore - Delete a store
-   * @param {ClientRequestOpts} [options]
+   * @param {ClientRequestOptsWithStoreId} [options]
    * @param {object} [options.headers] - Custom headers to send alongside the request
    * @param {object} [options.retryParams] - Override the retry parameters for this request
    * @param {number} [options.retryParams.maxRetry] - Override the max number of retries on each API request
    * @param {number} [options.retryParams.minWaitInMs] - Override the minimum wait before a retry is initiated
    */
-  async deleteStore(options: ClientRequestOpts = {}): PromiseResult<void> {
-    return this.api.deleteStore(options);
+  async deleteStore(options: ClientRequestOptsWithStoreId = {}): PromiseResult<void> {
+    return this.api.deleteStore(this.getStoreId(options)!, options);
   }
 
   /************************
@@ -256,21 +319,21 @@ export class OpenFgaClient extends BaseAPI {
    * @param {number} [options.retryParams.maxRetry] - Override the max number of retries on each API request
    * @param {number} [options.retryParams.minWaitInMs] - Override the minimum wait before a retry is initiated
    */
-  async readAuthorizationModels(options: ClientRequestOpts & PaginationOptions = {}): PromiseResult<ReadAuthorizationModelsResponse> {
-    return this.api.readAuthorizationModels(options.pageSize, options.continuationToken, options);
+  async readAuthorizationModels(options: ClientRequestOptsWithStoreId & PaginationOptions = {}): PromiseResult<ReadAuthorizationModelsResponse> {
+    return this.api.readAuthorizationModels(this.getStoreId(options)!, options.pageSize, options.continuationToken, options);
   }
 
   /**
    * WriteAuthorizationModel - Create a new version of the authorization model
    * @param {WriteAuthorizationModelRequest} body
-   * @param {ClientRequestOpts} [options]
+   * @param {ClientRequestOptsWithStoreId} [options]
    * @param {object} [options.headers] - Custom headers to send alongside the request
    * @param {object} [options.retryParams] - Override the retry parameters for this request
    * @param {number} [options.retryParams.maxRetry] - Override the max number of retries on each API request
    * @param {number} [options.retryParams.minWaitInMs] - Override the minimum wait before a retry is initiated
    */
-  async writeAuthorizationModel(body: WriteAuthorizationModelRequest, options: ClientRequestOpts = {}): PromiseResult<WriteAuthorizationModelResponse> {
-    return this.api.writeAuthorizationModel(body, options);
+  async writeAuthorizationModel(body: WriteAuthorizationModelRequest, options: ClientRequestOptsWithStoreId = {}): PromiseResult<WriteAuthorizationModelResponse> {
+    return this.api.writeAuthorizationModel(this.getStoreId(options)!, body, options);
   }
 
   /**
@@ -287,7 +350,7 @@ export class OpenFgaClient extends BaseAPI {
     if (!authorizationModelId) {
       throw new FgaRequiredParamError("ClientConfiguration", "authorizationModelId");
     }
-    return this.api.readAuthorizationModel(authorizationModelId, options);
+    return this.api.readAuthorizationModel(this.getStoreId(options)!, authorizationModelId, options);
   }
 
   /**
@@ -323,8 +386,8 @@ export class OpenFgaClient extends BaseAPI {
    * @param {number} [options.retryParams.maxRetry] - Override the max number of retries on each API request
    * @param {number} [options.retryParams.minWaitInMs] - Override the minimum wait before a retry is initiated
    */
-  async readChanges(body?: ClientReadChangesRequest, options: ClientRequestOpts & PaginationOptions = {}): PromiseResult<ReadChangesResponse> {
-    return this.api.readChanges(body?.type, options.pageSize, options.continuationToken, options);
+  async readChanges(body?: ClientReadChangesRequest, options: ClientRequestOptsWithStoreId & PaginationOptions = {}): PromiseResult<ReadChangesResponse> {
+    return this.api.readChanges(this.getStoreId(options)!, body?.type, options.pageSize, options.continuationToken, options);
   }
 
   /**
@@ -338,7 +401,7 @@ export class OpenFgaClient extends BaseAPI {
    * @param {number} [options.retryParams.maxRetry] - Override the max number of retries on each API request
    * @param {number} [options.retryParams.minWaitInMs] - Override the minimum wait before a retry is initiated
    */
-  async read(body: ClientReadRequest = {}, options: ClientRequestOpts & PaginationOptions = {}): PromiseResult<ReadResponse> {
+  async read(body: ClientReadRequest = {}, options: ClientRequestOptsWithStoreId & PaginationOptions = {}): PromiseResult<ReadResponse> {
     const readRequest: ReadRequest = {
       page_size: options.pageSize,
       continuation_token: options.continuationToken,
@@ -346,7 +409,7 @@ export class OpenFgaClient extends BaseAPI {
     if (body.user || body.object || body.relation) {
       readRequest.tuple_key = body;
     }
-    return this.api.read(readRequest, options);
+    return this.api.read(this.getStoreId(options)!, readRequest, options);
   }
 
   /**
@@ -382,7 +445,7 @@ export class OpenFgaClient extends BaseAPI {
       if (deletes?.length) {
         apiBody.deletes = { tuple_keys: deletes };
       }
-      await this.api.write(apiBody, options);
+      await this.api.write(this.getStoreId(options)!, apiBody, options);
       return {
         writes: writes?.map(tuple => ({
           tuple_key: tuple,
@@ -496,7 +559,7 @@ export class OpenFgaClient extends BaseAPI {
    * @param {number} [options.retryParams.minWaitInMs] - Override the minimum wait before a retry is initiated
    */
   async check(body: ClientCheckRequest, options: ClientRequestOptsWithAuthZModelId = {}): PromiseResult<CheckResponse> {
-    return this.api.check({
+    return this.api.check(this.getStoreId(options)!, {
       tuple_key: {
         user: body.user,
         relation: body.relation,
@@ -561,7 +624,7 @@ export class OpenFgaClient extends BaseAPI {
    * @param {number} [options.retryParams.minWaitInMs] - Override the minimum wait before a retry is initiated
    */
   async expand(body: ClientExpandRequest, options: ClientRequestOptsWithAuthZModelId = {}): PromiseResult<ExpandResponse> {
-    return this.api.expand({
+    return this.api.expand(this.getStoreId(options)!, {
       authorization_model_id: this.getAuthorizationModelId(options),
       tuple_key: body,
     }, options);
@@ -578,7 +641,7 @@ export class OpenFgaClient extends BaseAPI {
    * @param {number} [options.retryParams.minWaitInMs] - Override the minimum wait before a retry is initiated
    */
   async listObjects(body: ClientListObjectsRequest, options: ClientRequestOptsWithAuthZModelId = {}): PromiseResult<ListObjectsResponse> {
-    return this.api.listObjects({
+    return this.api.listObjects(this.getStoreId(options)!, {
       authorization_model_id: this.getAuthorizationModelId(options),
       user: body.user,
       relation: body.relation,
@@ -638,7 +701,7 @@ export class OpenFgaClient extends BaseAPI {
    * @param {number} [options.retryParams.minWaitInMs] - Override the minimum wait before a retry is initiated
    */
   async readAssertions(options: ClientRequestOptsWithAuthZModelId = {}): PromiseResult<ReadAssertionsResponse> {
-    return this.api.readAssertions(this.getAuthorizationModelId(options)!, options);
+    return this.api.readAssertions(this.getStoreId(options)!, this.getAuthorizationModelId(options)!, options);
   }
 
   /**
@@ -652,7 +715,7 @@ export class OpenFgaClient extends BaseAPI {
    * @param {number} [options.retryParams.minWaitInMs] - Override the minimum wait before a retry is initiated
    */
   async writeAssertions(assertions: ClientWriteAssertionsRequest, options: ClientRequestOptsWithAuthZModelId = {}): PromiseResult<void> {
-    return this.api.writeAssertions(this.getAuthorizationModelId(options)!, {
+    return this.api.writeAssertions(this.getStoreId(options)!, this.getAuthorizationModelId(options)!, {
       assertions: assertions.map(assertion => ({
         tuple_key: {
           user: assertion.user,

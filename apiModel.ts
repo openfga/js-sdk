@@ -1257,6 +1257,38 @@ export enum TypeName {
 /**
  * 
  * @export
+ * @enum {string}
+ */
+
+export enum UnprocessableContentErrorCode {
+    NoThrottledErrorCode = 'no_throttled_error_code',
+    ThrottledTimeoutError = 'throttled_timeout_error'
+}
+
+/**
+ * 
+ * @export
+ * @interface UnprocessableContentMessageResponse
+ */
+export interface UnprocessableContentMessageResponse {
+    /**
+     * 
+     * @type {UnprocessableContentErrorCode}
+     * @memberof UnprocessableContentMessageResponse
+     */
+    code?: UnprocessableContentErrorCode;
+    /**
+     * 
+     * @type {string}
+     * @memberof UnprocessableContentMessageResponse
+     */
+    message?: string;
+}
+
+
+/**
+ * 
+ * @export
  * @interface Users
  */
 export interface Users {

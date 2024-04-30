@@ -61,12 +61,4 @@ export class BaseAPI {
       });
     }
   }
-
-  public get storeId() {
-    return this.configuration.storeId;
-  }
-
-  public set storeId(storeId: string) {
-    this.configuration.storeId = storeId;
-  }
 }

@@ -38,7 +38,6 @@ export interface UserConfigurationParams {
    * @deprecated Replace usage of `apiScheme` + `apiHost` with `apiUrl`
    */
   apiHost?: string;
-  storeId?: string;
   credentials?: CredentialsConfig;
   baseOptions?: any;
   retryParams?: RetryParams;
@@ -101,13 +100,6 @@ export class Configuration {
    */
   apiHost: string;
   /**
-   * provide storeId
-   *
-   * @type {string}
-   * @memberof Configuration
-   */
-  storeId: string;
-  /**
    * base options for axios calls
    *
    * @type {any}
@@ -133,7 +125,6 @@ export class Configuration {
     this.apiScheme = params.apiScheme || this.apiScheme;
     this.apiHost = params.apiHost!;
     this.apiUrl = params.apiUrl!;
-    this.storeId = params.storeId!;
 
     const credentialParams = params.credentials;
 
@@ -193,13 +184,9 @@ export class Configuration {
     if (!isWellFormedUriString(this.getBasePath())) {
       throw new FgaValidationError(
         this.apiUrl ?
-          `Configuration.apiUrl (${this.apiUrl}) is not a valid URI (${this.getBasePath()})` : 
+          `Configuration.apiUrl (${this.apiUrl}) is not a valid URI (${this.getBasePath()})` :
           `Configuration.apiScheme (${this.apiScheme}) and Configuration.apiHost (${this.apiHost}) do not form a valid URI (${this.getBasePath()})`
       );
-    }
-
-    if (this.storeId && !isWellFormedUlidString(this.storeId)) {
-      throw new FgaValidationError("storeId");
     }
 
     if (this.retryParams?.maxRetry && this.retryParams.maxRetry > 15) {

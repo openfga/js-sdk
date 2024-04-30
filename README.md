@@ -97,7 +97,7 @@ const { OpenFgaClient } = require('@openfga/sdk'); // OR import { OpenFgaClient 
 const fgaClient = new OpenFgaClient({
   apiUrl: process.env.FGA_API_URL, // required
   storeId: process.env.FGA_STORE_ID, // not needed when calling `CreateStore` or `ListStores`
-  authorizationModelId: process.env.FGA_AUTHORIZATION_MODEL_ID, // Optional, can be overridden per request
+  authorizationModelId: process.env.FGA_MODEL_ID, // Optional, can be overridden per request
 });
 ```
 
@@ -109,7 +109,7 @@ const { OpenFgaClient } = require('@openfga/sdk'); // OR import { OpenFgaClient 
 const fgaClient = new OpenFgaClient({
   apiUrl: process.env.FGA_API_URL, // required
   storeId: process.env.FGA_STORE_ID, // not needed when calling `CreateStore` or `ListStores`
-  authorizationModelId: process.env.FGA_AUTHORIZATION_MODEL_ID, // Optional, can be overridden per request
+  authorizationModelId: process.env.FGA_MODEL_ID, // Optional, can be overridden per request
   credentials: {
     method: CredentialsMethod.ApiToken,
     config: {
@@ -127,7 +127,7 @@ const { OpenFgaClient } = require('@openfga/sdk'); // OR import { OpenFgaClient 
 const fgaClient = new OpenFgaClient({
   apiUrl: process.env.FGA_API_URL, // required
   storeId: process.env.FGA_STORE_ID, // not needed when calling `CreateStore` or `ListStores`
-  authorizationModelId: process.env.FGA_AUTHORIZATION_MODEL_ID, // Optional, can be overridden per request
+  authorizationModelId: process.env.FGA_MODEL_ID, // Optional, can be overridden per request
   credentials: {
     method: CredentialsMethod.ClientCredentials,
     config: {
@@ -622,9 +622,11 @@ const response = await fgaClient.writeAssertions([{
 
 ### Retries
 
-By default API requests are retried up to 15 times on 429 and 5xx errors and credential requests are retried to 3 times on 429 and 5xx errors. In both instances they will wait a minimum of 100 milliseconds between requests and up to a maximum of 
+If a network request fails with a 429 or 5xx error from the server, the SDK will automatically retry the request up to 15 times with a minimum wait time of 100 milliseconds between each attempt.
 
-In order to change the behavior for API requests, pass a `retryParams` object in the `OpenFgaClient` constructor with a `maxRetry` property to control the amount of retries and a `minWaitInMs` to control the minimum wait time between retried requests.
+To customize this behavior, create an object with `maxRetry` and `minWaitInMs` properties. `maxRetry` determines the maximum number of retries (up to 15), while `minWaitInMs` sets the minimum wait time between retries in milliseconds.
+
+Apply your custom retry values by setting to `retryParams` on the to the configuration object passed to the `OpenFgaClient` call.
 
 ```javascript
 const { OpenFgaClient } = require('@openfga/sdk'); // OR import { OpenFgaClient } from '@openfga/sdk';
@@ -632,7 +634,7 @@ const { OpenFgaClient } = require('@openfga/sdk'); // OR import { OpenFgaClient 
 const fgaClient = new OpenFgaClient({
   apiUrl: process.env.FGA_API_URL, // required
   storeId: process.env.FGA_STORE_ID, // not needed when calling `CreateStore` or `ListStores`
-  authorizationModelId: process.env.FGA_AUTHORIZATION_MODEL_ID, // Optional, can be overridden per request
+  authorizationModelId: process.env.FGA_MODEL_ID, // Optional, can be overridden per request
   retryParams: {
     maxRetry: 3, // retry up to 3 times on API requests
     minWaitInMs: 250 // wait a minimum of 250 milliseconds between requests
