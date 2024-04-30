@@ -32,9 +32,7 @@ import { AuthCredentialsConfig } from "../credentials";
 import {
   baseConfig,
   defaultConfiguration,
-  OPENFGA_API_URL,
   OPENFGA_API_TOKEN_ISSUER,
-  OPENFGA_STORE_ID
 } from "./helpers/default-config";
 import { getNocks } from "./helpers/nocks";
 
@@ -45,21 +43,8 @@ describe("OpenFGA SDK", function () {
   describe("initializing the sdk", () => {
     it("should not require storeId in configuration", () => {
       expect(
-        () => new OpenFgaApi({ ...baseConfig, storeId: undefined! })
+        () => new OpenFgaApi({ ...baseConfig, storeId: undefined } as any)
       ).not.toThrowError();
-    });
-
-    it("should throw an error if the storeId is not in a valid format", async () => {
-      expect(
-        () => new OpenFgaApi({ ...baseConfig, storeId: "abcsa"! })
-      ).toThrowError(FgaValidationError);
-    });
-
-    it("should require storeId when calling endpoints that require it", () => {
-      const fgaApi = new OpenFgaApi({ ...baseConfig, storeId: undefined!, credentials: undefined! });
-      expect(
-        fgaApi.readAuthorizationModels()
-      ).rejects.toThrow();
     });
 
     it("should require host in configuration", () => {
@@ -105,7 +90,6 @@ describe("OpenFGA SDK", function () {
       expect(
         () =>
           new OpenFgaApi({
-            storeId: baseConfig.storeId!,
             apiUrl: baseConfig.apiUrl,
           })
       ).not.toThrowError();
@@ -115,7 +99,6 @@ describe("OpenFGA SDK", function () {
       expect(
         () =>
           new OpenFgaApi({
-            storeId: baseConfig.storeId!,
             apiUrl: baseConfig.apiUrl,
             credentials: {
               method: CredentialsMethod.ApiToken as any
@@ -199,7 +182,7 @@ describe("OpenFGA SDK", function () {
       const fgaApi = new OpenFgaApi(baseConfig);
       expect(scope.isDone()).toBe(false);
 
-      await fgaApi.readAuthorizationModels();
+      await fgaApi.readAuthorizationModels(baseConfig.storeId!);
 
       expect(scope.isDone()).toBe(true);
 
@@ -213,7 +196,7 @@ describe("OpenFGA SDK", function () {
       const fgaApi = new OpenFgaApi(baseConfig);
       expect(scope.isDone()).toBe(false);
 
-      await fgaApi.readAuthorizationModels();
+      await fgaApi.readAuthorizationModels(baseConfig.storeId!);
 
       expect(scope.isDone()).toBe(true);
 
@@ -222,7 +205,7 @@ describe("OpenFGA SDK", function () {
       nocks.readAuthorizationModels(baseConfig.storeId!);
       expect(scope.isDone()).toBe(false);
 
-      await fgaApi.readAuthorizationModels();
+      await fgaApi.readAuthorizationModels(baseConfig.storeId!);
 
       expect(scope.isDone()).toBe(false);
 
@@ -238,7 +221,7 @@ describe("OpenFGA SDK", function () {
       expect(scope1.isDone()).toBe(false);
       expect(scope2.isDone()).toBe(false);
 
-      await fgaApi.readAuthorizationModels();
+      await fgaApi.readAuthorizationModels(baseConfig.storeId!);
 
       expect(scope1.isDone()).toBe(true);
       expect(scope2.isDone()).toBe(true);
@@ -251,12 +234,11 @@ describe("OpenFGA SDK", function () {
       nocks.readAuthorizationModels(baseConfig.storeId!);
 
       const fgaApi = new OpenFgaApi({
-        storeId: baseConfig.storeId!,
         apiUrl: baseConfig.apiUrl,
       });
       expect(scope.isDone()).toBe(false);
 
-      await fgaApi.readAuthorizationModels();
+      await fgaApi.readAuthorizationModels(baseConfig.storeId!);
 
       expect(scope.isDone()).toBe(false);
 
@@ -266,15 +248,6 @@ describe("OpenFGA SDK", function () {
     it("should allow passing in a configuration instance", async () => {
       const configuration = new Configuration(baseConfig);
       expect(() => new OpenFgaApi(configuration)).not.toThrowError();
-    });
-
-    it("should allow updating the storeId after initialization", async () => {
-      const fgaApi = new OpenFgaApi({
-        apiUrl: OPENFGA_API_URL
-      });
-      expect(fgaApi.storeId).toBe(undefined);
-      fgaApi.storeId = OPENFGA_STORE_ID;
-      expect(fgaApi.storeId).toBe(OPENFGA_STORE_ID);
     });
   });
 
@@ -322,13 +295,13 @@ describe("OpenFGA SDK", function () {
 
       it("should throw FgaApiValidationError", async () => {
         await expect(
-          fgaApi.check({ tuple_key: tupleKey })
+          fgaApi.check(baseConfig.storeId!, { tuple_key: tupleKey })
         ).rejects.toThrow(FgaApiValidationError);
       });
 
       it("FgaApiValidationError should have correct fields", async () => {
         try {
-          await fgaApi.check({ tuple_key: tupleKey });
+          await fgaApi.check(baseConfig.storeId!, { tuple_key: tupleKey });
         } catch (err) {
           expect(err).toBeInstanceOf(FgaApiValidationError);
           if (err instanceof FgaApiValidationError) {
@@ -377,7 +350,7 @@ describe("OpenFGA SDK", function () {
 
       it("should throw FgaApiRateLimitExceededError", async () => {
         await expect(
-          fgaApi.check({ tuple_key: tupleKey }, {})
+          fgaApi.check(baseConfig.storeId!, { tuple_key: tupleKey }, {})
         ).rejects.toThrow(FgaApiRateLimitExceededError);
       });
     });
@@ -420,7 +393,7 @@ describe("OpenFGA SDK", function () {
       });
 
       it("should return allowed", async () => {
-        const result = await fgaApi.check({ tuple_key: tupleKey, authorization_model_id: "01GXSA8YR785C4FYS3C0RTG7B1"}, {});
+        const result = await fgaApi.check(baseConfig.storeId!, { tuple_key: tupleKey, authorization_model_id: "01GXSA8YR785C4FYS3C0RTG7B1"}, {});
 
         expect(result.allowed).toBe(true);
       });
@@ -459,6 +432,7 @@ describe("OpenFGA SDK", function () {
 
       it("should return allowed", async () => {
         const result = await fgaApi.check(
+          baseConfig.storeId!,
           { tuple_key: tupleKey },
           { retryParams: GetDefaultRetryParams(2, 10) }
         );
@@ -497,7 +471,7 @@ describe("OpenFGA SDK", function () {
           });
 
         await expect(
-          fgaApi.check({ tuple_key: tupleKey }, { retryParams: { maxRetry: 0 }})
+          fgaApi.check(baseConfig.storeId!, { tuple_key: tupleKey }, { retryParams: { maxRetry: 0 }})
         ).rejects.toThrow(FgaApiInternalError);
       });
 
@@ -527,7 +501,7 @@ describe("OpenFGA SDK", function () {
             allowed: true,
           });
 
-        const response = await fgaApi.check({ tuple_key: tupleKey });
+        const response = await fgaApi.check(baseConfig.storeId!, { tuple_key: tupleKey });
         expect(response.allowed).toBe(true);
       });
     });
@@ -562,7 +536,7 @@ describe("OpenFGA SDK", function () {
 
       it("should throw FgaApiNotFoundError", async () => {
         await expect(
-          fgaApi.check({ tuple_key: tupleKey })
+          fgaApi.check(baseConfig.storeId!, { tuple_key: tupleKey })
         ).rejects.toThrow(FgaApiNotFoundError);
       });
     });
@@ -600,7 +574,7 @@ describe("OpenFGA SDK", function () {
       it("should throw FgaApiAuthenticationError", async () => {
         fgaApi = new OpenFgaApi({ ...baseConfig });
         await expect(
-          fgaApi.check({ tuple_key: tupleKey })
+          fgaApi.check(baseConfig.storeId!, { tuple_key: tupleKey })
         ).rejects.toThrow(FgaApiAuthenticationError);
       });
     });
@@ -622,7 +596,7 @@ describe("OpenFGA SDK", function () {
       const scope = nocks.check(baseConfig.storeId!, tupleKey);
       expect(scope.isDone()).toBe(false);
 
-      result = await fgaApi.check({ tuple_key: tupleKey });
+      result = await fgaApi.check(baseConfig.storeId!, { tuple_key: tupleKey });
       expect(scope.isDone()).toBe(true);
 
       nock.cleanAll();
@@ -666,7 +640,7 @@ describe("OpenFGA SDK", function () {
         const scope = nocks.check(baseConfig.storeId!, tuple);
 
         expect(scope.isDone()).toBe(false);
-        const data = await fgaApi.check({ tuple_key: tuple });
+        const data = await fgaApi.check(baseConfig.storeId!, { tuple_key: tuple });
 
         expect(scope.isDone()).toBe(true);
         expect(data).toMatchObject({ allowed: expect.any(Boolean) });
@@ -683,10 +657,12 @@ describe("OpenFGA SDK", function () {
         const scope = nocks.write(baseConfig.storeId!);
 
         expect(scope.isDone()).toBe(false);
-        const data = await fgaApi.write({
-          writes: { tuple_keys: [tuple] },
-          authorization_model_id: "01GXSA8YR785C4FYS3C0RTG7B1",
-        });
+        const data = await fgaApi.write(
+          baseConfig.storeId!,
+          {
+            writes: { tuple_keys: [tuple] },
+            authorization_model_id: "01GXSA8YR785C4FYS3C0RTG7B1",
+          });
 
         expect(scope.isDone()).toBe(true);
         expect(data).toMatchObject({});
@@ -703,10 +679,12 @@ describe("OpenFGA SDK", function () {
         const scope = nocks.delete(baseConfig.storeId!, tuple);
 
         expect(scope.isDone()).toBe(false);
-        const data = await fgaApi.write({
-          deletes: { tuple_keys: [tuple] },
-          authorization_model_id: "01GXSA8YR785C4FYS3C0RTG7B1",
-        });
+        const data = await fgaApi.write(
+          baseConfig.storeId!,
+          {
+            deletes: { tuple_keys: [tuple] },
+            authorization_model_id: "01GXSA8YR785C4FYS3C0RTG7B1",
+          });
 
         expect(scope.isDone()).toBe(true);
         expect(data).toMatchObject({});
@@ -723,7 +701,9 @@ describe("OpenFGA SDK", function () {
         const scope = nocks.expand(baseConfig.storeId!, tuple);
 
         expect(scope.isDone()).toBe(false);
-        const data = await fgaApi.expand({ tuple_key: tuple, authorization_model_id: "01GXSA8YR785C4FYS3C0RTG7B1"});
+        const data = await fgaApi.expand(
+          baseConfig.storeId!,
+          { tuple_key: tuple, authorization_model_id: "01GXSA8YR785C4FYS3C0RTG7B1"});
 
         expect(scope.isDone()).toBe(true);
         expect(data).toMatchObject({});
@@ -740,7 +720,7 @@ describe("OpenFGA SDK", function () {
         const scope = nocks.read(baseConfig.storeId!, tuple);
 
         expect(scope.isDone()).toBe(false);
-        const data = await fgaApi.read({ tuple_key: tuple });
+        const data = await fgaApi.read(baseConfig.storeId!, { tuple_key: tuple });
 
         expect(scope.isDone()).toBe(true);
         expect(data).toMatchObject({});
@@ -762,6 +742,7 @@ describe("OpenFGA SDK", function () {
 
         expect(scope.isDone()).toBe(false);
         const data = await fgaApi.writeAuthorizationModel(
+          baseConfig.storeId!,
           authorizationModel
         );
 
@@ -776,7 +757,7 @@ describe("OpenFGA SDK", function () {
         const scope = nocks.readSingleAuthzModel(baseConfig.storeId!, configId);
 
         expect(scope.isDone()).toBe(false);
-        const data = await fgaApi.readAuthorizationModel(configId);
+        const data = await fgaApi.readAuthorizationModel(baseConfig.storeId!, configId);
 
         expect(scope.isDone()).toBe(true);
         expect(data).toMatchObject({
@@ -794,7 +775,7 @@ describe("OpenFGA SDK", function () {
         const scope = nocks.readAuthorizationModels(baseConfig.storeId!, defaultConfiguration.getBasePath(), [{ id: "1", schema_version: "1.1", type_definitions: []}]);
 
         expect(scope.isDone()).toBe(false);
-        const data = await fgaApi.readAuthorizationModels();
+        const data = await fgaApi.readAuthorizationModels(baseConfig.storeId!);
 
         expect(scope.isDone()).toBe(true);
         expect(data).toMatchObject({
@@ -812,7 +793,7 @@ describe("OpenFGA SDK", function () {
         const scope = nocks.readChanges(baseConfig.storeId!, type, pageSize, continuationToken);
 
         expect(scope.isDone()).toBe(false);
-        const response = await fgaApi.readChanges(type, pageSize, continuationToken);
+        const response = await fgaApi.readChanges(baseConfig.storeId!, type, pageSize, continuationToken);
 
         expect(scope.isDone()).toBe(true);
         expect(response).toMatchObject({ changes: expect.arrayContaining([]) });
@@ -825,24 +806,26 @@ describe("OpenFGA SDK", function () {
         const scope = nocks.listObjects(baseConfig.storeId!, mockedResponse);
 
         expect(scope.isDone()).toBe(false);
-        const response = await fgaApi.listObjects({
-          authorization_model_id: "01GAHCE4YVKPQEKZQHT2R89MQV",
-          user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
-          relation: "can_read",
-          type: "document",
-          contextual_tuples: {
-            tuple_keys:
-              [{
-                user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
-                relation: "editor",
-                object: "folder:product"
-              }, {
-                user: "folder:product",
-                relation: "parent",
-                object: "document:roadmap"
-              }]
-          }
-        });
+        const response = await fgaApi.listObjects(
+          baseConfig.storeId!,
+          {
+            authorization_model_id: "01GAHCE4YVKPQEKZQHT2R89MQV",
+            user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
+            relation: "can_read",
+            type: "document",
+            contextual_tuples: {
+              tuple_keys:
+                [{
+                  user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
+                  relation: "editor",
+                  object: "folder:product"
+                }, {
+                  user: "folder:product",
+                  relation: "parent",
+                  object: "document:roadmap"
+                }]
+            }
+          });
 
         expect(scope.isDone()).toBe(true);
         expect(response.objects).toHaveLength(mockedResponse.objects.length);

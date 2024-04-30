@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.4.0
+
+### [0.4.0](https://github.com/openfga/js-sdk/compare/v0.3.5...v0.4.0) (2024-04-30)
+
+- feat: support the [ListUsers](https://github.com/openfga/rfcs/blob/main/20231214-listUsers-api.md) endpoint (#97)
+- feat!: support overriding storeId per request (#97)
+    `OpenFgaClient` now supports specifying the storeId in the options to override it per request
+
+    [BREAKING CHANGE] the underlying `OpenFgaApi` now expects `storeId` as the first param on relevant methods,
+    if you are still using this class, make sure you update your references when needed.
+
 ## v0.3.5
 
 ### [0.3.5](https://github.com/openfga/js-sdk/compare/v0.3.4...v0.3.5) (2024-03-19)

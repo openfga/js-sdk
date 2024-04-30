@@ -17,7 +17,7 @@ async function main () {
   const fgaClient = new OpenFgaClient({
     apiUrl: process.env.FGA_API_URL || "http://localhost:8080",
     storeId: process.env.FGA_STORE_ID, // not needed when calling `createStore` or `listStores`
-    authorizationModelId: process.env.FGA_AUTHORIZATION_MODEL_ID, // optional, recommended for production,
+    authorizationModelId: process.env.FGA_MODEL_ID, // optional, recommended for production,
     credentials
   });
   

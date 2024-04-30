@@ -472,6 +472,25 @@ export interface ExpandResponse {
     tree?: UsersetTree;
 }
 /**
+ * Object represents an OpenFGA Object.  An Object is composed of a type and identifier (e.g. \'document:1\')  See https://openfga.dev/docs/concepts#what-is-an-object
+ * @export
+ * @interface FgaObject
+ */
+export interface FgaObject {
+    /**
+     * 
+     * @type {string}
+     * @memberof FgaObject
+     */
+    type: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof FgaObject
+     */
+    id: string;
+}
+/**
  * 
  * @export
  * @interface GetStoreResponse
@@ -652,6 +671,68 @@ export interface ListStoresResponse {
 /**
  * 
  * @export
+ * @interface ListUsersRequest
+ */
+export interface ListUsersRequest {
+    /**
+     * 
+     * @type {string}
+     * @memberof ListUsersRequest
+     */
+    authorization_model_id?: string;
+    /**
+     * 
+     * @type {FgaObject}
+     * @memberof ListUsersRequest
+     */
+    object: FgaObject;
+    /**
+     * 
+     * @type {string}
+     * @memberof ListUsersRequest
+     */
+    relation: string;
+    /**
+     * 
+     * @type {Array<UserTypeFilter>}
+     * @memberof ListUsersRequest
+     */
+    user_filters: Array<UserTypeFilter>;
+    /**
+     * 
+     * @type {Array<TupleKey>}
+     * @memberof ListUsersRequest
+     */
+    contextual_tuples?: Array<TupleKey>;
+    /**
+     * Additional request context that will be used to evaluate any ABAC conditions encountered in the query evaluation.
+     * @type {object}
+     * @memberof ListUsersRequest
+     */
+    context?: object;
+}
+/**
+ * 
+ * @export
+ * @interface ListUsersResponse
+ */
+export interface ListUsersResponse {
+    /**
+     * 
+     * @type {Array<User>}
+     * @memberof ListUsersResponse
+     */
+    users: Array<User>;
+    /**
+     * 
+     * @type {Array<ObjectOrUserset>}
+     * @memberof ListUsersResponse
+     */
+    excluded_users: Array<ObjectOrUserset>;
+}
+/**
+ * 
+ * @export
  * @interface Metadata
  */
 export interface Metadata {
@@ -747,6 +828,25 @@ export enum NullValue {
     NullValue = 'NULL_VALUE'
 }
 
+/**
+ * 
+ * @export
+ * @interface ObjectOrUserset
+ */
+export interface ObjectOrUserset {
+    /**
+     * 
+     * @type {FgaObject}
+     * @memberof ObjectOrUserset
+     */
+    object?: FgaObject;
+    /**
+     * 
+     * @type {UsersetUser}
+     * @memberof ObjectOrUserset
+     */
+    userset?: UsersetUser;
+}
 /**
  * 
  * @export
@@ -1257,6 +1357,95 @@ export enum TypeName {
 /**
  * 
  * @export
+ * @interface TypedWildcard
+ */
+export interface TypedWildcard {
+    /**
+     * 
+     * @type {string}
+     * @memberof TypedWildcard
+     */
+    type: string;
+}
+/**
+ * 
+ * @export
+ * @enum {string}
+ */
+
+export enum UnprocessableContentErrorCode {
+    NoThrottledErrorCode = 'no_throttled_error_code',
+    ThrottledTimeoutError = 'throttled_timeout_error'
+}
+
+/**
+ * 
+ * @export
+ * @interface UnprocessableContentMessageResponse
+ */
+export interface UnprocessableContentMessageResponse {
+    /**
+     * 
+     * @type {UnprocessableContentErrorCode}
+     * @memberof UnprocessableContentMessageResponse
+     */
+    code?: UnprocessableContentErrorCode;
+    /**
+     * 
+     * @type {string}
+     * @memberof UnprocessableContentMessageResponse
+     */
+    message?: string;
+}
+
+
+/**
+ * 
+ * @export
+ * @interface User
+ */
+export interface User {
+    /**
+     * 
+     * @type {FgaObject}
+     * @memberof User
+     */
+    object?: FgaObject;
+    /**
+     * 
+     * @type {UsersetUser}
+     * @memberof User
+     */
+    userset?: UsersetUser;
+    /**
+     * 
+     * @type {TypedWildcard}
+     * @memberof User
+     */
+    wildcard?: TypedWildcard;
+}
+/**
+ * 
+ * @export
+ * @interface UserTypeFilter
+ */
+export interface UserTypeFilter {
+    /**
+     * 
+     * @type {string}
+     * @memberof UserTypeFilter
+     */
+    type: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UserTypeFilter
+     */
+    relation?: string;
+}
+/**
+ * 
+ * @export
  * @interface Users
  */
 export interface Users {
@@ -1360,6 +1549,31 @@ export interface UsersetTreeTupleToUserset {
      * @memberof UsersetTreeTupleToUserset
      */
     computed: Array<Computed>;
+}
+/**
+ * 
+ * @export
+ * @interface UsersetUser
+ */
+export interface UsersetUser {
+    /**
+     * 
+     * @type {string}
+     * @memberof UsersetUser
+     */
+    type: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UsersetUser
+     */
+    id: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UsersetUser
+     */
+    relation: string;
 }
 /**
  * 

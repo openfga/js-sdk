@@ -11,19 +11,21 @@
  */
 
 
-import { Configuration, UserConfigurationParams } from "../../configuration";
+import { ClientConfiguration, UserClientConfigurationParams } from "../../client";
 import { CredentialsMethod } from "../../credentials";
 
 export const OPENFGA_STORE_ID = "01H0H015178Y2V4CX10C2KGHF4";
-export const OPENFGA_API_URL = "http://api.fga.example";
+export const OPENFGA_MODEL_ID = "01HWBBMZTT7F1M97DVXQK4Z7J3";
+export const OPENFGA_API_URL = "https://api.fga.example";
 export const OPENFGA_API_TOKEN_ISSUER = "tokenissuer.fga.example";
 export const OPENFGA_API_AUDIENCE = "https://api.fga.example/";
 export const OPENFGA_CLIENT_ID = "01H0H3D8TD07EWAQHXY9BWJG3V";
 export const OPENFGA_CLIENT_SECRET = "this-is-very-secret";
 export const OPENFGA_API_TOKEN = "fga_abcdef";
 
-export const baseConfig: UserConfigurationParams = {
+export const baseConfig: UserClientConfigurationParams = {
   storeId: OPENFGA_STORE_ID,
+  authorizationModelId: OPENFGA_MODEL_ID,
   apiUrl: OPENFGA_API_URL,
   credentials: {
     method: CredentialsMethod.ClientCredentials,
@@ -36,4 +38,4 @@ export const baseConfig: UserConfigurationParams = {
   }
 };
 
-export const defaultConfiguration = new Configuration(baseConfig);
+export const defaultConfiguration = new ClientConfiguration(baseConfig);

@@ -22,6 +22,7 @@ import {
   GetStoreResponse,
   ListObjectsResponse,
   ListStoresResponse,
+  ListUsersResponse,
   ReadAssertionsResponse,
   ReadAuthorizationModelResponse,
   ReadAuthorizationModelsResponse,
@@ -214,6 +215,11 @@ export const getNocks = ((nock: typeof Nock) => ({
   listObjects: (storeId: string, responseBody: ListObjectsResponse, basePath = defaultConfiguration.getBasePath()) => {
     return nock(basePath)
       .post(`/stores/${storeId}/list-objects`)
+      .reply(200, responseBody);
+  },
+  listUsers: (storeId: string, responseBody: ListUsersResponse, basePath = defaultConfiguration.getBasePath()) => {
+    return nock(basePath)
+      .post(`/stores/${storeId}/list-users`)
       .reply(200, responseBody);
   },
   readAssertions: (storeId: string, modelId: string, assertions: ReadAssertionsResponse["assertions"] = [], basePath = defaultConfiguration.getBasePath()) => {
