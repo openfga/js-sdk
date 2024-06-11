@@ -3,7 +3,7 @@
 /**
  * JavaScript and Node.js SDK for OpenFGA
  *
- * API version: 0.1
+ * API version: 1.x
  * Website: https://openfga.dev
  * Documentation: https://openfga.dev/docs
  * Support: https://openfga.dev/community
@@ -693,7 +693,7 @@ export interface ListUsersRequest {
      */
     relation: string;
     /**
-     * 
+     * The type of results returned. Only accepts exactly one value.
      * @type {Array<UserTypeFilter>}
      * @memberof ListUsersRequest
      */
@@ -1355,7 +1355,7 @@ export enum TypeName {
 }
 
 /**
- * 
+ * Type bound public access.  Normally represented using the `<type>:*` syntax  `employee:*` represents every object of type `employee`, including those not currently present in the system  See https://openfga.dev/docs/concepts#what-is-type-bound-public-access
  * @export
  * @interface TypedWildcard
  */
@@ -1367,6 +1367,27 @@ export interface TypedWildcard {
      */
     type: string;
 }
+/**
+ * 
+ * @export
+ * @interface UnauthenticatedResponse
+ */
+export interface UnauthenticatedResponse {
+    /**
+     * 
+     * @type {ErrorCode}
+     * @memberof UnauthenticatedResponse
+     */
+    code?: ErrorCode;
+    /**
+     * 
+     * @type {string}
+     * @memberof UnauthenticatedResponse
+     */
+    message?: string;
+}
+
+
 /**
  * 
  * @export
@@ -1400,7 +1421,7 @@ export interface UnprocessableContentMessageResponse {
 
 
 /**
- * 
+ * User.  Represents any possible value for a user (subject or principal). Can be a: - Specific user object e.g.: \'user:will\', \'folder:marketing\', \'org:contoso\', ...) - Specific userset (e.g. \'group:engineering#member\') - Public-typed wildcard (e.g. \'user:*\')  See https://openfga.dev/docs/concepts#what-is-a-user
  * @export
  * @interface User
  */
@@ -1551,7 +1572,7 @@ export interface UsersetTreeTupleToUserset {
     computed: Array<Computed>;
 }
 /**
- * 
+ * Userset.  A set or group of users, represented in the `<type>:<id>#<relation>` format  `group:fga#member` represents all members of group FGA, not to be confused by `group:fga` which represents the group itself as a specific object.  See: https://openfga.dev/docs/modeling/building-blocks/usersets#what-is-a-userset
  * @export
  * @interface UsersetUser
  */
