@@ -723,12 +723,6 @@ export interface ListUsersResponse {
      * @memberof ListUsersResponse
      */
     users: Array<User>;
-    /**
-     * 
-     * @type {Array<ObjectOrUserset>}
-     * @memberof ListUsersResponse
-     */
-    excluded_users: Array<ObjectOrUserset>;
 }
 /**
  * 
@@ -828,25 +822,6 @@ export enum NullValue {
     NullValue = 'NULL_VALUE'
 }
 
-/**
- * 
- * @export
- * @interface ObjectOrUserset
- */
-export interface ObjectOrUserset {
-    /**
-     * 
-     * @type {FgaObject}
-     * @memberof ObjectOrUserset
-     */
-    object?: FgaObject;
-    /**
-     * 
-     * @type {UsersetUser}
-     * @memberof ObjectOrUserset
-     */
-    userset?: UsersetUser;
-}
 /**
  * 
  * @export
