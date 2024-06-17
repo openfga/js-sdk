@@ -780,19 +780,8 @@ describe("OpenFGA Client", () => {
             wildcard: {
               type: "employee"
             }
-          }],
-          excluded_users: [{
-            object: {
-              type: "user",
-              id: "76cebb86-6569-4440-b653-db3525a85831"
-            },
-          }, {
-            userset: {
-              type: "team",
-              id: "marketing",
-              relation: "member"
-            },
-          }] };
+          }]
+        };
         const scope = nocks.listUsers(baseConfig.storeId!, mockedResponse);
 
         expect(scope.isDone()).toBe(false);
@@ -842,20 +831,6 @@ describe("OpenFGA Client", () => {
           wildcard: {
             type: "employee"
           }
-        });
-        expect(response.excluded_users).toHaveLength(mockedResponse.excluded_users.length);
-        expect(response.excluded_users[0]).toMatchObject({
-          object: {
-            type: "user",
-            id: "76cebb86-6569-4440-b653-db3525a85831"
-          },
-        });
-        expect(response.excluded_users[1]).toMatchObject({
-          userset: {
-            type: "team",
-            id: "marketing",
-            relation: "member"
-          },
         });
         expect(response).toEqual(mockedResponse);
       });
