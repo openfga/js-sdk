@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.5.0
+
+### [0.5.0](https://github.com/openfga/js-sdk/compare/v0.4.0...v0.5.0) (2024-06-14)
+- chore!: remove excluded users from ListUsers response
+
+BREAKING CHANGE:
+
+This version removes the `excluded_users` property from the `ListUsersResponse` and `ClientListUsersResponse` interfaces,
+for more details see the [associated API change](https://github.com/openfga/api/pull/171).
+
 ## v0.4.0
 
 ### [0.4.0](https://github.com/openfga/js-sdk/compare/v0.3.5...v0.4.0) (2024-04-30)
