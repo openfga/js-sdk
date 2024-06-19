@@ -124,7 +124,7 @@ export const OpenFgaApiAxiosParamCreator = function (configuration: Configuratio
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    check: async (storeId: string, body: CheckRequest, options: any = {}): Promise<RequestArgs> => {
+    check: (storeId: string, body: CheckRequest, options: any = {}): RequestArgs => {
       // verify required parameter 'storeId' is not null or undefined
       assertParamExists("check", "storeId", storeId);
       // verify required parameter 'body' is not null or undefined
@@ -162,7 +162,7 @@ export const OpenFgaApiAxiosParamCreator = function (configuration: Configuratio
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    createStore: async (body: CreateStoreRequest, options: any = {}): Promise<RequestArgs> => {
+    createStore: (body: CreateStoreRequest, options: any = {}): RequestArgs => {
       // verify required parameter 'body' is not null or undefined
       assertParamExists("createStore", "body", body);
       const localVarPath = "/stores"
@@ -198,7 +198,7 @@ export const OpenFgaApiAxiosParamCreator = function (configuration: Configuratio
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    deleteStore: async (storeId: string, options: any = {}): Promise<RequestArgs> => {
+    deleteStore: (storeId: string, options: any = {}): RequestArgs => {
       // verify required parameter 'storeId' is not null or undefined
       assertParamExists("deleteStore", "storeId", storeId);
       const localVarPath = "/stores/{store_id}"
@@ -232,7 +232,7 @@ export const OpenFgaApiAxiosParamCreator = function (configuration: Configuratio
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    expand: async (storeId: string, body: ExpandRequest, options: any = {}): Promise<RequestArgs> => {
+    expand: (storeId: string, body: ExpandRequest, options: any = {}): RequestArgs => {
       // verify required parameter 'storeId' is not null or undefined
       assertParamExists("expand", "storeId", storeId);
       // verify required parameter 'body' is not null or undefined
@@ -270,7 +270,7 @@ export const OpenFgaApiAxiosParamCreator = function (configuration: Configuratio
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    getStore: async (storeId: string, options: any = {}): Promise<RequestArgs> => {
+    getStore: (storeId: string, options: any = {}): RequestArgs => {
       // verify required parameter 'storeId' is not null or undefined
       assertParamExists("getStore", "storeId", storeId);
       const localVarPath = "/stores/{store_id}"
@@ -304,7 +304,7 @@ export const OpenFgaApiAxiosParamCreator = function (configuration: Configuratio
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    listObjects: async (storeId: string, body: ListObjectsRequest, options: any = {}): Promise<RequestArgs> => {
+    listObjects: (storeId: string, body: ListObjectsRequest, options: any = {}): RequestArgs => {
       // verify required parameter 'storeId' is not null or undefined
       assertParamExists("listObjects", "storeId", storeId);
       // verify required parameter 'body' is not null or undefined
@@ -343,7 +343,7 @@ export const OpenFgaApiAxiosParamCreator = function (configuration: Configuratio
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    listStores: async (pageSize?: number, continuationToken?: string, options: any = {}): Promise<RequestArgs> => {
+    listStores: (pageSize?: number, continuationToken?: string, options: any = {}): RequestArgs => {
       const localVarPath = "/stores"
             ;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
@@ -383,7 +383,7 @@ export const OpenFgaApiAxiosParamCreator = function (configuration: Configuratio
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    listUsers: async (storeId: string, body: ListUsersRequest, options: any = {}): Promise<RequestArgs> => {
+    listUsers: (storeId: string, body: ListUsersRequest, options: any = {}): RequestArgs => {
       // verify required parameter 'storeId' is not null or undefined
       assertParamExists("listUsers", "storeId", storeId);
       // verify required parameter 'body' is not null or undefined
@@ -422,7 +422,7 @@ export const OpenFgaApiAxiosParamCreator = function (configuration: Configuratio
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    read: async (storeId: string, body: ReadRequest, options: any = {}): Promise<RequestArgs> => {
+    read: (storeId: string, body: ReadRequest, options: any = {}): RequestArgs => {
       // verify required parameter 'storeId' is not null or undefined
       assertParamExists("read", "storeId", storeId);
       // verify required parameter 'body' is not null or undefined
@@ -461,7 +461,7 @@ export const OpenFgaApiAxiosParamCreator = function (configuration: Configuratio
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    readAssertions: async (storeId: string, authorizationModelId: string, options: any = {}): Promise<RequestArgs> => {
+    readAssertions: (storeId: string, authorizationModelId: string, options: any = {}): RequestArgs => {
       // verify required parameter 'storeId' is not null or undefined
       assertParamExists("readAssertions", "storeId", storeId);
       // verify required parameter 'authorizationModelId' is not null or undefined
@@ -497,7 +497,7 @@ export const OpenFgaApiAxiosParamCreator = function (configuration: Configuratio
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    readAuthorizationModel: async (storeId: string, id: string, options: any = {}): Promise<RequestArgs> => {
+    readAuthorizationModel: (storeId: string, id: string, options: any = {}): RequestArgs => {
       // verify required parameter 'storeId' is not null or undefined
       assertParamExists("readAuthorizationModel", "storeId", storeId);
       // verify required parameter 'id' is not null or undefined
@@ -534,7 +534,7 @@ export const OpenFgaApiAxiosParamCreator = function (configuration: Configuratio
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    readAuthorizationModels: async (storeId: string, pageSize?: number, continuationToken?: string, options: any = {}): Promise<RequestArgs> => {
+    readAuthorizationModels: (storeId: string, pageSize?: number, continuationToken?: string, options: any = {}): RequestArgs => {
       // verify required parameter 'storeId' is not null or undefined
       assertParamExists("readAuthorizationModels", "storeId", storeId);
       const localVarPath = "/stores/{store_id}/authorization-models"
@@ -578,7 +578,7 @@ export const OpenFgaApiAxiosParamCreator = function (configuration: Configuratio
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    readChanges: async (storeId: string, type?: string, pageSize?: number, continuationToken?: string, options: any = {}): Promise<RequestArgs> => {
+    readChanges: (storeId: string, type?: string, pageSize?: number, continuationToken?: string, options: any = {}): RequestArgs => {
       // verify required parameter 'storeId' is not null or undefined
       assertParamExists("readChanges", "storeId", storeId);
       const localVarPath = "/stores/{store_id}/changes"
@@ -624,7 +624,7 @@ export const OpenFgaApiAxiosParamCreator = function (configuration: Configuratio
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    write: async (storeId: string, body: WriteRequest, options: any = {}): Promise<RequestArgs> => {
+    write: (storeId: string, body: WriteRequest, options: any = {}): RequestArgs => {
       // verify required parameter 'storeId' is not null or undefined
       assertParamExists("write", "storeId", storeId);
       // verify required parameter 'body' is not null or undefined
@@ -664,7 +664,7 @@ export const OpenFgaApiAxiosParamCreator = function (configuration: Configuratio
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    writeAssertions: async (storeId: string, authorizationModelId: string, body: WriteAssertionsRequest, options: any = {}): Promise<RequestArgs> => {
+    writeAssertions: (storeId: string, authorizationModelId: string, body: WriteAssertionsRequest, options: any = {}): RequestArgs => {
       // verify required parameter 'storeId' is not null or undefined
       assertParamExists("writeAssertions", "storeId", storeId);
       // verify required parameter 'authorizationModelId' is not null or undefined
@@ -705,7 +705,7 @@ export const OpenFgaApiAxiosParamCreator = function (configuration: Configuratio
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    writeAuthorizationModel: async (storeId: string, body: WriteAuthorizationModelRequest, options: any = {}): Promise<RequestArgs> => {
+    writeAuthorizationModel: (storeId: string, body: WriteAuthorizationModelRequest, options: any = {}): RequestArgs => {
       // verify required parameter 'storeId' is not null or undefined
       assertParamExists("writeAuthorizationModel", "storeId", storeId);
       // verify required parameter 'body' is not null or undefined
@@ -755,7 +755,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @throws { FgaError }
          */
     async check(storeId: string, body: CheckRequest, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<CheckResponse>> {
-      const localVarAxiosArgs = await localVarAxiosParamCreator.check(storeId, body, options);
+      const localVarAxiosArgs = localVarAxiosParamCreator.check(storeId, body, options);
       return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials);
     },
     /**
@@ -766,7 +766,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @throws { FgaError }
          */
     async createStore(body: CreateStoreRequest, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<CreateStoreResponse>> {
-      const localVarAxiosArgs = await localVarAxiosParamCreator.createStore(body, options);
+      const localVarAxiosArgs = localVarAxiosParamCreator.createStore(body, options);
       return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials);
     },
     /**
@@ -777,7 +777,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @throws { FgaError }
          */
     async deleteStore(storeId: string, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<void>> {
-      const localVarAxiosArgs = await localVarAxiosParamCreator.deleteStore(storeId, options);
+      const localVarAxiosArgs = localVarAxiosParamCreator.deleteStore(storeId, options);
       return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials);
     },
     /**
@@ -789,7 +789,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @throws { FgaError }
          */
     async expand(storeId: string, body: ExpandRequest, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<ExpandResponse>> {
-      const localVarAxiosArgs = await localVarAxiosParamCreator.expand(storeId, body, options);
+      const localVarAxiosArgs = localVarAxiosParamCreator.expand(storeId, body, options);
       return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials);
     },
     /**
@@ -800,7 +800,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @throws { FgaError }
          */
     async getStore(storeId: string, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<GetStoreResponse>> {
-      const localVarAxiosArgs = await localVarAxiosParamCreator.getStore(storeId, options);
+      const localVarAxiosArgs = localVarAxiosParamCreator.getStore(storeId, options);
       return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials);
     },
     /**
@@ -812,7 +812,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @throws { FgaError }
          */
     async listObjects(storeId: string, body: ListObjectsRequest, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<ListObjectsResponse>> {
-      const localVarAxiosArgs = await localVarAxiosParamCreator.listObjects(storeId, body, options);
+      const localVarAxiosArgs = localVarAxiosParamCreator.listObjects(storeId, body, options);
       return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials);
     },
     /**
@@ -824,7 +824,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @throws { FgaError }
          */
     async listStores(pageSize?: number, continuationToken?: string, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<ListStoresResponse>> {
-      const localVarAxiosArgs = await localVarAxiosParamCreator.listStores(pageSize, continuationToken, options);
+      const localVarAxiosArgs = localVarAxiosParamCreator.listStores(pageSize, continuationToken, options);
       return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials);
     },
     /**
@@ -836,7 +836,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @throws { FgaError }
          */
     async listUsers(storeId: string, body: ListUsersRequest, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<ListUsersResponse>> {
-      const localVarAxiosArgs = await localVarAxiosParamCreator.listUsers(storeId, body, options);
+      const localVarAxiosArgs = localVarAxiosParamCreator.listUsers(storeId, body, options);
       return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials);
     },
     /**
@@ -848,7 +848,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @throws { FgaError }
          */
     async read(storeId: string, body: ReadRequest, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<ReadResponse>> {
-      const localVarAxiosArgs = await localVarAxiosParamCreator.read(storeId, body, options);
+      const localVarAxiosArgs = localVarAxiosParamCreator.read(storeId, body, options);
       return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials);
     },
     /**
@@ -860,7 +860,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @throws { FgaError }
          */
     async readAssertions(storeId: string, authorizationModelId: string, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<ReadAssertionsResponse>> {
-      const localVarAxiosArgs = await localVarAxiosParamCreator.readAssertions(storeId, authorizationModelId, options);
+      const localVarAxiosArgs = localVarAxiosParamCreator.readAssertions(storeId, authorizationModelId, options);
       return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials);
     },
     /**
@@ -872,7 +872,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @throws { FgaError }
          */
     async readAuthorizationModel(storeId: string, id: string, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<ReadAuthorizationModelResponse>> {
-      const localVarAxiosArgs = await localVarAxiosParamCreator.readAuthorizationModel(storeId, id, options);
+      const localVarAxiosArgs = localVarAxiosParamCreator.readAuthorizationModel(storeId, id, options);
       return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials);
     },
     /**
@@ -885,7 +885,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @throws { FgaError }
          */
     async readAuthorizationModels(storeId: string, pageSize?: number, continuationToken?: string, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<ReadAuthorizationModelsResponse>> {
-      const localVarAxiosArgs = await localVarAxiosParamCreator.readAuthorizationModels(storeId, pageSize, continuationToken, options);
+      const localVarAxiosArgs = localVarAxiosParamCreator.readAuthorizationModels(storeId, pageSize, continuationToken, options);
       return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials);
     },
     /**
@@ -899,7 +899,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @throws { FgaError }
          */
     async readChanges(storeId: string, type?: string, pageSize?: number, continuationToken?: string, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<ReadChangesResponse>> {
-      const localVarAxiosArgs = await localVarAxiosParamCreator.readChanges(storeId, type, pageSize, continuationToken, options);
+      const localVarAxiosArgs = localVarAxiosParamCreator.readChanges(storeId, type, pageSize, continuationToken, options);
       return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials);
     },
     /**
@@ -911,7 +911,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @throws { FgaError }
          */
     async write(storeId: string, body: WriteRequest, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<object>> {
-      const localVarAxiosArgs = await localVarAxiosParamCreator.write(storeId, body, options);
+      const localVarAxiosArgs = localVarAxiosParamCreator.write(storeId, body, options);
       return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials);
     },
     /**
@@ -924,7 +924,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @throws { FgaError }
          */
     async writeAssertions(storeId: string, authorizationModelId: string, body: WriteAssertionsRequest, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<void>> {
-      const localVarAxiosArgs = await localVarAxiosParamCreator.writeAssertions(storeId, authorizationModelId, body, options);
+      const localVarAxiosArgs = localVarAxiosParamCreator.writeAssertions(storeId, authorizationModelId, body, options);
       return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials);
     },
     /**
@@ -936,7 +936,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @throws { FgaError }
          */
     async writeAuthorizationModel(storeId: string, body: WriteAuthorizationModelRequest, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<WriteAuthorizationModelResponse>> {
-      const localVarAxiosArgs = await localVarAxiosParamCreator.writeAuthorizationModel(storeId, body, options);
+      const localVarAxiosArgs = localVarAxiosParamCreator.writeAuthorizationModel(storeId, body, options);
       return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials);
     },
   };
