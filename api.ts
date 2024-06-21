@@ -22,7 +22,8 @@ import {
   createRequestFunction,
   RequestArgs,
   CallResult,
-  PromiseResult
+  PromiseResult,
+  attributeNames
 } from "./common";
 import { Configuration } from "./configuration";
 import { Credentials } from "./credentials";
@@ -756,7 +757,11 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          */
     async check(storeId: string, body: CheckRequest, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<CheckResponse>> {
       const localVarAxiosArgs = await localVarAxiosParamCreator.check(storeId, body, options);
-      return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials);
+      return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials, {
+        [attributeNames.requestStoreId]: storeId, 
+        [attributeNames.requestMethod]: "check",
+        [attributeNames.user]: body.tuple_key.user
+      });
     },
     /**
          * Create a unique OpenFGA store which will be used to store authorization models and relationship tuples.
@@ -767,7 +772,9 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          */
     async createStore(body: CreateStoreRequest, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<CreateStoreResponse>> {
       const localVarAxiosArgs = await localVarAxiosParamCreator.createStore(body, options);
-      return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials);
+      return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials, { 
+        [attributeNames.requestMethod]: "createStore"
+      });
     },
     /**
          * Delete an OpenFGA store. This does not delete the data associated with the store, like tuples or authorization models.
@@ -790,7 +797,10 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          */
     async expand(storeId: string, body: ExpandRequest, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<ExpandResponse>> {
       const localVarAxiosArgs = await localVarAxiosParamCreator.expand(storeId, body, options);
-      return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials);
+      return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials, {
+        [attributeNames.requestStoreId]: storeId,
+        [attributeNames.requestMethod]: "expand"
+      });
     },
     /**
          * Returns an OpenFGA store by its identifier
@@ -801,7 +811,10 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          */
     async getStore(storeId: string, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<GetStoreResponse>> {
       const localVarAxiosArgs = await localVarAxiosParamCreator.getStore(storeId, options);
-      return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials);
+      return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials, {
+        [attributeNames.requestStoreId]: storeId, 
+        [attributeNames.requestMethod]: "getStore"
+      });
     },
     /**
          * The ListObjects API returns a list of all the objects of the given type that the user has a relation with.  To arrive at a result, the API uses: an authorization model, explicit tuples written through the Write API, contextual tuples present in the request, and implicit tuples that exist by virtue of applying set theory (such as `document:2021-budget#viewer@document:2021-budget#viewer`; the set of users who are viewers of `document:2021-budget` are the set of users who are the viewers of `document:2021-budget`). An `authorization_model_id` may be specified in the body. If it is not specified, the latest authorization model ID will be used. It is strongly recommended to specify authorization model id for better performance. You may also specify `contextual_tuples` that will be treated as regular tuples. Each of these tuples may have an associated `condition`. You may also provide a `context` object that will be used to evaluate the conditioned tuples in the system. It is strongly recommended to provide a value for all the input parameters of all the conditions, to ensure that all tuples be evaluated correctly. The response will contain the related objects in an array in the \"objects\" field of the response and they will be strings in the object format `<type>:<id>` (e.g. \"document:roadmap\"). The number of objects in the response array will be limited by the execution timeout specified in the flag OPENFGA_LIST_OBJECTS_DEADLINE and by the upper bound specified in the flag OPENFGA_LIST_OBJECTS_MAX_RESULTS, whichever is hit first. The objects given will not be sorted, and therefore two identical calls can give a given different set of objects.
@@ -813,7 +826,11 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          */
     async listObjects(storeId: string, body: ListObjectsRequest, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<ListObjectsResponse>> {
       const localVarAxiosArgs = await localVarAxiosParamCreator.listObjects(storeId, body, options);
-      return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials);
+      return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials, {
+        [attributeNames.requestStoreId]: storeId, 
+        [attributeNames.requestMethod]: "listObjects",
+        [attributeNames.user]: body.user
+      });
     },
     /**
          * Returns a paginated list of OpenFGA stores and a continuation token to get additional stores. The continuation token will be empty if there are no more stores. 
@@ -825,7 +842,9 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          */
     async listStores(pageSize?: number, continuationToken?: string, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<ListStoresResponse>> {
       const localVarAxiosArgs = await localVarAxiosParamCreator.listStores(pageSize, continuationToken, options);
-      return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials);
+      return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials, { 
+        [attributeNames.requestMethod]: "listStores"
+      });
     },
     /**
          * The ListUsers API returns a list of all the users of a specific type that have a relation to a given object.  This API is available in an experimental capacity and can be enabled with the `--experimentals enable-list-users` flag.  To arrive at a result, the API uses: an authorization model, explicit tuples written through the Write API, contextual tuples present in the request, and implicit tuples that exist by virtue of applying set theory (such as `document:2021-budget#viewer@document:2021-budget#viewer`; the set of users who are viewers of `document:2021-budget` are the set of users who are the viewers of `document:2021-budget`). An `authorization_model_id` may be specified in the body. If it is not specified, the latest authorization model ID will be used. It is strongly recommended to specify authorization model id for better performance. You may also specify `contextual_tuples` that will be treated as regular tuples. Each of these tuples may have an associated `condition`. You may also provide a `context` object that will be used to evaluate the conditioned tuples in the system. It is strongly recommended to provide a value for all the input parameters of all the conditions, to ensure that all tuples be evaluated correctly. The response will contain the related users in an array in the \"users\" field of the response. These results may include specific objects, usersets  or type-bound public access. Each of these types of results is encoded in its own type and not represented as a string.In cases where a type-bound public acces result is returned (e.g. `user:*`), it cannot be inferred that all subjects of that type have a relation to the object; it is possible that negations exist and checks should still be queried on individual subjects to ensure access to that document.The number of users in the response array will be limited by the execution timeout specified in the flag OPENFGA_LIST_USERS_DEADLINE and by the upper bound specified in the flag OPENFGA_LIST_USERS_MAX_RESULTS, whichever is hit first. The returned users will not be sorted, and therefore two identical calls may yield different sets of users.
@@ -837,7 +856,10 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          */
     async listUsers(storeId: string, body: ListUsersRequest, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<ListUsersResponse>> {
       const localVarAxiosArgs = await localVarAxiosParamCreator.listUsers(storeId, body, options);
-      return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials);
+      return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials, {
+        [attributeNames.requestStoreId]: storeId, 
+        [attributeNames.requestMethod]: "listUsers"
+      });
     },
     /**
          * The Read API will return the tuples for a certain store that match a query filter specified in the body of the request.  The API doesn\'t guarantee order by any field.  It is different from the `/stores/{store_id}/expand` API in that it only returns relationship tuples that are stored in the system and satisfy the query.  In the body: 1. `tuple_key` is optional. If not specified, it will return all tuples in the store. 2. `tuple_key.object` is mandatory if `tuple_key` is specified. It can be a full object (e.g., `type:object_id`) or type only (e.g., `type:`). 3. `tuple_key.user` is mandatory if tuple_key is specified in the case the `tuple_key.object` is a type only. ## Examples ### Query for all objects in a type definition To query for all objects that `user:bob` has `reader` relationship in the `document` type definition, call read API with body of ```json {  \"tuple_key\": {      \"user\": \"user:bob\",      \"relation\": \"reader\",      \"object\": \"document:\"   } } ``` The API will return tuples and a continuation token, something like ```json {   \"tuples\": [     {       \"key\": {         \"user\": \"user:bob\",         \"relation\": \"reader\",         \"object\": \"document:2021-budget\"       },       \"timestamp\": \"2021-10-06T15:32:11.128Z\"     }   ],   \"continuation_token\": \"eyJwayI6IkxBVEVTVF9OU0NPTkZJR19hdXRoMHN0b3JlIiwic2siOiIxem1qbXF3MWZLZExTcUoyN01MdTdqTjh0cWgifQ==\" } ``` This means that `user:bob` has a `reader` relationship with 1 document `document:2021-budget`. Note that this API, unlike the List Objects API, does not evaluate the tuples in the store. The continuation token will be empty if there are no more tuples to query. ### Query for all stored relationship tuples that have a particular relation and object To query for all users that have `reader` relationship with `document:2021-budget`, call read API with body of  ```json {   \"tuple_key\": {      \"object\": \"document:2021-budget\",      \"relation\": \"reader\"    } } ``` The API will return something like  ```json {   \"tuples\": [     {       \"key\": {         \"user\": \"user:bob\",         \"relation\": \"reader\",         \"object\": \"document:2021-budget\"       },       \"timestamp\": \"2021-10-06T15:32:11.128Z\"     }   ],   \"continuation_token\": \"eyJwayI6IkxBVEVTVF9OU0NPTkZJR19hdXRoMHN0b3JlIiwic2siOiIxem1qbXF3MWZLZExTcUoyN01MdTdqTjh0cWgifQ==\" } ``` This means that `document:2021-budget` has 1 `reader` (`user:bob`).  Note that, even if the model said that all `writers` are also `readers`, the API will not return writers such as `user:anne` because it only returns tuples and does not evaluate them. ### Query for all users with all relationships for a particular document To query for all users that have any relationship with `document:2021-budget`, call read API with body of  ```json {   \"tuple_key\": {       \"object\": \"document:2021-budget\"    } } ``` The API will return something like  ```json {   \"tuples\": [     {       \"key\": {         \"user\": \"user:anne\",         \"relation\": \"writer\",         \"object\": \"document:2021-budget\"       },       \"timestamp\": \"2021-10-05T13:42:12.356Z\"     },     {       \"key\": {         \"user\": \"user:bob\",         \"relation\": \"reader\",         \"object\": \"document:2021-budget\"       },       \"timestamp\": \"2021-10-06T15:32:11.128Z\"     }   ],   \"continuation_token\": \"eyJwayI6IkxBVEVTVF9OU0NPTkZJR19hdXRoMHN0b3JlIiwic2siOiIxem1qbXF3MWZLZExTcUoyN01MdTdqTjh0cWgifQ==\" } ``` This means that `document:2021-budget` has 1 `reader` (`user:bob`) and 1 `writer` (`user:anne`). 
@@ -849,7 +871,10 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          */
     async read(storeId: string, body: ReadRequest, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<ReadResponse>> {
       const localVarAxiosArgs = await localVarAxiosParamCreator.read(storeId, body, options);
-      return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials);
+      return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials, {
+        [attributeNames.requestStoreId]: storeId, 
+        [attributeNames.requestMethod]: "read"
+      });
     },
     /**
          * The ReadAssertions API will return, for a given authorization model id, all the assertions stored for it. An assertion is an object that contains a tuple key, and the expectation of whether a call to the Check API of that tuple key will return true or false. 
@@ -861,7 +886,10 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          */
     async readAssertions(storeId: string, authorizationModelId: string, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<ReadAssertionsResponse>> {
       const localVarAxiosArgs = await localVarAxiosParamCreator.readAssertions(storeId, authorizationModelId, options);
-      return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials);
+      return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials, {
+        [attributeNames.requestStoreId]: storeId, 
+        [attributeNames.requestMethod]: "readAssertions"
+      });
     },
     /**
          * The ReadAuthorizationModel API returns an authorization model by its identifier. The response will return the authorization model for the particular version.  ## Example To retrieve the authorization model with ID `01G5JAVJ41T49E9TT3SKVS7X1J` for the store, call the GET authorization-models by ID API with `01G5JAVJ41T49E9TT3SKVS7X1J` as the `id` path parameter.  The API will return: ```json {   \"authorization_model\":{     \"id\":\"01G5JAVJ41T49E9TT3SKVS7X1J\",     \"type_definitions\":[       {         \"type\":\"user\"       },       {         \"type\":\"document\",         \"relations\":{           \"reader\":{             \"union\":{               \"child\":[                 {                   \"this\":{}                 },                 {                   \"computedUserset\":{                     \"object\":\"\",                     \"relation\":\"writer\"                   }                 }               ]             }           },           \"writer\":{             \"this\":{}           }         }       }     ]   } } ``` In the above example, there are 2 types (`user` and `document`). The `document` type has 2 relations (`writer` and `reader`).
@@ -873,7 +901,10 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          */
     async readAuthorizationModel(storeId: string, id: string, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<ReadAuthorizationModelResponse>> {
       const localVarAxiosArgs = await localVarAxiosParamCreator.readAuthorizationModel(storeId, id, options);
-      return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials);
+      return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials, {
+        [attributeNames.requestStoreId]: storeId, 
+        [attributeNames.requestMethod]: "readAuthorizationModel"
+      });
     },
     /**
          * The ReadAuthorizationModels API will return all the authorization models for a certain store. OpenFGA\'s response will contain an array of all authorization models, sorted in descending order of creation.  ## Example Assume that a store\'s authorization model has been configured twice. To get all the authorization models that have been created in this store, call GET authorization-models. The API will return a response that looks like: ```json {   \"authorization_models\": [     {       \"id\": \"01G50QVV17PECNVAHX1GG4Y5NC\",       \"type_definitions\": [...]     },     {       \"id\": \"01G4ZW8F4A07AKQ8RHSVG9RW04\",       \"type_definitions\": [...]     },   ],   \"continuation_token\": \"eyJwayI6IkxBVEVTVF9OU0NPTkZJR19hdXRoMHN0b3JlIiwic2siOiIxem1qbXF3MWZLZExTcUoyN01MdTdqTjh0cWgifQ==\" } ``` If there are no more authorization models available, the `continuation_token` field will be empty ```json {   \"authorization_models\": [     {       \"id\": \"01G50QVV17PECNVAHX1GG4Y5NC\",       \"type_definitions\": [...]     },     {       \"id\": \"01G4ZW8F4A07AKQ8RHSVG9RW04\",       \"type_definitions\": [...]     },   ],   \"continuation_token\": \"\" } ``` 
@@ -886,7 +917,10 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          */
     async readAuthorizationModels(storeId: string, pageSize?: number, continuationToken?: string, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<ReadAuthorizationModelsResponse>> {
       const localVarAxiosArgs = await localVarAxiosParamCreator.readAuthorizationModels(storeId, pageSize, continuationToken, options);
-      return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials);
+      return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials, {
+        [attributeNames.requestStoreId]: storeId, 
+        [attributeNames.requestMethod]: "readAuthorizationModels"
+      });
     },
     /**
          * The ReadChanges API will return a paginated list of tuple changes (additions and deletions) that occurred in a given store, sorted by ascending time. The response will include a continuation token that is used to get the next set of changes. If there are no changes after the provided continuation token, the same token will be returned in order for it to be used when new changes are recorded. If the store never had any tuples added or removed, this token will be empty. You can use the `type` parameter to only get the list of tuple changes that affect objects of that type. When reading a write tuple change, if it was conditioned, the condition will be returned. When reading a delete tuple change, the condition will NOT be returned regardless of whether it was originally conditioned or not. 
@@ -900,7 +934,10 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          */
     async readChanges(storeId: string, type?: string, pageSize?: number, continuationToken?: string, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<ReadChangesResponse>> {
       const localVarAxiosArgs = await localVarAxiosParamCreator.readChanges(storeId, type, pageSize, continuationToken, options);
-      return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials);
+      return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials, {
+        [attributeNames.requestStoreId]: storeId, 
+        [attributeNames.requestMethod]: "readChanges"
+      });
     },
     /**
          * The Write API will transactionally update the tuples for a certain store. Tuples and type definitions allow OpenFGA to determine whether a relationship exists between an object and an user. In the body, `writes` adds new tuples and `deletes` removes existing tuples. When deleting a tuple, any `condition` specified with it is ignored. The API is not idempotent: if, later on, you try to add the same tuple key (even if the `condition` is different), or if you try to delete a non-existing tuple, it will throw an error. The API will not allow you to write tuples such as `document:2021-budget#viewer@document:2021-budget#viewer`, because they are implicit. An `authorization_model_id` may be specified in the body. If it is, it will be used to assert that each written tuple (not deleted) is valid for the model specified. If it is not specified, the latest authorization model ID will be used. ## Example ### Adding relationships To add `user:anne` as a `writer` for `document:2021-budget`, call write API with the following  ```json {   \"writes\": {     \"tuple_keys\": [       {         \"user\": \"user:anne\",         \"relation\": \"writer\",         \"object\": \"document:2021-budget\"       }     ]   },   \"authorization_model_id\": \"01G50QVV17PECNVAHX1GG4Y5NC\" } ``` ### Removing relationships To remove `user:bob` as a `reader` for `document:2021-budget`, call write API with the following  ```json {   \"deletes\": {     \"tuple_keys\": [       {         \"user\": \"user:bob\",         \"relation\": \"reader\",         \"object\": \"document:2021-budget\"       }     ]   } } ``` 
@@ -912,7 +949,10 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          */
     async write(storeId: string, body: WriteRequest, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<object>> {
       const localVarAxiosArgs = await localVarAxiosParamCreator.write(storeId, body, options);
-      return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials);
+      return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials, {
+        [attributeNames.requestStoreId]: storeId, 
+        [attributeNames.requestMethod]: "write"
+      });
     },
     /**
          * The WriteAssertions API will upsert new assertions for an authorization model id, or overwrite the existing ones. An assertion is an object that contains a tuple key, and the expectation of whether a call to the Check API of that tuple key will return true or false. 
@@ -925,7 +965,10 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          */
     async writeAssertions(storeId: string, authorizationModelId: string, body: WriteAssertionsRequest, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<void>> {
       const localVarAxiosArgs = await localVarAxiosParamCreator.writeAssertions(storeId, authorizationModelId, body, options);
-      return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials);
+      return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials, {
+        [attributeNames.requestStoreId]: storeId, 
+        [attributeNames.requestMethod]: "writeAssertions"
+      });
     },
     /**
          * The WriteAuthorizationModel API will add a new authorization model to a store. Each item in the `type_definitions` array is a type definition as specified in the field `type_definition`. The response will return the authorization model\'s ID in the `id` field.  ## Example To add an authorization model with `user` and `document` type definitions, call POST authorization-models API with the body:  ```json {   \"type_definitions\":[     {       \"type\":\"user\"     },     {       \"type\":\"document\",       \"relations\":{         \"reader\":{           \"union\":{             \"child\":[               {                 \"this\":{}               },               {                 \"computedUserset\":{                   \"object\":\"\",                   \"relation\":\"writer\"                 }               }             ]           }         },         \"writer\":{           \"this\":{}         }       }     }   ] } ``` OpenFGA\'s response will include the version id for this authorization model, which will look like  ``` {\"authorization_model_id\": \"01G50QVV17PECNVAHX1GG4Y5NC\"} ``` 
@@ -937,7 +980,10 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          */
     async writeAuthorizationModel(storeId: string, body: WriteAuthorizationModelRequest, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<WriteAuthorizationModelResponse>> {
       const localVarAxiosArgs = await localVarAxiosParamCreator.writeAuthorizationModel(storeId, body, options);
-      return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials);
+      return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials, {
+        [attributeNames.requestStoreId]: storeId, 
+        [attributeNames.requestMethod]: "writeAuthorizationModel"
+      });
     },
   };
 };

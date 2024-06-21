@@ -12,9 +12,12 @@
 
 
 import { AxiosInstance, AxiosRequestConfig, AxiosResponse } from "axios";
+import { Attributes, metrics } from "@opentelemetry/api";
+import { SEMATTRS_HTTP_HOST, SEMATTRS_HTTP_METHOD, SEMATTRS_HTTP_STATUS_CODE } from "@opentelemetry/semantic-conventions";
+
 
 import { Configuration } from "./configuration";
-import type { Credentials } from "./credentials";
+import { AuthCredentialsConfig, CredentialsMethod, type Credentials } from "./credentials";
 import {
   FgaApiError,
   FgaApiInternalError,
@@ -25,6 +28,16 @@ import {
   FgaError
 } from "./errors";
 import { setNotEnumerableProperty } from "./utils";
+
+const meter = metrics.getMeter("@openfga/sdk", "0.5.0");
+const durationHist = meter.createHistogram("fga-client.request.duration", {
+  description: "The duration of requests",
+  unit: "milliseconds",
+});
+const queryDurationHist = meter.createHistogram("fga-client.query.duration", {
+  description: "The duration of queries on the FGA server",
+  unit: "milliseconds",
+});
 
 /**
  *
@@ -180,12 +193,14 @@ export async function attemptHttpRequest<B, R>(
 /**
  * creates an axios request function
  */
-export const createRequestFunction = function (axiosArgs: RequestArgs, axiosInstance: AxiosInstance, configuration: Configuration, credentials: Credentials) {
+export const createRequestFunction = function (axiosArgs: RequestArgs, axiosInstance: AxiosInstance, configuration: Configuration, credentials: Credentials, methodAttributes: Record<string, unknown> = {}) {
   configuration.isValid();
 
   const retryParams = axiosArgs.options?.retryParams ? axiosArgs.options?.retryParams : configuration.retryParams;
   const maxRetry:number = retryParams ? retryParams.maxRetry : 0;
   const minWaitInMs:number = retryParams ? retryParams.minWaitInMs : 0;
+
+  const start = Date.now();
 
   return async (axios: AxiosInstance = axiosInstance) : PromiseResult<any> => {
     await setBearerAuthToObject(axiosArgs.options.headers, credentials!);
@@ -195,9 +210,76 @@ export const createRequestFunction = function (axiosArgs: RequestArgs, axiosInst
       maxRetry,
       minWaitInMs,
     }, axios);
+    const executionTime = Date.now() - start;
+
     const data = typeof response?.data === "undefined" ? {} : response?.data;
     const result: CallResult<any> = { ...data };
     setNotEnumerableProperty(result, "$response", response);
+
+    const attributes = buildAttributes(response, configuration.credentials, methodAttributes);
+
+    if (response?.headers) {
+      const duration = response.headers["fga-query-duration-ms"];
+      if (duration !== undefined) {
+        queryDurationHist.record(parseInt(duration, 10), attributes);
+      }
+    }
+
+    durationHist.record(executionTime, attributes);
+
     return result;
   };
+};
+
+/**
+ * Builds an object of attributes that can be used to report alongside an OpenTelemetry metric event.
+ * 
+ * @param response - The Axios response object, used to add data like HTTP status, host, method, and headers.
+ * @param credentials - The credentials object, used to add data like the ClientID when using ClientCredentials.
+ * @param methodAttributes - Extra attributes that the method (i.e. check, listObjects) wishes to have included. Any custom attributes should use the common names.
+ * @returns {Attributes}
+ */
+export const buildAttributes = function buildAttributes(response: AxiosResponse<unknown, any>|undefined, credentials: AuthCredentialsConfig, methodAttributes: Record<string, any> = {}): Attributes {
+  const attributes: Attributes = {
+    ...methodAttributes,
+  };
+
+  if (response?.status) {
+    attributes[SEMATTRS_HTTP_STATUS_CODE] = response.status;
+  }
+  
+  if (response?.request) {
+    attributes[SEMATTRS_HTTP_METHOD] = response.request.method;
+    attributes[SEMATTRS_HTTP_HOST] = response.request.host;
+  }
+
+  if (response?.headers) {
+    const modelId = response.headers["openfga-authorization-model-id"];
+    if (modelId !== undefined) {
+      attributes[attributeNames.responseModelId] = modelId;
+    }
+  }
+
+  if (credentials?.method === CredentialsMethod.ClientCredentials) {
+    attributes[attributeNames.requestClientId] = credentials.config.clientId;
+  } 
+
+  return attributes;
+};
+
+/**
+ * Common attribute names
+ */
+export const attributeNames = {
+  // Attributes associated with the request made
+  requestModelId: "fga-client.request.model_id",
+  requestMethod: "fga-client.request.method",
+  requestStoreId: "fga-client.request.store_id",
+  requestClientId: "fga-client.request.client_id",
+
+  // Attributes associated with the response
+  responseModelId: "fga-client.response.model_id",
+
+  // Attributes associated with specific actions
+  user: "fga-client.user"
 };
