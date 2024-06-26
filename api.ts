@@ -22,9 +22,8 @@ import {
   createRequestFunction,
   RequestArgs,
   CallResult,
-  PromiseResult,
-  attributeNames
-} from "./common";
+  PromiseResult} from "./common";
+import { attributeNames } from "./telemetry";
 import { Configuration } from "./configuration";
 import { Credentials } from "./credentials";
 import { assertParamExists } from "./validation";

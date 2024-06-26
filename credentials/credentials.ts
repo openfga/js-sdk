@@ -15,7 +15,8 @@ import globalAxios, { AxiosInstance } from "axios";
 
 import { assertParamExists, isWellFormedUriString } from "../validation";
 import { FgaApiAuthenticationError, FgaApiError, FgaError, FgaValidationError } from "../errors";
-import { attemptHttpRequest, buildAttributes } from "../common";
+import { attemptHttpRequest } from "../common";
+import { buildAttributes } from "../telemetry";
 import { ApiTokenConfig, AuthCredentialsConfig, ClientCredentialsConfig, CredentialsMethod } from "./types";
 import { Counter, metrics } from "@opentelemetry/api";
 
