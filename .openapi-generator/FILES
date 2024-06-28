@@ -36,6 +36,7 @@ example/example1/package.json
 git_push.sh
 index.ts
 package.json
+telemetry.ts
 tests/client.test.ts
 tests/helpers/default-config.ts
 tests/helpers/index.ts

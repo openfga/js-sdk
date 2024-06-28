@@ -14,7 +14,6 @@
 import { AxiosInstance, AxiosRequestConfig, AxiosResponse } from "axios";
 import { metrics } from "@opentelemetry/api";
 
-
 import { Configuration } from "./configuration";
 import type { Credentials } from "./credentials";
 import {
@@ -230,4 +229,3 @@ export const createRequestFunction = function (axiosArgs: RequestArgs, axiosInst
     return result;
   };
 };
-

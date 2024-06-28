@@ -122,6 +122,7 @@ export class Credentials {
       if (this.accessToken && (!this.accessTokenExpiryDate || this.accessTokenExpiryDate > new Date())) {
         return this.accessToken;
       }
+
       return this.refreshAccessToken();
     }
   }
@@ -132,6 +133,7 @@ export class Credentials {
    */
   private async refreshAccessToken() {
     const clientCredentials = (this.authConfig as { method: CredentialsMethod.ClientCredentials; config: ClientCredentialsConfig })?.config;
+
     try {
       const response = await attemptHttpRequest<{
           client_id: string,
@@ -162,7 +164,9 @@ export class Credentials {
         this.accessToken = response.data.access_token;
         this.accessTokenExpiryDate = new Date(Date.now() + response.data.expires_in * 1000);
       }
+
       this.tokenCounter?.add(1, buildAttributes(response, this.authConfig));
+
       return this.accessToken;
     } catch (err: unknown) {
       if (err instanceof FgaApiError) {
