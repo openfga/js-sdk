@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.6.0
+
+### [0.5.0](https://github.com/openfga/js-sdk/compare/v0.5.0...v0.6.0) (2024-06-28)
+- feat: add opentelemetry metrics reporting
+
 ## v0.5.0
 
 ### [0.5.0](https://github.com/openfga/js-sdk/compare/v0.4.0...v0.5.0) (2024-06-14)
