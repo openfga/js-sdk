@@ -16,11 +16,14 @@ import globalAxios, { AxiosInstance } from "axios";
 import { assertParamExists, isWellFormedUriString } from "../validation";
 import { FgaApiAuthenticationError, FgaApiError, FgaError, FgaValidationError } from "../errors";
 import { attemptHttpRequest } from "../common";
+import { buildAttributes } from "../telemetry";
 import { ApiTokenConfig, AuthCredentialsConfig, ClientCredentialsConfig, CredentialsMethod } from "./types";
+import { Counter, metrics } from "@opentelemetry/api";
 
 export class Credentials {
   private accessToken?: string;
   private accessTokenExpiryDate?: Date;
+  private tokenCounter?: Counter;
 
   public static init(configuration: { credentials: AuthCredentialsConfig }): Credentials {
     return new Credentials(configuration.credentials);
@@ -48,7 +51,11 @@ export class Credentials {
         }
       }
       break;
-    case CredentialsMethod.ClientCredentials:
+    case CredentialsMethod.ClientCredentials: {
+      const meter = metrics.getMeter("@openfga/sdk", "0.5.0");
+      this.tokenCounter = meter.createCounter("fga-client.credentials.request");
+      break;
+    }
     case CredentialsMethod.None:
     default:
       break;
@@ -115,7 +122,6 @@ export class Credentials {
       if (this.accessToken && (!this.accessTokenExpiryDate || this.accessTokenExpiryDate > new Date())) {
         return this.accessToken;
       }
-
       return this.refreshAccessToken();
     }
   }
@@ -126,7 +132,6 @@ export class Credentials {
    */
   private async refreshAccessToken() {
     const clientCredentials = (this.authConfig as { method: CredentialsMethod.ClientCredentials; config: ClientCredentialsConfig })?.config;
-
     try {
       const response = await attemptHttpRequest<{
           client_id: string,
@@ -157,7 +162,7 @@ export class Credentials {
         this.accessToken = response.data.access_token;
         this.accessTokenExpiryDate = new Date(Date.now() + response.data.expires_in * 1000);
       }
-
+      this.tokenCounter?.add(1, buildAttributes(response, this.authConfig));
       return this.accessToken;
     } catch (err: unknown) {
       if (err instanceof FgaApiError) {

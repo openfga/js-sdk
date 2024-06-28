@@ -12,6 +12,8 @@
 
 
 import { AxiosInstance, AxiosRequestConfig, AxiosResponse } from "axios";
+import { metrics } from "@opentelemetry/api";
+
 
 import { Configuration } from "./configuration";
 import type { Credentials } from "./credentials";
@@ -25,6 +27,17 @@ import {
   FgaError
 } from "./errors";
 import { setNotEnumerableProperty } from "./utils";
+import { buildAttributes } from "./telemetry";
+
+const meter = metrics.getMeter("@openfga/sdk", "0.5.0");
+const durationHist = meter.createHistogram("fga-client.request.duration", {
+  description: "The duration of requests",
+  unit: "milliseconds",
+});
+const queryDurationHist = meter.createHistogram("fga-client.query.duration", {
+  description: "The duration of queries on the FGA server",
+  unit: "milliseconds",
+});
 
 /**
  *
@@ -180,12 +193,14 @@ export async function attemptHttpRequest<B, R>(
 /**
  * creates an axios request function
  */
-export const createRequestFunction = function (axiosArgs: RequestArgs, axiosInstance: AxiosInstance, configuration: Configuration, credentials: Credentials) {
+export const createRequestFunction = function (axiosArgs: RequestArgs, axiosInstance: AxiosInstance, configuration: Configuration, credentials: Credentials, methodAttributes: Record<string, unknown> = {}) {
   configuration.isValid();
 
   const retryParams = axiosArgs.options?.retryParams ? axiosArgs.options?.retryParams : configuration.retryParams;
   const maxRetry:number = retryParams ? retryParams.maxRetry : 0;
   const minWaitInMs:number = retryParams ? retryParams.minWaitInMs : 0;
+
+  const start = Date.now();
 
   return async (axios: AxiosInstance = axiosInstance) : PromiseResult<any> => {
     await setBearerAuthToObject(axiosArgs.options.headers, credentials!);
@@ -195,9 +210,24 @@ export const createRequestFunction = function (axiosArgs: RequestArgs, axiosInst
       maxRetry,
       minWaitInMs,
     }, axios);
+    const executionTime = Date.now() - start;
+
     const data = typeof response?.data === "undefined" ? {} : response?.data;
     const result: CallResult<any> = { ...data };
     setNotEnumerableProperty(result, "$response", response);
+
+    const attributes = buildAttributes(response, configuration.credentials, methodAttributes);
+
+    if (response?.headers) {
+      const duration = response.headers["fga-query-duration-ms"];
+      if (duration !== undefined) {
+        queryDurationHist.record(parseInt(duration, 10), attributes);
+      }
+    }
+
+    durationHist.record(executionTime, attributes);
+
     return result;
   };
 };
+

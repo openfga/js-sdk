@@ -1,0 +1,58 @@
+import { AxiosResponse } from "axios";
+import { Attributes } from "@opentelemetry/api";
+import { SEMATTRS_HTTP_HOST, SEMATTRS_HTTP_METHOD, SEMATTRS_HTTP_STATUS_CODE } from "@opentelemetry/semantic-conventions";
+import { AuthCredentialsConfig, CredentialsMethod } from "./credentials/types";
+
+/**
+ * Builds an object of attributes that can be used to report alongside an OpenTelemetry metric event.
+ *
+ * @param response - The Axios response object, used to add data like HTTP status, host, method, and headers.
+ * @param credentials - The credentials object, used to add data like the ClientID when using ClientCredentials.
+ * @param methodAttributes - Extra attributes that the method (i.e. check, listObjects) wishes to have included. Any custom attributes should use the common names.
+ * @returns {Attributes}
+ */
+
+export const buildAttributes = function buildAttributes(response: AxiosResponse<unknown, any> | undefined, credentials: AuthCredentialsConfig, methodAttributes: Record<string, any> = {}): Attributes {
+  const attributes: Attributes = {
+    ...methodAttributes,
+  };
+
+  if (response?.status) {
+    attributes[SEMATTRS_HTTP_STATUS_CODE] = response.status;
+  }
+
+  if (response?.request) {
+    attributes[SEMATTRS_HTTP_METHOD] = response.request.method;
+    attributes[SEMATTRS_HTTP_HOST] = response.request.host;
+  }
+
+  if (response?.headers) {
+    const modelId = response.headers["openfga-authorization-model-id"];
+    if (modelId !== undefined) {
+      attributes[attributeNames.responseModelId] = modelId;
+    }
+  }
+
+  if (credentials?.method === CredentialsMethod.ClientCredentials) {
+    attributes[attributeNames.requestClientId] = credentials.config.clientId;
+  }
+
+  return attributes;
+};
+/**
+ * Common attribute names
+ */
+
+export const attributeNames = {
+  // Attributes associated with the request made
+  requestModelId: "fga-client.request.model_id",
+  requestMethod: "fga-client.request.method",
+  requestStoreId: "fga-client.request.store_id",
+  requestClientId: "fga-client.request.client_id",
+
+  // Attributes associated with the response
+  responseModelId: "fga-client.response.model_id",
+
+  // Attributes associated with specific actions
+  user: "fga-client.user"
+};
