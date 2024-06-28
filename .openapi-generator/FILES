@@ -28,6 +28,7 @@ configuration.ts
 credentials/credentials.ts
 credentials/index.ts
 credentials/types.ts
+docs/opentelemetry.md
 errors.ts
 example/Makefile
 example/README.md
@@ -36,6 +37,7 @@ example/example1/package.json
 git_push.sh
 index.ts
 package.json
+telemetry.ts
 tests/client.test.ts
 tests/helpers/default-config.ts
 tests/helpers/index.ts

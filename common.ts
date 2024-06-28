@@ -14,7 +14,6 @@
 import { AxiosInstance, AxiosRequestConfig, AxiosResponse } from "axios";
 import { metrics } from "@opentelemetry/api";
 
-
 import { Configuration } from "./configuration";
 import type { Credentials } from "./credentials";
 import {
@@ -29,7 +28,7 @@ import {
 import { setNotEnumerableProperty } from "./utils";
 import { buildAttributes } from "./telemetry";
 
-const meter = metrics.getMeter("@openfga/sdk", "0.5.0");
+const meter = metrics.getMeter("@openfga/sdk", "0.6.0");
 const durationHist = meter.createHistogram("fga-client.request.duration", {
   description: "The duration of requests",
   unit: "milliseconds",
@@ -230,4 +229,3 @@ export const createRequestFunction = function (axiosArgs: RequestArgs, axiosInst
     return result;
   };
 };
-
