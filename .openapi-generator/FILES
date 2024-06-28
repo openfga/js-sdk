@@ -28,6 +28,7 @@ configuration.ts
 credentials/credentials.ts
 credentials/index.ts
 credentials/types.ts
+docs/opentelemetry.md
 errors.ts
 example/Makefile
 example/README.md
