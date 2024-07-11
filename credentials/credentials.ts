@@ -52,7 +52,7 @@ export class Credentials {
       }
       break;
     case CredentialsMethod.ClientCredentials: {
-      const meter = metrics.getMeter("@openfga/sdk", "0.6.0");
+      const meter = metrics.getMeter("@openfga/sdk", "0.6.1");
       this.tokenCounter = meter.createCounter("fga-client.credentials.request");
       break;
     }

@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.6.1
+
+### [0.6.1](https://github.com/openfga/js-sdk/compare/v0.6.0...v0.6.1) (2024-07-11)
+- fix(metrics): add missing request model id attribute (#122)
+
+> [!IMPORTANT]
+> In this release we have changed our TypeScript compile target to ES2020 to align with our stated supported environments
+
 ## v0.6.0
 
 ### [0.6.0](https://github.com/openfga/js-sdk/compare/v0.5.0...v0.6.0) (2024-06-28)
