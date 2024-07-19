@@ -1,0 +1,22 @@
+{
+  "name": "openfga-opentelemetry-example",
+  "private": "true",
+  "version": "1.0.0",
+  "description": "A bare bones example of using the OpenFGA SDK with OpenTelemetry metrics reporting",
+  "author": "OpenFGA",
+  "license": "Apache-2.0",
+  "scripts": {
+    "start": "node --import ./instrumentation.mjs opentelemetry.mjs"
+  },
+  "dependencies": {
+    "@openfga/sdk": "^0.6.1",
+    "@opentelemetry/exporter-metrics-otlp-proto": "^0.52.1",
+    "@opentelemetry/exporter-prometheus": "^0.52.1",
+    "@opentelemetry/sdk-metrics": "^1.25.1",
+    "@opentelemetry/sdk-node": "^0.52.1",
+    "dotenv": "^16.4.5"
+  },
+  "engines": {
+    "node": ">=16.13.0"
+  }
+}
