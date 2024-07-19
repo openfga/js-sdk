@@ -42,6 +42,7 @@ import {
   Condition,
   ConditionMetadata,
   ConditionParamTypeRef,
+  ConsistencyPreference,
   ContextualTupleKeys,
   CreateStoreRequest,
   CreateStoreResponse,

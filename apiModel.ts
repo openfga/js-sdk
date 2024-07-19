@@ -158,7 +158,15 @@ export interface CheckRequest {
      * @memberof CheckRequest
      */
     context?: object;
+    /**
+     * 
+     * @type {ConsistencyPreference}
+     * @memberof CheckRequest
+     */
+    consistency?: ConsistencyPreference;
 }
+
+
 /**
  * 
  * @export
@@ -286,6 +294,18 @@ export interface ConditionParamTypeRef {
     generic_types?: Array<ConditionParamTypeRef>;
 }
 
+
+/**
+ * - UNSPECIFIED: Default if not set. Behavior will be the same as MINIMIZE_LATENCY  - MINIMIZE_LATENCY: Minimize latency at the potential expense of lower consistency.  - HIGHER_CONSISTENCY: Prefer higher consistency, at the potential expense of increased latency.
+ * @export
+ * @enum {string}
+ */
+
+export enum ConsistencyPreference {
+    Unspecified = 'UNSPECIFIED',
+    MinimizeLatency = 'MINIMIZE_LATENCY',
+    HigherConsistency = 'HIGHER_CONSISTENCY'
+}
 
 /**
  * 
@@ -438,7 +458,15 @@ export interface ExpandRequest {
      * @memberof ExpandRequest
      */
     authorization_model_id?: string;
+    /**
+     * 
+     * @type {ConsistencyPreference}
+     * @memberof ExpandRequest
+     */
+    consistency?: ConsistencyPreference;
 }
+
+
 /**
  * 
  * @export
@@ -635,7 +663,15 @@ export interface ListObjectsRequest {
      * @memberof ListObjectsRequest
      */
     context?: object;
+    /**
+     * 
+     * @type {ConsistencyPreference}
+     * @memberof ListObjectsRequest
+     */
+    consistency?: ConsistencyPreference;
 }
+
+
 /**
  * 
  * @export
@@ -710,7 +746,15 @@ export interface ListUsersRequest {
      * @memberof ListUsersRequest
      */
     context?: object;
+    /**
+     * 
+     * @type {ConsistencyPreference}
+     * @memberof ListUsersRequest
+     */
+    consistency?: ConsistencyPreference;
 }
+
+
 /**
  * 
  * @export
@@ -956,7 +1000,15 @@ export interface ReadRequest {
      * @memberof ReadRequest
      */
     continuation_token?: string;
+    /**
+     * 
+     * @type {ConsistencyPreference}
+     * @memberof ReadRequest
+     */
+    consistency?: ConsistencyPreference;
 }
+
+
 /**
  * 
  * @export

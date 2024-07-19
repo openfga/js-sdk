@@ -20,6 +20,7 @@ import {
   CheckRequest,
   CheckRequestTupleKey,
   CheckResponse,
+  ConsistencyPreference,
   CreateStoreRequest,
   CreateStoreResponse,
   ExpandRequestTupleKey,
@@ -111,8 +112,13 @@ export interface AuthorizationModelIdOpts {
   authorizationModelId?: string;
 }
 
+export interface ConsistencyOpts {
+  consistency?: ConsistencyPreference
+}
+
 export type ClientRequestOptsWithStoreId = ClientRequestOpts & StoreIdOpts;
 export type ClientRequestOptsWithAuthZModelId = ClientRequestOpts & StoreIdOpts & AuthorizationModelIdOpts;
+export type ClientRequestOptsWithConsistency = ClientRequestOpts & StoreIdOpts & AuthorizationModelIdOpts & ConsistencyOpts;
 
 export type PaginationOptions = { pageSize?: number, continuationToken?: string; };
 
@@ -179,13 +185,13 @@ export interface ClientReadChangesRequest {
 
 export type ClientExpandRequest = ExpandRequestTupleKey;
 export type ClientReadRequest = ReadRequestTupleKey;
-export type ClientListObjectsRequest = Omit<ListObjectsRequest, "authorization_model_id" | "contextual_tuples"> & {
+export type ClientListObjectsRequest = Omit<ListObjectsRequest, "authorization_model_id" | "contextual_tuples" | "consistency"> & {
     contextualTuples?: Array<TupleKey>
 };
-export type ClientListUsersRequest = Omit<ListUsersRequest, "authorization_model_id" | "contextual_tuples"> & {
+export type ClientListUsersRequest = Omit<ListUsersRequest, "authorization_model_id" | "contextual_tuples" | "consistency"> & {
     contextualTuples?: Array<TupleKey>
 };
-export type ClientListRelationsRequest = Omit<ClientCheckRequest, "relation"> & {
+export type ClientListRelationsRequest = Omit<ClientCheckRequest, "relation" | "consistency"> & {
     relations?: string[],
 };
 export type ClientWriteAssertionsRequest = (CheckRequestTupleKey & Pick<Assertion, "expectation">)[];
@@ -398,15 +404,16 @@ export class OpenFgaClient extends BaseAPI {
   /**
    * Read - Read tuples previously written to the store (does not evaluate)
    * @param {ClientReadRequest} body
-   * @param {ClientRequestOpts & PaginationOptions} [options]
+   * @param {ClientRequestOpts & PaginationOptions & ConsistencyOpts} [options]
    * @param {number} [options.pageSize]
    * @param {string} [options.continuationToken]
    * @param {object} [options.headers] - Custom headers to send alongside the request
+   * @param {ConsistencyPreference} [options.consistency] - The consistency preference to use
    * @param {object} [options.retryParams] - Override the retry parameters for this request
    * @param {number} [options.retryParams.maxRetry] - Override the max number of retries on each API request
    * @param {number} [options.retryParams.minWaitInMs] - Override the minimum wait before a retry is initiated
    */
-  async read(body: ClientReadRequest = {}, options: ClientRequestOptsWithStoreId & PaginationOptions = {}): PromiseResult<ReadResponse> {
+  async read(body: ClientReadRequest = {}, options: ClientRequestOptsWithStoreId & PaginationOptions & ConsistencyOpts = {}): PromiseResult<ReadResponse> {
     const readRequest: ReadRequest = {
       page_size: options.pageSize,
       continuation_token: options.continuationToken,
@@ -556,14 +563,15 @@ export class OpenFgaClient extends BaseAPI {
   /**
    * Check - Check if a user has a particular relation with an object (evaluates)
    * @param {ClientCheckRequest} body
-   * @param {ClientRequestOptsWithAuthZModelId} [options]
+   * @param {ClientRequestOptsWithConsistency} [options]
    * @param {string} [options.authorizationModelId] - Overrides the authorization model id in the configuration
    * @param {object} [options.headers] - Custom headers to send alongside the request
+   * @param {ConsistencyPreference} [options.consistency] - The consistency preference to use
    * @param {object} [options.retryParams] - Override the retry parameters for this request
    * @param {number} [options.retryParams.maxRetry] - Override the max number of retries on each API request
    * @param {number} [options.retryParams.minWaitInMs] - Override the minimum wait before a retry is initiated
    */
-  async check(body: ClientCheckRequest, options: ClientRequestOptsWithAuthZModelId = {}): PromiseResult<CheckResponse> {
+  async check(body: ClientCheckRequest, options: ClientRequestOptsWithConsistency = {}): PromiseResult<CheckResponse> {
     return this.api.check(this.getStoreId(options)!, {
       tuple_key: {
         user: body.user,
@@ -587,7 +595,7 @@ export class OpenFgaClient extends BaseAPI {
    * @param {number} [options.retryParams.maxRetry] - Override the max number of retries on each API request
    * @param {number} [options.retryParams.minWaitInMs] - Override the minimum wait before a retry is initiated
    */
-  async batchCheck(body: ClientBatchCheckRequest, options: ClientRequestOptsWithAuthZModelId & BatchCheckRequestOpts = {}): Promise<ClientBatchCheckResponse> {
+  async batchCheck(body: ClientBatchCheckRequest, options: ClientRequestOptsWithConsistency & BatchCheckRequestOpts = {}): Promise<ClientBatchCheckResponse> {
     const { headers = {}, maxParallelRequests = DEFAULT_MAX_METHOD_PARALLEL_REQS } = options;
     setHeaderIfNotSet(headers, CLIENT_METHOD_HEADER, "BatchCheck");
     setHeaderIfNotSet(headers, CLIENT_BULK_REQUEST_ID_HEADER, generateRandomIdWithNonUniqueFallback());
@@ -621,14 +629,15 @@ export class OpenFgaClient extends BaseAPI {
    * @param {ClientExpandRequest} body
    * @param {string} body.relation The relation
    * @param {string} body.object The object, must be of the form: `<type>:<id>`
-   * @param {ClientRequestOptsWithAuthZModelId} [options]
+   * @param {ClientRequestOptsWithConsistency} [options]
    * @param {string} [options.authorizationModelId] - Overrides the authorization model id in the configuration
    * @param {object} [options.headers] - Custom headers to send alongside the request
+   * @param {ConsistencyPreference} [options.consistency] - The consistency preference to use
    * @param {object} [options.retryParams] - Override the retry parameters for this request
    * @param {number} [options.retryParams.maxRetry] - Override the max number of retries on each API request
    * @param {number} [options.retryParams.minWaitInMs] - Override the minimum wait before a retry is initiated
    */
-  async expand(body: ClientExpandRequest, options: ClientRequestOptsWithAuthZModelId = {}): PromiseResult<ExpandResponse> {
+  async expand(body: ClientExpandRequest, options: ClientRequestOptsWithConsistency = {}): PromiseResult<ExpandResponse> {
     return this.api.expand(this.getStoreId(options)!, {
       authorization_model_id: this.getAuthorizationModelId(options),
       tuple_key: body,
@@ -638,14 +647,15 @@ export class OpenFgaClient extends BaseAPI {
   /**
    * ListObjects - List the objects of a particular type that the user has a certain relation to (evaluates)
    * @param {ClientListObjectsRequest} body
-   * @param {ClientRequestOptsWithAuthZModelId} [options]
+   * @param {ClientRequestOptsWithConsistency} [options]
    * @param {string} [options.authorizationModelId] - Overrides the authorization model id in the configuration
    * @param {object} [options.headers] - Custom headers to send alongside the request
+   * @param {ConsistencyPreference} [options.consistency] - The consistency preference to use
    * @param {object} [options.retryParams] - Override the retry parameters for this request
    * @param {number} [options.retryParams.maxRetry] - Override the max number of retries on each API request
    * @param {number} [options.retryParams.minWaitInMs] - Override the minimum wait before a retry is initiated
    */
-  async listObjects(body: ClientListObjectsRequest, options: ClientRequestOptsWithAuthZModelId = {}): PromiseResult<ListObjectsResponse> {
+  async listObjects(body: ClientListObjectsRequest, options: ClientRequestOptsWithConsistency = {}): PromiseResult<ListObjectsResponse> {
     return this.api.listObjects(this.getStoreId(options)!, {
       authorization_model_id: this.getAuthorizationModelId(options),
       user: body.user,
@@ -666,7 +676,7 @@ export class OpenFgaClient extends BaseAPI {
    * @param {object} listRelationsRequest.context The contextual tuples to send
    * @param options
    */
-  async listRelations(listRelationsRequest: ClientListRelationsRequest, options: ClientRequestOptsWithAuthZModelId & BatchCheckRequestOpts = {}): Promise<ClientListRelationsResponse> {
+  async listRelations(listRelationsRequest: ClientListRelationsRequest, options: ClientRequestOptsWithConsistency & BatchCheckRequestOpts = {}): Promise<ClientListRelationsResponse> {
     const { user, object, relations, contextualTuples, context } = listRelationsRequest;
     const { headers = {}, maxParallelRequests = DEFAULT_MAX_METHOD_PARALLEL_REQS } = options;
     setHeaderIfNotSet(headers, CLIENT_METHOD_HEADER, "ListRelations");
@@ -695,14 +705,15 @@ export class OpenFgaClient extends BaseAPI {
   /**
    * ListUsers - List the objects of a particular type that the user has a certain relation to (evaluates)
    * @param {ClientListUsersRequest} body
-   * @param {ClientRequestOptsWithAuthZModelId} [options]
+   * @param {ClientRequestOptsWithConsistency} [options]
    * @param {string} [options.authorizationModelId] - Overrides the authorization model id in the configuration
    * @param {object} [options.headers] - Custom headers to send alongside the request
+   * @param {ConsistencyPreference} [options.consistency] - The consistency preference to use
    * @param {object} [options.retryParams] - Override the retry parameters for this request
    * @param {number} [options.retryParams.maxRetry] - Override the max number of retries on each API request
    * @param {number} [options.retryParams.minWaitInMs] - Override the minimum wait before a retry is initiated
    */
-  async listUsers(body: ClientListUsersRequest, options: ClientRequestOptsWithAuthZModelId = {}): PromiseResult<ListUsersResponse> {
+  async listUsers(body: ClientListUsersRequest, options: ClientRequestOptsWithConsistency = {}): PromiseResult<ListUsersResponse> {
     return this.api.listUsers(this.getStoreId(options)!, {
       authorization_model_id: this.getAuthorizationModelId(options),
       relation: body.relation,
