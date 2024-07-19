@@ -714,7 +714,7 @@ const fgaClient = new OpenFgaClient({
 
 ### OpenTelemetry
 
-This SDK supports producing metrics that can be consumed as part of an [OpenTelemetry](https://opentelemetry.io/) setup. For more information, please see [the documentation]((https://github.com/openfga/js-sdk/blob/main/docs/opentelemetry.md)
+This SDK supports producing metrics that can be consumed as part of an [OpenTelemetry](https://opentelemetry.io/) setup. For more information, please see [the documentation](https://github.com/openfga/js-sdk/blob/main/docs/opentelemetry.md)
 
 ## Contributing
 
