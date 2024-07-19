@@ -34,6 +34,11 @@ example/Makefile
 example/README.md
 example/example1/example1.mjs
 example/example1/package.json
+example/opentelemetry/.npmrc
+example/opentelemetry/README.md
+example/opentelemetry/instrumentation.mjs
+example/opentelemetry/opentelemetry.mjs
+example/opentelemetry/package.json
 git_push.sh
 index.ts
 package.json

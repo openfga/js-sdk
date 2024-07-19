@@ -29,3 +29,7 @@ In cases when metrics events are sent, they will not be viewable outside of infr
 | `http.status_code `            | `int`    | The status code of the response                                                     |
 | `http.method`                  | `string` | The HTTP method for the request                                                     |
 | `http.host`                    | `string` | Host identifier of the origin the request was sent to                               |
+
+## Example
+
+There is an [example project](https://github.com/openfga/js-sdk/blob/main/example/opentelemetry) that provides some guidance on how to configure OpenTelemetry available in the examples directory.
