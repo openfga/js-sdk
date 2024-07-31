@@ -28,7 +28,7 @@ import {
 import { setNotEnumerableProperty } from "./utils";
 import { buildAttributes } from "./telemetry";
 
-const meter = metrics.getMeter("@openfga/sdk", "0.6.1");
+const meter = metrics.getMeter("@openfga/sdk", "0.6.2");
 const durationHist = meter.createHistogram("fga-client.request.duration", {
   description: "The duration of requests",
   unit: "milliseconds",
