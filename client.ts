@@ -417,6 +417,7 @@ export class OpenFgaClient extends BaseAPI {
     const readRequest: ReadRequest = {
       page_size: options.pageSize,
       continuation_token: options.continuationToken,
+      consistency: options.consistency
     };
     if (body.user || body.object || body.relation) {
       readRequest.tuple_key = body;
@@ -580,7 +581,8 @@ export class OpenFgaClient extends BaseAPI {
       },
       context: body.context,
       contextual_tuples: { tuple_keys: body.contextualTuples || [] },
-      authorization_model_id: this.getAuthorizationModelId(options)
+      authorization_model_id: this.getAuthorizationModelId(options),
+      consistency: options.consistency
     }, options);
   }
 
@@ -641,6 +643,7 @@ export class OpenFgaClient extends BaseAPI {
     return this.api.expand(this.getStoreId(options)!, {
       authorization_model_id: this.getAuthorizationModelId(options),
       tuple_key: body,
+      consistency: options.consistency
     }, options);
   }
 
@@ -663,6 +666,7 @@ export class OpenFgaClient extends BaseAPI {
       type: body.type,
       context: body.context,
       contextual_tuples: { tuple_keys: body.contextualTuples || [] },
+      consistency: options.consistency
     }, options);
   }
 
@@ -721,6 +725,7 @@ export class OpenFgaClient extends BaseAPI {
       user_filters: body.user_filters,
       context: body.context,
       contextual_tuples: body.contextualTuples || [],
+      consistency: options.consistency
     }, options);
   }
 

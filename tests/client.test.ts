@@ -21,6 +21,7 @@ import {
   FgaValidationError,
   OpenFgaClient,
   ListUsersResponse,
+  ConsistencyPreference,
 } from "../index";
 import { baseConfig, defaultConfiguration, getNocks } from "./helpers";
 
@@ -291,10 +292,10 @@ describe("OpenFGA Client", () => {
           relation: "admin",
           object: "workspace:1",
         };
-        const scope = nocks.read(baseConfig.storeId!, tuple);
+        const scope = nocks.read(baseConfig.storeId!, tuple, undefined, ConsistencyPreference.HigherConsistency);
 
         expect(scope.isDone()).toBe(false);
-        const data = await fgaClient.read(tuple);
+        const data = await fgaClient.read(tuple, { consistency: ConsistencyPreference.HigherConsistency});
 
         expect(scope.isDone()).toBe(true);
         expect(data).toMatchObject({});
@@ -498,10 +499,10 @@ describe("OpenFGA Client", () => {
           relation: "admin",
           object: "workspace:1",
         };
-        const scope = nocks.check(baseConfig.storeId!, tuple);
+        const scope = nocks.check(baseConfig.storeId!, tuple, undefined, undefined, undefined, ConsistencyPreference.HigherConsistency);
 
         expect(scope.isDone()).toBe(false);
-        const data = await fgaClient.check(tuple);
+        const data = await fgaClient.check(tuple, { consistency: ConsistencyPreference.HigherConsistency });
 
         expect(scope.isDone()).toBe(true);
         expect(data).toMatchObject({ allowed: expect.any(Boolean) });
@@ -523,12 +524,12 @@ describe("OpenFGA Client", () => {
           relation: "reader",
           object: "workspace:3",
         }];
-        const scope0 = nocks.check(defaultConfiguration.storeId!, tuples[0], defaultConfiguration.getBasePath(), { allowed: true }, 200).matchHeader("X-OpenFGA-Client-Method", "BatchCheck");
-        const scope1 = nocks.check(defaultConfiguration.storeId!, tuples[1], defaultConfiguration.getBasePath(), { allowed: false }, 200).matchHeader("X-OpenFGA-Client-Method", "BatchCheck");
+        const scope0 = nocks.check(defaultConfiguration.storeId!, tuples[0], defaultConfiguration.getBasePath(), { allowed: true }, 200, ConsistencyPreference.HigherConsistency).matchHeader("X-OpenFGA-Client-Method", "BatchCheck");
+        const scope1 = nocks.check(defaultConfiguration.storeId!, tuples[1], defaultConfiguration.getBasePath(), { allowed: false }, 200, ConsistencyPreference.HigherConsistency).matchHeader("X-OpenFGA-Client-Method", "BatchCheck");
         const scope2 = nocks.check(defaultConfiguration.storeId!, tuples[2], defaultConfiguration.getBasePath(), {
           "code": "validation_error",
           "message": "relation &#39;workspace#reader&#39; not found"
-        }, 400).matchHeader("X-OpenFGA-Client-Method", "BatchCheck");
+        }, 400, ConsistencyPreference.HigherConsistency).matchHeader("X-OpenFGA-Client-Method", "BatchCheck");
         const scope3 = nock(defaultConfiguration.getBasePath())
           .get(`/stores/${defaultConfiguration.storeId!}/authorization-models`)
           .query({ page_size: 1 })
@@ -539,7 +540,7 @@ describe("OpenFGA Client", () => {
         expect(scope0.isDone()).toBe(false);
         expect(scope1.isDone()).toBe(false);
         expect(scope2.isDone()).toBe(false);
-        const response = await fgaClient.batchCheck([tuples[0], tuples[1], tuples[2]]);
+        const response = await fgaClient.batchCheck([tuples[0], tuples[1], tuples[2]], { consistency: ConsistencyPreference.HigherConsistency });
 
         expect(scope0.isDone()).toBe(true);
         expect(scope1.isDone()).toBe(true);
@@ -562,10 +563,10 @@ describe("OpenFGA Client", () => {
           relation: "admin",
           object: "workspace:1",
         };
-        const scope = nocks.expand(baseConfig.storeId!, tuple);
+        const scope = nocks.expand(baseConfig.storeId!, tuple, undefined, ConsistencyPreference.HigherConsistency);
 
         expect(scope.isDone()).toBe(false);
-        const data = await fgaClient.expand(tuple, { authorizationModelId: "01GXSA8YR785C4FYS3C0RTG7B1" });
+        const data = await fgaClient.expand(tuple, { authorizationModelId: "01GXSA8YR785C4FYS3C0RTG7B1", consistency: ConsistencyPreference.HigherConsistency });
 
         expect(scope.isDone()).toBe(true);
         expect(data).toMatchObject({});
@@ -575,7 +576,7 @@ describe("OpenFGA Client", () => {
     describe("ListObjects", () => {
       it("should call the api and return the response", async () => {
         const mockedResponse = { objects: ["document:roadmap"] };
-        const scope = nocks.listObjects(baseConfig.storeId!, mockedResponse);
+        const scope = nocks.listObjects(baseConfig.storeId!, mockedResponse, undefined, ConsistencyPreference.HigherConsistency);
 
         expect(scope.isDone()).toBe(false);
         const response = await fgaClient.listObjects({
@@ -594,6 +595,7 @@ describe("OpenFGA Client", () => {
             }]
         }, {
           authorizationModelId: "01GAHCE4YVKPQEKZQHT2R89MQV",
+          consistency: ConsistencyPreference.HigherConsistency,
         });
 
         expect(scope.isDone()).toBe(true);
@@ -625,11 +627,11 @@ describe("OpenFGA Client", () => {
           relation: "can_read",
           object: "workspace:1",
         }];
-        const scope0 = nocks.check(defaultConfiguration.storeId!, tuples[0], defaultConfiguration.getBasePath(), { allowed: true }).matchHeader("X-OpenFGA-Client-Method", "ListRelations");
-        const scope1 = nocks.check(defaultConfiguration.storeId!, tuples[1], defaultConfiguration.getBasePath(), { allowed: false }).matchHeader("X-OpenFGA-Client-Method", "ListRelations");
-        const scope2 = nocks.check(defaultConfiguration.storeId!, tuples[2], defaultConfiguration.getBasePath(), { allowed: true }).matchHeader("X-OpenFGA-Client-Method", "ListRelations");
-        const scope3 = nocks.check(defaultConfiguration.storeId!, tuples[3], defaultConfiguration.getBasePath(), { allowed: false }).matchHeader("X-OpenFGA-Client-Method", "ListRelations");
-        const scope4 = nocks.check(defaultConfiguration.storeId!, tuples[4], defaultConfiguration.getBasePath(), { allowed: false }).matchHeader("X-OpenFGA-Client-Method", "ListRelations");
+        const scope0 = nocks.check(defaultConfiguration.storeId!, tuples[0], defaultConfiguration.getBasePath(), { allowed: true }, undefined, ConsistencyPreference.HigherConsistency).matchHeader("X-OpenFGA-Client-Method", "ListRelations");
+        const scope1 = nocks.check(defaultConfiguration.storeId!, tuples[1], defaultConfiguration.getBasePath(), { allowed: false }, undefined, ConsistencyPreference.HigherConsistency).matchHeader("X-OpenFGA-Client-Method", "ListRelations");
+        const scope2 = nocks.check(defaultConfiguration.storeId!, tuples[2], defaultConfiguration.getBasePath(), { allowed: true }, undefined, ConsistencyPreference.HigherConsistency).matchHeader("X-OpenFGA-Client-Method", "ListRelations");
+        const scope3 = nocks.check(defaultConfiguration.storeId!, tuples[3], defaultConfiguration.getBasePath(), { allowed: false }, undefined, ConsistencyPreference.HigherConsistency).matchHeader("X-OpenFGA-Client-Method", "ListRelations");
+        const scope4 = nocks.check(defaultConfiguration.storeId!, tuples[4], defaultConfiguration.getBasePath(), { allowed: false }, undefined, ConsistencyPreference.HigherConsistency).matchHeader("X-OpenFGA-Client-Method", "ListRelations");
         const scope5 = nock(defaultConfiguration.getBasePath())
           .get(`/stores/${defaultConfiguration.storeId!}/authorization-models`)
           .query({ page_size: 1 })
@@ -647,7 +649,7 @@ describe("OpenFGA Client", () => {
           user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
           object: "workspace:1",
           relations: ["admin", "guest", "reader", "viewer"],
-        });
+        }, { consistency: ConsistencyPreference.HigherConsistency });
 
         expect(scope0.isDone()).toBe(true);
         expect(scope1.isDone()).toBe(true);
@@ -782,7 +784,7 @@ describe("OpenFGA Client", () => {
             }
           }]
         };
-        const scope = nocks.listUsers(baseConfig.storeId!, mockedResponse);
+        const scope = nocks.listUsers(baseConfig.storeId!, mockedResponse, undefined, ConsistencyPreference.HigherConsistency);
 
         expect(scope.isDone()).toBe(false);
         const response = await fgaClient.listUsers({
@@ -810,6 +812,7 @@ describe("OpenFGA Client", () => {
             }]
         }, {
           authorizationModelId: "01GAHCE4YVKPQEKZQHT2R89MQV",
+          consistency: ConsistencyPreference.HigherConsistency
         });
 
         expect(scope.isDone()).toBe(true);
