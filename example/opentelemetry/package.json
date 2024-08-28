@@ -9,7 +9,7 @@
     "start": "node --import ./instrumentation.mjs opentelemetry.mjs"
   },
   "dependencies": {
-    "@openfga/sdk": "^0.6.2",
+    "@openfga/sdk": "^0.6.3",
     "@opentelemetry/exporter-metrics-otlp-proto": "^0.52.1",
     "@opentelemetry/exporter-prometheus": "^0.52.1",
     "@opentelemetry/sdk-metrics": "^1.25.1",
