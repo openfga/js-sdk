@@ -34,6 +34,7 @@ example/Makefile
 example/README.md
 example/example1/example1.mjs
 example/example1/package.json
+example/opentelemetry/.env.example
 example/opentelemetry/.npmrc
 example/opentelemetry/README.md
 example/opentelemetry/instrumentation.mjs
