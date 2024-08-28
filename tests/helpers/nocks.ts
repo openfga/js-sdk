@@ -17,16 +17,20 @@ import {
   AuthorizationModel,
   CheckRequest,
   CheckResponse,
+  ConsistencyPreference,
   CreateStoreResponse,
+  ExpandRequest,
   ExpandResponse,
   GetStoreResponse,
   ListObjectsResponse,
   ListStoresResponse,
+  ListUsersRequest,
   ListUsersResponse,
   ReadAssertionsResponse,
   ReadAuthorizationModelResponse,
   ReadAuthorizationModelsResponse,
   ReadChangesResponse,
+  ReadRequest,
   ReadResponse,
   TupleKey,
   TupleOperation,
@@ -164,9 +168,12 @@ export const getNocks = ((nock: typeof Nock) => ({
     storeId: string,
     tuple: TupleKey,
     basePath = defaultConfiguration.getBasePath(),
+    consistency: ConsistencyPreference|undefined = undefined,
   ) => {
     return nock(basePath)
-      .post(`/stores/${storeId}/read`)
+      .post(`/stores/${storeId}/read`, (body: ReadRequest) => 
+        body.consistency === consistency
+      )
       .reply(200, { tuples: [], continuation_token: "" } as ReadResponse);
   },
   write: (
@@ -194,12 +201,14 @@ export const getNocks = ((nock: typeof Nock) => ({
     basePath = defaultConfiguration.getBasePath(),
     response: { allowed: boolean } | { code: string, message: string } = { allowed: true },
     statusCode = 200,
+    consistency: ConsistencyPreference|undefined = undefined,
   ) => {
     return nock(basePath)
       .post(`/stores/${storeId}/check`, (body: CheckRequest) =>
         body.tuple_key.user === tuple.user &&
         body.tuple_key.relation === tuple.relation &&
-        body.tuple_key.object === tuple.object
+        body.tuple_key.object === tuple.object &&
+        body.consistency === consistency
       )
       .reply(statusCode, response as CheckResponse);
   },
@@ -207,19 +216,36 @@ export const getNocks = ((nock: typeof Nock) => ({
     storeId: string,
     tuple: TupleKey,
     basePath = defaultConfiguration.getBasePath(),
+    consistency: ConsistencyPreference|undefined = undefined,
   ) => {
     return nock(basePath)
-      .post(`/stores/${storeId}/expand`)
+      .post(`/stores/${storeId}/expand`, (body: ExpandRequest) => 
+        body.consistency === consistency
+      )
       .reply(200, { tree: {} } as ExpandResponse);
   },
-  listObjects: (storeId: string, responseBody: ListObjectsResponse, basePath = defaultConfiguration.getBasePath()) => {
+  listObjects: (
+    storeId: string,
+    responseBody: ListObjectsResponse,
+    basePath = defaultConfiguration.getBasePath(),
+    consistency: ConsistencyPreference|undefined = undefined,
+  ) => {
     return nock(basePath)
-      .post(`/stores/${storeId}/list-objects`)
+      .post(`/stores/${storeId}/list-objects`, (body: ListUsersRequest) =>
+        body.consistency === consistency
+      )
       .reply(200, responseBody);
   },
-  listUsers: (storeId: string, responseBody: ListUsersResponse, basePath = defaultConfiguration.getBasePath()) => {
+  listUsers: (
+    storeId: string,
+    responseBody: ListUsersResponse,
+    basePath = defaultConfiguration.getBasePath(),
+    consistency: ConsistencyPreference|undefined = undefined
+  ) => {
     return nock(basePath)
-      .post(`/stores/${storeId}/list-users`)
+      .post(`/stores/${storeId}/list-users`, (body: ListUsersRequest) => 
+        body.consistency === consistency
+      )
       .reply(200, responseBody);
   },
   readAssertions: (storeId: string, modelId: string, assertions: ReadAssertionsResponse["assertions"] = [], basePath = defaultConfiguration.getBasePath()) => {
