@@ -12,7 +12,6 @@
 
 
 import { AxiosInstance, AxiosRequestConfig, AxiosResponse } from "axios";
-import { metrics } from "@opentelemetry/api";
 
 import { Configuration } from "./configuration";
 import type { Credentials } from "./credentials";
@@ -26,17 +25,9 @@ import {
   FgaError
 } from "./errors";
 import { setNotEnumerableProperty } from "./utils";
-import { buildAttributes } from "./telemetry";
-
-const meter = metrics.getMeter("@openfga/sdk", "0.6.3");
-const durationHist = meter.createHistogram("fga-client.request.duration", {
-  description: "The duration of requests",
-  unit: "milliseconds",
-});
-const queryDurationHist = meter.createHistogram("fga-client.query.duration", {
-  description: "The duration of queries on the FGA server",
-  unit: "milliseconds",
-});
+import { TelemetryAttributes } from "./telemetry/attributes";
+import { TelemetryMetrics } from "./telemetry/metrics";
+import { TelemetryHistograms } from "./telemetry/histograms";
 
 /**
  *
@@ -127,6 +118,10 @@ export const toPathString = function (url: URL) {
 
 type ObjectOrVoid = object | void;
 
+interface StringIndexable {
+  [key: string]: any;
+}
+
 export type CallResult<T extends ObjectOrVoid> = T & {
     $response: AxiosResponse<T>
 };
@@ -192,7 +187,7 @@ export async function attemptHttpRequest<B, R>(
 /**
  * creates an axios request function
  */
-export const createRequestFunction = function (axiosArgs: RequestArgs, axiosInstance: AxiosInstance, configuration: Configuration, credentials: Credentials, methodAttributes: Record<string, unknown> = {}) {
+export const createRequestFunction = function (axiosArgs: RequestArgs, axiosInstance: AxiosInstance, configuration: Configuration, credentials: Credentials, methodAttributes: Record<string, string | number> = {}) {
   configuration.isValid();
 
   const retryParams = axiosArgs.options?.retryParams ? axiosArgs.options?.retryParams : configuration.retryParams;
@@ -209,22 +204,49 @@ export const createRequestFunction = function (axiosArgs: RequestArgs, axiosInst
       maxRetry,
       minWaitInMs,
     }, axios);
-    const executionTime = Date.now() - start;
 
     const data = typeof response?.data === "undefined" ? {} : response?.data;
     const result: CallResult<any> = { ...data };
     setNotEnumerableProperty(result, "$response", response);
 
-    const attributes = buildAttributes(response, configuration.credentials, methodAttributes);
+    const telemetryAttributes = new TelemetryAttributes();
+    const telemetryMetrics = new TelemetryMetrics();
 
-    if (response?.headers) {
-      const duration = response.headers["fga-query-duration-ms"];
-      if (duration !== undefined) {
-        queryDurationHist.record(parseInt(duration, 10), attributes);
-      }
+    let attributes: StringIndexable = {};
+
+    attributes = telemetryAttributes.fromRequest({
+      start: start,
+      credentials: credentials,
+      attributes: methodAttributes,
+    });
+
+    attributes = telemetryAttributes.fromResponse({
+      response,
+      credentials,
+      attributes,
+    });
+
+    if (attributes[TelemetryAttributes.httpServerRequestDuration.name]) {
+      telemetryMetrics.histogram(
+        TelemetryHistograms.queryDuration,
+        parseInt(attributes[TelemetryAttributes.httpServerRequestDuration.name] as string, 10),
+        telemetryAttributes.prepare(
+          attributes,
+          Object.keys(configuration.telemetryConfig.metrics.histogramQueryDuration.attributes())
+        )
+      );
     }
 
-    durationHist.record(executionTime, attributes);
+    if (attributes[TelemetryAttributes.httpClientRequestDuration.name]) {
+      telemetryMetrics.histogram(
+        TelemetryHistograms.requestDuration,
+        Date.now() - start,
+        telemetryAttributes.prepare(
+          attributes,
+          Object.keys(configuration.telemetryConfig.metrics.histogramRequestDuration.attributes())
+        )
+      );
+    }
 
     return result;
   };
