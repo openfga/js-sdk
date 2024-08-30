@@ -16,14 +16,14 @@ import globalAxios, { AxiosInstance } from "axios";
 import { assertParamExists, isWellFormedUriString } from "../validation";
 import { FgaApiAuthenticationError, FgaApiError, FgaError, FgaValidationError } from "../errors";
 import { attemptHttpRequest } from "../common";
-import { buildAttributes } from "../telemetry";
 import { ApiTokenConfig, AuthCredentialsConfig, ClientCredentialsConfig, CredentialsMethod } from "./types";
-import { Counter, metrics } from "@opentelemetry/api";
+import { TelemetryAttributes } from "../telemetry/attributes";
+import { TelemetryMetrics } from "../telemetry/metrics";
+import { TelemetryCounters } from "../telemetry/counters";
 
 export class Credentials {
   private accessToken?: string;
   private accessTokenExpiryDate?: Date;
-  private tokenCounter?: Counter;
 
   public static init(configuration: { credentials: AuthCredentialsConfig }): Credentials {
     return new Credentials(configuration.credentials);
@@ -51,11 +51,6 @@ export class Credentials {
         }
       }
       break;
-    case CredentialsMethod.ClientCredentials: {
-      const meter = metrics.getMeter("@openfga/sdk", "0.6.3");
-      this.tokenCounter = meter.createCounter("fga-client.credentials.request");
-      break;
-    }
     case CredentialsMethod.None:
     default:
       break;
@@ -165,7 +160,25 @@ export class Credentials {
         this.accessTokenExpiryDate = new Date(Date.now() + response.data.expires_in * 1000);
       }
 
-      this.tokenCounter?.add(1, buildAttributes(response, this.authConfig));
+      const telemetryAttributes = new TelemetryAttributes();
+      const telemetryMetrics = new TelemetryMetrics();
+
+      let attributes = {};
+
+      attributes = telemetryAttributes.fromRequest({
+        credentials: clientCredentials,
+        // resendCount: 0, // TODO: implement resend count tracking, not available in the current context
+        attributes,
+      });
+
+      attributes = telemetryAttributes.fromResponse({
+        response,
+        credentials: clientCredentials,
+        attributes,
+      });
+
+      attributes = telemetryAttributes.prepare(attributes);
+      telemetryMetrics.counter(TelemetryCounters.credentialsRequest, 1, attributes);
 
       return this.accessToken;
     } catch (err: unknown) {

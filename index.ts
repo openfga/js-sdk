@@ -18,6 +18,11 @@ export * from "./client";
 export * from "./apiModel";
 export { Configuration, UserConfigurationParams, GetDefaultRetryParams } from "./configuration";
 export { Credentials, CredentialsMethod } from "./credentials";
+export * from "./telemetry/attributes";
+export * from "./telemetry/configuration";
+export * from "./telemetry/counters";
+export * from "./telemetry/histograms";
+export * from "./telemetry/metrics";
 export * from "./errors";
 
 
