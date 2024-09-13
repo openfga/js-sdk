@@ -1,8 +1,8 @@
-import { Counter, Histogram, Meter, ValueType } from '@opentelemetry/api';
-import { TelemetryConfiguration, TelemetryMetricsConfiguration } from './configuration';
-import { TelemetryCounters, TelemetryCounter } from './counters';
-import { TelemetryHistograms, TelemetryHistogram } from './histograms';
-import { TelemetryAttributes, TelemetryAttribute } from './attributes';
+import { Counter, Histogram, Meter, ValueType } from "@opentelemetry/api";
+import { TelemetryConfiguration, TelemetryMetricsConfiguration } from "./configuration";
+import { TelemetryCounters, TelemetryCounter } from "./counters";
+import { TelemetryHistograms, TelemetryHistogram } from "./histograms";
+import { TelemetryAttributes, TelemetryAttribute } from "./attributes";
 import { metrics } from "@opentelemetry/api";
 
 export class TelemetryMetrics {
@@ -22,7 +22,7 @@ export class TelemetryMetrics {
 
   meter(): Meter {
     if (!this._meter) {
-      this._meter = metrics.getMeter("@openfga/sdk", "0.6.3")
+      this._meter = metrics.getMeter("@openfga/sdk", "0.6.3");
     }
     return this._meter;
   }

@@ -14,7 +14,7 @@
 import { ApiTokenConfig, AuthCredentialsConfig, ClientCredentialsConfig, CredentialsMethod } from "./credentials/types";
 import { FgaValidationError, } from "./errors";
 import { assertParamExists, isWellFormedUlidString, isWellFormedUriString } from "./validation";
-import { TelemetryConfiguration } from './telemetry/configuration';
+import { TelemetryConfiguration } from "./telemetry/configuration";
 
 // default maximum number of retry
 const DEFAULT_MAX_RETRY = 15;

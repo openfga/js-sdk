@@ -6,8 +6,8 @@ export interface TelemetryCounter {
 
 export class TelemetryCounters {
   static credentialsRequest: TelemetryCounter = {
-    name: 'fga-client.credentials.request',
-    unit: 'milliseconds',
-    description: 'The number of times an access token is requested.',
+    name: "fga-client.credentials.request",
+    unit: "milliseconds",
+    description: "The number of times an access token is requested.",
   };
 }
