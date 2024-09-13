@@ -1,4 +1,4 @@
-import { TelemetryAttributes } from '../../telemetry/attributes';
+import { TelemetryAttribute, TelemetryAttributes } from '../../telemetry/attributes';
 
 describe('TelemetryAttributes', () => {
   let telemetryAttributes: TelemetryAttributes;
@@ -13,10 +13,36 @@ describe('TelemetryAttributes', () => {
       'http.host': 'example.com',
     };
 
-    const filter = ['fga-client.request.client_id'];
+    const filter = new Set<TelemetryAttribute>([TelemetryAttribute.FgaClientRequestClientId]);
     const prepared = telemetryAttributes.prepare(attributes, filter);
 
     expect(prepared).toEqual({ 'fga-client.request.client_id': 'test-client-id' });
+  });
+
+  test('should return an empty object when attributes is provided but filter is undefined', () => {
+    const attributes = {
+      [TelemetryAttribute.HttpHost]: 'example.com',
+      [TelemetryAttribute.HttpResponseStatusCode]: 200,
+    };
+    expect(telemetryAttributes.prepare(attributes)).toEqual({});
+  });
+
+  test('should return an empty object when filter is provided but attributes is undefined', () => {
+    const filter = new Set<TelemetryAttribute>([
+      TelemetryAttribute.HttpHost,
+    ]);
+    expect(telemetryAttributes.prepare(undefined, filter)).toEqual({});
+  });
+
+  test('should return an empty object when none of the attributes are in the filter set', () => {
+    const attributes = {
+      [TelemetryAttribute.HttpHost]: 'example.com',
+      [TelemetryAttribute.HttpResponseStatusCode]: 200,
+    };
+    const filter = new Set<TelemetryAttribute>([
+      TelemetryAttribute.UserAgentOriginal,
+    ]);
+    expect(telemetryAttributes.prepare(attributes, filter)).toEqual({});
   });
 
   test('should create attributes from request correctly', () => {

@@ -1,40 +1,41 @@
 import { URL } from 'url';
 
-export interface TelemetryAttribute {
-  name: string;
+export enum TelemetryAttribute {
+  FgaClientRequestClientId = "fga-client.request.client_id",
+  FgaClientRequestMethod = "fga-client.request.method",
+  FgaClientRequestModelId = "fga-client.request.model_id",
+  FgaClientRequestStoreId = "fga-client.request.store_id",
+  FgaClientResponseModelId  = "fga-client.response.model_id",
+  FgaClientUser = "fga-client.user",
+  // remove this attribute, keep as metric
+  HttpClientRequestDuration = "http.client.request.duration",
+  HttpHost = "http.host",
+  HttpRequestMethod = "http.request.method",
+  HttpRequestResendCount = "http.request.resend_count",
+  HttpResponseStatusCode = "http.response.status_code",
+  // remove this attribute, keep as metric
+  HttpServerRequestDuration = "http.server.request.duration",
+  UrlScheme = "url.scheme",
+  UrlFull = "url.full",
+  UserAgentOriginal = "user_agent.original",
 }
 
 export class TelemetryAttributes {
-  static fgaClientRequestClientId: TelemetryAttribute = { name: 'fga-client.request.client_id' };
-  static fgaClientRequestMethod: TelemetryAttribute = { name: 'fga-client.request.method' };
-  static fgaClientRequestModelId: TelemetryAttribute = { name: 'fga-client.request.model_id' };
-  static fgaClientRequestStoreId: TelemetryAttribute = { name: 'fga-client.request.store_id' };
-  static fgaClientResponseModelId: TelemetryAttribute = { name: 'fga-client.response.model_id' };
-  static fgaClientUser: TelemetryAttribute = { name: 'fga-client.user' };
-  static httpClientRequestDuration: TelemetryAttribute = { name: 'http.client.request.duration' };
-  static httpHost: TelemetryAttribute = { name: 'http.host' };
-  static httpRequestMethod: TelemetryAttribute = { name: 'http.request.method' };
-  static httpRequestResendCount: TelemetryAttribute = { name: 'http.request.resend_count' };
-  static httpResponseStatusCode: TelemetryAttribute = { name: 'http.response.status_code' };
-  static httpServerRequestDuration: TelemetryAttribute = { name: 'http.server.request.duration' };
-  static urlScheme: TelemetryAttribute = { name: 'url.scheme' };
-  static urlFull: TelemetryAttribute = { name: 'url.full' };
-  static userAgentOriginal: TelemetryAttribute = { name: 'user_agent.original' };
-
   prepare(
     attributes?: Record<string, string | number>,
-    filter?: string[]
+    filter?: Set<TelemetryAttribute>
   ): Record<string, string | number> {
-    const response: Record<string, string | number> = {};
-
-    if (attributes) {
-      Object.entries(attributes).forEach(([key, value]) => {
-        if (filter && !filter.includes(key)) return;
-        response[key] = value;
-      });
+    attributes = attributes || {};
+    filter = filter || new Set();
+    const result: Record<string, string | number> = {};
+  
+    for (const key in attributes) {
+      if (filter.has(key as TelemetryAttribute)) {
+        result[key] = attributes[key];
+      }
     }
-
-    return Object.fromEntries(Object.entries(response).sort());
+  
+    return result;
   }
 
   fromRequest({
@@ -56,21 +57,21 @@ export class TelemetryAttributes {
     credentials?: any;
     attributes?: Record<string, string | number>;
   }): Record<string, string | number> {
-    if (fgaMethod) attributes[TelemetryAttributes.fgaClientRequestMethod.name] = fgaMethod;
-    if (userAgent) attributes[TelemetryAttributes.userAgentOriginal.name] = userAgent;
-    if (httpMethod) attributes[TelemetryAttributes.httpRequestMethod.name] = httpMethod;
+    if (fgaMethod) attributes[TelemetryAttribute.FgaClientRequestMethod] = fgaMethod;
+    if (userAgent) attributes[TelemetryAttribute.UserAgentOriginal] = userAgent;
+    if (httpMethod) attributes[TelemetryAttribute.HttpRequestMethod] = httpMethod;
 
     if (url) {
       const parsedUrl = new URL(url);
-      attributes[TelemetryAttributes.httpHost.name] = parsedUrl.hostname;
-      attributes[TelemetryAttributes.urlScheme.name] = parsedUrl.protocol;
-      attributes[TelemetryAttributes.urlFull.name] = url;
+      attributes[TelemetryAttribute.HttpHost] = parsedUrl.hostname;
+      attributes[TelemetryAttribute.UrlScheme] = parsedUrl.protocol;
+      attributes[TelemetryAttribute.UrlFull] = url;
     }
 
-    if (start) attributes[TelemetryAttributes.httpClientRequestDuration.name] = Date.now() - start;
-    if (resendCount) attributes[TelemetryAttributes.httpRequestResendCount.name] = resendCount;
+    if (start) attributes[TelemetryAttribute.HttpClientRequestDuration] = Date.now() - start;
+    if (resendCount) attributes[TelemetryAttribute.HttpRequestResendCount] = resendCount;
     if (credentials && credentials.method === 'client_credentials') {
-      attributes[TelemetryAttributes.fgaClientRequestClientId.name] = credentials.configuration.clientId;
+      attributes[TelemetryAttribute.FgaClientRequestClientId] = credentials.configuration.clientId;
     }
 
     return attributes;
@@ -85,17 +86,17 @@ export class TelemetryAttributes {
     credentials?: any;
     attributes?: Record<string, string | number>;
   }): Record<string, string | number> {
-    if (response?.status) attributes[TelemetryAttributes.httpResponseStatusCode.name] = response.status;
+    if (response?.status) attributes[TelemetryAttribute.HttpResponseStatusCode] = response.status;
 
     const responseHeaders = response?.headers || {};
     const responseModelId = responseHeaders['openfga-authorization-model-id'];
     const responseQueryDuration = responseHeaders['fga-query-duration-ms'];
 
-    if (responseModelId) attributes[TelemetryAttributes.fgaClientResponseModelId.name] = responseModelId;
-    if (responseQueryDuration) attributes[TelemetryAttributes.httpServerRequestDuration.name] = responseQueryDuration;
+    if (responseModelId) attributes[TelemetryAttribute.FgaClientResponseModelId] = responseModelId;
+    if (responseQueryDuration) attributes[TelemetryAttribute.HttpServerRequestDuration] = responseQueryDuration;
 
     if (credentials && credentials.method === 'client_credentials') {
-      attributes[TelemetryAttributes.fgaClientRequestClientId.name] = credentials.configuration.clientId;
+      attributes[TelemetryAttribute.FgaClientRequestClientId] = credentials.configuration.clientId;
     }
 
     return attributes;

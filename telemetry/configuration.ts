@@ -1,43 +1,28 @@
-import { TelemetryAttributes, TelemetryAttribute } from './attributes';
+import { TelemetryAttribute } from './attributes';
 
 export class TelemetryMetricConfiguration {
   constructor(
     public enabled: boolean = true,
-    public attrFgaClientRequestClientId: boolean = true,
-    public attrFgaClientRequestMethod: boolean = true,
-    public attrFgaClientRequestModelId: boolean = true,
-    public attrFgaClientRequestStoreId: boolean = true,
-    public attrFgaClientResponseModelId: boolean = true,
-    public attrFgaClientUser: boolean = false,
-    public attrHttpClientRequestDuration: boolean = false,
-    public attrHttpHost: boolean = true,
-    public attrHttpRequestMethod: boolean = true,
-    public attrHttpRequestResendCount: boolean = true,
-    public attrHttpResponseStatusCode: boolean = true,
-    public attrHttpServerRequestDuration: boolean = false,
-    public attrUrlScheme: boolean = true,
-    public attrUrlFull: boolean = true,
-    public attrUserAgentOriginal: boolean = true
+    public attributes: Set<TelemetryAttribute> = new Set<TelemetryAttribute>([
+      TelemetryAttribute.HttpHost,
+      TelemetryAttribute.HttpResponseStatusCode,
+      TelemetryAttribute.UserAgentOriginal,
+      TelemetryAttribute.FgaClientRequestMethod,
+      TelemetryAttribute.FgaClientRequestClientId,
+      TelemetryAttribute.FgaClientRequestStoreId,
+      TelemetryAttribute.FgaClientRequestModelId,
+      TelemetryAttribute.HttpRequestResendCount,
+      TelemetryAttribute.FgaClientResponseModelId,
+
+      // These metrics are not included by default because they are usually less useful
+      // TelemetryAttribute.UrlScheme,
+      // TelemetryAttribute.HttpRequestMethod,
+      // TelemetryAttribute.UrlFull,
+
+      // This not included by default as it has a very high cardinality which could increase costs for users
+      // TelemetryAttribute.FgaClientUser
+    ])
   ) {}
-
-  attributes(): Record<string, boolean> {
-    const enabled: Record<string, boolean> = {};
-
-    Object.entries(this).forEach(([key, value]) => {
-      if (key.startsWith('attr') && value) {
-        let attrKey = key.replace('attr', '') as keyof typeof TelemetryAttributes;
-        attrKey = attrKey.charAt(0).toLowerCase() + attrKey.slice(1);
-
-        const telemetryAttribute = TelemetryAttributes[attrKey as keyof typeof TelemetryAttributes] as TelemetryAttribute;
-
-        if (telemetryAttribute) {
-          enabled[telemetryAttribute.name] = true;
-        }
-      }
-    });
-
-    return enabled;
-  }
 }
 
 export class TelemetryMetricsConfiguration {
