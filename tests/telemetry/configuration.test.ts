@@ -1,8 +1,8 @@
-import { TelemetryMetricConfiguration, TelemetryConfiguration, TelemetryMetricsConfiguration } from '../../telemetry/configuration';
-import { TelemetryAttribute } from '../../telemetry/attributes';
+import { TelemetryMetricConfiguration, TelemetryConfiguration, TelemetryMetricsConfiguration } from "../../telemetry/configuration";
+import { TelemetryAttribute } from "../../telemetry/attributes";
 
-describe('TelemetryMetricConfiguration', () => {
-  test('should create a default TelemetryMetricConfiguration instance', () => {
+describe("TelemetryMetricConfiguration", () => {
+  test("should create a default TelemetryMetricConfiguration instance", () => {
     const config = new TelemetryMetricConfiguration();
 
     expect(config.enabled).toBe(true);
@@ -24,7 +24,7 @@ describe('TelemetryMetricConfiguration', () => {
     expect(config.attributes.has(TelemetryAttribute.FgaClientUser)).toBe(false);
   });
 
-  test('should return correct attributes based on enabled properties', () => {
+  test("should return correct attributes based on enabled properties", () => {
     const config = new TelemetryMetricConfiguration(
       true, // enabled
       new Set<TelemetryAttribute>([
@@ -45,15 +45,15 @@ describe('TelemetryMetricConfiguration', () => {
   });
 });
 
-describe('TelemetryConfiguration', () => {
-  test('should create a default TelemetryConfiguration instance', () => {
+describe("TelemetryConfiguration", () => {
+  test("should create a default TelemetryConfiguration instance", () => {
     const config = new TelemetryConfiguration();
 
     expect(config.metrics).toBeInstanceOf(TelemetryMetricsConfiguration);
     expect(config.metrics.counterCredentialsRequest.enabled).toBe(true);
   });
 
-  test('should allow overriding telemetry configuration options', () => {
+  test("should allow overriding telemetry configuration options", () => {
     const customMetrics = new TelemetryMetricsConfiguration();
     customMetrics.counterCredentialsRequest.enabled = false;
 

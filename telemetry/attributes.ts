@@ -1,4 +1,4 @@
-import { URL } from 'url';
+import { URL } from "url";
 
 export enum TelemetryAttribute {
   FgaClientRequestClientId = "fga-client.request.client_id",
@@ -70,7 +70,7 @@ export class TelemetryAttributes {
 
     if (start) attributes[TelemetryAttribute.HttpClientRequestDuration] = Date.now() - start;
     if (resendCount) attributes[TelemetryAttribute.HttpRequestResendCount] = resendCount;
-    if (credentials && credentials.method === 'client_credentials') {
+    if (credentials && credentials.method === "client_credentials") {
       attributes[TelemetryAttribute.FgaClientRequestClientId] = credentials.configuration.clientId;
     }
 
@@ -89,13 +89,13 @@ export class TelemetryAttributes {
     if (response?.status) attributes[TelemetryAttribute.HttpResponseStatusCode] = response.status;
 
     const responseHeaders = response?.headers || {};
-    const responseModelId = responseHeaders['openfga-authorization-model-id'];
-    const responseQueryDuration = responseHeaders['fga-query-duration-ms'];
+    const responseModelId = responseHeaders["openfga-authorization-model-id"];
+    const responseQueryDuration = responseHeaders["fga-query-duration-ms"];
 
     if (responseModelId) attributes[TelemetryAttribute.FgaClientResponseModelId] = responseModelId;
     if (responseQueryDuration) attributes[TelemetryAttribute.HttpServerRequestDuration] = responseQueryDuration;
 
-    if (credentials && credentials.method === 'client_credentials') {
+    if (credentials && credentials.method === "client_credentials") {
       attributes[TelemetryAttribute.FgaClientRequestClientId] = credentials.configuration.clientId;
     }
 

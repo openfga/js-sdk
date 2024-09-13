@@ -1,4 +1,4 @@
-import { TelemetryAttribute } from './attributes';
+import { TelemetryAttribute } from "./attributes";
 
 export class TelemetryMetricConfiguration {
   constructor(

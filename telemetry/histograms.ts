@@ -6,14 +6,14 @@ export interface TelemetryHistogram {
 
 export class TelemetryHistograms {
   static requestDuration: TelemetryHistogram = {
-    name: 'fga-client.request.duration',
-    unit: 'milliseconds',
-    description: 'How long it took for a request to be fulfilled.',
+    name: "fga-client.request.duration",
+    unit: "milliseconds",
+    description: "How long it took for a request to be fulfilled.",
   };
 
   static queryDuration: TelemetryHistogram = {
-    name: 'fga-client.query.duration',
-    unit: 'milliseconds',
-    description: 'How long it took to perform a query request.',
+    name: "fga-client.query.duration",
+    unit: "milliseconds",
+    description: "How long it took to perform a query request.",
   };
 }
