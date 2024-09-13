@@ -25,7 +25,7 @@ import {
   FgaError
 } from "./errors";
 import { setNotEnumerableProperty } from "./utils";
-import { TelemetryAttributes } from "./telemetry/attributes";
+import { TelemetryAttribute, TelemetryAttributes } from "./telemetry/attributes";
 import { TelemetryMetrics } from "./telemetry/metrics";
 import { TelemetryHistograms } from "./telemetry/histograms";
 
@@ -226,24 +226,24 @@ export const createRequestFunction = function (axiosArgs: RequestArgs, axiosInst
       attributes,
     });
 
-    if (attributes[TelemetryAttributes.httpServerRequestDuration.name]) {
+    if (attributes[TelemetryAttribute.HttpServerRequestDuration]) {
       telemetryMetrics.histogram(
         TelemetryHistograms.queryDuration,
-        parseInt(attributes[TelemetryAttributes.httpServerRequestDuration.name] as string, 10),
+        parseInt(attributes[TelemetryAttribute.HttpServerRequestDuration] as string, 10),
         telemetryAttributes.prepare(
           attributes,
-          Object.keys(configuration.telemetryConfig.metrics.histogramQueryDuration.attributes())
+          configuration.telemetryConfig.metrics.histogramQueryDuration.attributes
         )
       );
     }
 
-    if (attributes[TelemetryAttributes.httpClientRequestDuration.name]) {
+    if (attributes[TelemetryAttribute.HttpClientRequestDuration]) {
       telemetryMetrics.histogram(
         TelemetryHistograms.requestDuration,
         Date.now() - start,
         telemetryAttributes.prepare(
           attributes,
-          Object.keys(configuration.telemetryConfig.metrics.histogramRequestDuration.attributes())
+          configuration.telemetryConfig.metrics.histogramRequestDuration.attributes
         )
       );
     }
