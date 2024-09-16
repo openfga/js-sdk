@@ -2,7 +2,6 @@ import { TelemetryAttribute } from "./attributes";
 
 export class TelemetryMetricConfiguration {
   constructor(
-    public enabled: boolean = true,
     public attributes: Set<TelemetryAttribute> = new Set<TelemetryAttribute>([
       TelemetryAttribute.HttpHost,
       TelemetryAttribute.HttpResponseStatusCode,
@@ -18,6 +17,8 @@ export class TelemetryMetricConfiguration {
       // TelemetryAttribute.UrlScheme,
       // TelemetryAttribute.HttpRequestMethod,
       // TelemetryAttribute.UrlFull,
+      // TelemetryAttribute.HttpClientRequestDuration,
+      // TelemetryAttribute.HttpServerRequestDuration
 
       // This not included by default as it has a very high cardinality which could increase costs for users
       // TelemetryAttribute.FgaClientUser
