@@ -42,7 +42,7 @@ export interface UserConfigurationParams {
   credentials?: CredentialsConfig;
   baseOptions?: any;
   retryParams?: RetryParams;
-  telemetryConfig?: TelemetryConfiguration;
+  telemetry?: TelemetryConfiguration;
 }
 
 export function GetDefaultRetryParams (maxRetry = DEFAULT_MAX_RETRY, minWaitInMs = DEFAULT_MIN_WAIT_MS) {
@@ -128,7 +128,7 @@ export class Configuration {
    * @type {TelemetryConfiguration}
    * @memberof Configuration
    */
-  telemetryConfig: TelemetryConfiguration;
+  telemetry: TelemetryConfiguration;
 
   constructor(params: UserConfigurationParams = {} as unknown as UserConfigurationParams) {
     this.apiScheme = params.apiScheme || this.apiScheme;
@@ -177,7 +177,7 @@ export class Configuration {
 
     this.baseOptions = baseOptions;
     this.retryParams = params.retryParams;
-    this.telemetryConfig = params.telemetryConfig || new TelemetryConfiguration();
+    this.telemetry = params.telemetry || new TelemetryConfiguration();
   }
 
   /**
