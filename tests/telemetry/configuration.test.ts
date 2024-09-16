@@ -5,7 +5,6 @@ describe("TelemetryMetricConfiguration", () => {
   test("should create a default TelemetryMetricConfiguration instance", () => {
     const config = new TelemetryMetricConfiguration();
 
-    expect(config.enabled).toBe(true);
     expect(config.attributes.has(TelemetryAttribute.HttpHost));
     expect(config.attributes.has(TelemetryAttribute.HttpResponseStatusCode));
     expect(config.attributes.has(TelemetryAttribute.UserAgentOriginal));
@@ -26,7 +25,6 @@ describe("TelemetryMetricConfiguration", () => {
 
   test("should return correct attributes based on enabled properties", () => {
     const config = new TelemetryMetricConfiguration(
-      true, // enabled
       new Set<TelemetryAttribute>([
         TelemetryAttribute.FgaClientRequestClientId,
         TelemetryAttribute.HttpResponseStatusCode,
@@ -50,15 +48,5 @@ describe("TelemetryConfiguration", () => {
     const config = new TelemetryConfiguration();
 
     expect(config.metrics).toBeInstanceOf(TelemetryMetricsConfiguration);
-    expect(config.metrics.counterCredentialsRequest.enabled).toBe(true);
-  });
-
-  test("should allow overriding telemetry configuration options", () => {
-    const customMetrics = new TelemetryMetricsConfiguration();
-    customMetrics.counterCredentialsRequest.enabled = false;
-
-    const config = new TelemetryConfiguration(customMetrics);
-
-    expect(config.metrics.counterCredentialsRequest.enabled).toBe(false);
   });
 });
