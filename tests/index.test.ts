@@ -38,7 +38,7 @@ import {
   OPENFGA_API_TOKEN_ISSUER,
 } from "./helpers/default-config";
 import { getNocks } from "./helpers/nocks";
-import { TelemetryAttribute } from "../dist";
+import { TelemetryAttribute } from "../telemetry/attributes";
 
 const nocks = getNocks(nock);
 nock.disableNetConnect();

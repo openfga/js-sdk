@@ -47,6 +47,7 @@ describe("TelemetryConfiguration", () => {
   test("should create a default TelemetryConfiguration instance", () => {
     const config = new TelemetryConfiguration();
 
+    expect(config.isValid).toBe(true);
     expect(config.metrics).toBeInstanceOf(TelemetryMetricsConfiguration);
   });
 });

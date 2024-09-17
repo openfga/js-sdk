@@ -34,15 +34,21 @@ export class TelemetryMetricsConfiguration {
   ) {}
 }
 
+export type TelemetryConfigurationParams =
+  {
+    metrics: TelemetryMetricsConfiguration | undefined;
+  }
+
 export class TelemetryConfiguration {
-  constructor(public metrics: TelemetryMetricsConfiguration = new TelemetryMetricsConfiguration()) {}
-  // get isValid(): boolean {
-  //   return true;
-  //   // if (!this.metrics) {
-  //   //   return true;
-  //   // }
-  //   // return false;
-  // }
+  public metrics: TelemetryMetricsConfiguration;
+
+  constructor(params: TelemetryConfigurationParams = {} as unknown as TelemetryConfigurationParams) {
+    this.metrics = params.metrics || new TelemetryMetricsConfiguration();
+  }
+
+  get isValid(): boolean {
+    return true;
+  }
 }
 
 export function validAttributes(): Set<TelemetryAttribute> {
