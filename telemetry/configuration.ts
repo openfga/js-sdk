@@ -36,4 +36,48 @@ export class TelemetryMetricsConfiguration {
 
 export class TelemetryConfiguration {
   constructor(public metrics: TelemetryMetricsConfiguration = new TelemetryMetricsConfiguration()) {}
+  // get isValid(): boolean {
+  //   return true;
+  //   // if (!this.metrics) {
+  //   //   return true;
+  //   // }
+  //   // return false;
+  // }
 }
+
+export function validAttributes(): Set<TelemetryAttribute> {
+  return new Set<TelemetryAttribute>([
+    TelemetryAttribute.HttpHost,
+    TelemetryAttribute.HttpResponseStatusCode,
+    TelemetryAttribute.UserAgentOriginal,
+    TelemetryAttribute.FgaClientRequestMethod,
+    TelemetryAttribute.FgaClientRequestClientId,
+    TelemetryAttribute.FgaClientRequestStoreId,
+    TelemetryAttribute.FgaClientRequestModelId,
+    TelemetryAttribute.HttpRequestResendCount,
+    TelemetryAttribute.FgaClientResponseModelId,
+    TelemetryAttribute.UrlScheme,
+    TelemetryAttribute.HttpRequestMethod,
+    TelemetryAttribute.UrlFull,
+    TelemetryAttribute.HttpClientRequestDuration,
+    TelemetryAttribute.HttpServerRequestDuration,
+    TelemetryAttribute.FgaClientUser
+  ]);
+}
+
+// export function isValid(config: TelemetryConfiguration): boolean {
+//   if (!config.metrics) {
+//     return true;
+//   }
+
+//   const validAttrs = validAttributes();
+
+//   const counterConfigAttrs = config.metrics.counterCredentialsRequest?.attributes;
+//   for (let counterConfigAttr in counterConfigAttrs) {
+//     if (!validAttrs.has(counterConfigAttr as TelemetryAttribute)) {
+//       return false;
+//     }
+//   }
+
+//   return true;
+// }

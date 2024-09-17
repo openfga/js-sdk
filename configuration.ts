@@ -14,7 +14,8 @@
 import { ApiTokenConfig, AuthCredentialsConfig, ClientCredentialsConfig, CredentialsMethod } from "./credentials/types";
 import { FgaValidationError, } from "./errors";
 import { assertParamExists, isWellFormedUlidString, isWellFormedUriString } from "./validation";
-import { TelemetryConfiguration } from "./telemetry/configuration";
+import { TelemetryConfiguration, validAttributes } from "./telemetry/configuration";
+import { TelemetryAttribute } from "./telemetry/attributes";
 
 // default maximum number of retry
 const DEFAULT_MAX_RETRY = 15;
@@ -201,6 +202,31 @@ export class Configuration {
 
     if (this.retryParams?.maxRetry && this.retryParams.maxRetry > 15) {
       throw new FgaValidationError("Configuration.retryParams.maxRetry exceeds maximum allowed limit of 15");
+    }
+
+    if (this.telemetry?.metrics) {
+      const validAttrs = validAttributes();
+
+      const counterConfigAttrs = this.telemetry.metrics.counterCredentialsRequest?.attributes || new Set<TelemetryAttribute>;
+      for (let counterConfigAttr in counterConfigAttrs) {
+       if (!validAttrs.has(counterConfigAttr as TelemetryAttribute)) {
+          throw new FgaValidationError(`Configuration.telemtry.metrics.counterCredentialsRequest attribute ${counterConfigAttr} is not a valid attribute`);
+        }
+      }
+
+      const histogramRequestDurationConfigAttrs = this.telemetry.metrics.histogramRequestDuration?.attributes || new Set<TelemetryAttribute>;
+      for (let histogramRequestDurationAttr in histogramRequestDurationConfigAttrs) {
+       if (!validAttrs.has(histogramRequestDurationAttr as TelemetryAttribute)) {
+          throw new FgaValidationError(`Configuration.telemtry.metrics.histogramRequestDuration attribute ${histogramRequestDurationAttr} is not a valid attribute`);
+        }
+      }
+
+      const histogramQueryDurationConfigAttrs = this.telemetry.metrics.histogramQueryDuration?.attributes || new Set<TelemetryAttribute>;
+      for (let histogramQueryDurationConfigAttr in histogramQueryDurationConfigAttrs) {
+       if (!validAttrs.has(histogramQueryDurationConfigAttr as TelemetryAttribute)) {
+          throw new FgaValidationError(`Configuration.telemtry.metrics.counterCredentialsRequest attribute ${histogramQueryDurationConfigAttrs} is not a valid attribute`);
+        }
+      }
     }
 
     return true;
