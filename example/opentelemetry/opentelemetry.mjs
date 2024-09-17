@@ -1,5 +1,6 @@
 import "dotenv/config";
-import { CredentialsMethod, FgaApiValidationError, OpenFgaClient } from "@openfga/sdk";
+import { CredentialsMethod, FgaApiValidationError, OpenFgaClient, TelemetryAttribute, TelemetryMetricConfiguration, TelemetryMetricsConfiguration } from "@openfga/sdk";
+// import { TelemetryConfiguration } from "../../telemetry/configuration";
 
 let credentials;
 if (process.env.FGA_CLIENT_ID) {
@@ -14,11 +15,54 @@ if (process.env.FGA_CLIENT_ID) {
   };
 }
 
+// define desired telemetry options
+const counterCredentialsRequestAttributes = new Set([
+  TelemetryAttribute.HttpHost,
+  TelemetryAttribute.HttpResponseStatusCode,
+  TelemetryAttribute.UserAgentOriginal,
+  TelemetryAttribute.FgaClientRequestClientId
+]);
+
+const histogramRequestDurationAttributes = new Set([
+  TelemetryAttribute.HttpResponseStatusCode,
+  TelemetryAttribute.UserAgentOriginal,
+  TelemetryAttribute.HttpRequestMethod,
+  TelemetryAttribute.FgaClientRequestClientId,
+  TelemetryAttribute.FgaClientRequestStoreId,
+  TelemetryAttribute.FgaClientResponseModelId,
+  TelemetryAttribute.HttpRequestResendCount,
+]);
+
+const histogramQueryDurationAttributes = new Set([
+  TelemetryAttribute.HttpResponseStatusCode,
+  TelemetryAttribute.UserAgentOriginal,
+  TelemetryAttribute.HttpRequestMethod,
+  TelemetryAttribute.FgaClientRequestClientId,
+  TelemetryAttribute.FgaClientRequestStoreId,
+  TelemetryAttribute.FgaClientResponseModelId,
+  TelemetryAttribute.HttpRequestResendCount,
+]);
+
+const telemetryConfig = {
+  metrics: {
+    counterCredentialsRequest: {
+      attributes: counterCredentialsRequestAttributes
+    },
+    histogramRequestDuration: {
+      attributes: histogramRequestDurationAttributes
+    },
+    histogramQueryDuration: {
+      attributes: histogramQueryDurationAttributes
+    }
+  }
+};
+
 const fgaClient = new OpenFgaClient({
   apiUrl: process.env.FGA_API_URL,
   storeId: process.env.FGA_STORE_ID,
   authorizationModelId: process.env.FGA_MODEL_ID,
-  credentials
+  credentials,
+  telemetry: telemetryConfig,
 });
 
 async function main () {
