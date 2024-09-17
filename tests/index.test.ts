@@ -25,6 +25,9 @@ import {
   FgaApiValidationError,
   FgaValidationError,
   OpenFgaApi,
+  TelemetryConfiguration,
+  TelemetryMetricConfiguration,
+  TelemetryMetricsConfiguration,
 } from "../index";
 import { CallResult } from "../common";
 import { GetDefaultRetryParams } from "../configuration";
@@ -35,6 +38,7 @@ import {
   OPENFGA_API_TOKEN_ISSUER,
 } from "./helpers/default-config";
 import { getNocks } from "./helpers/nocks";
+import { TelemetryAttribute } from "../dist";
 
 const nocks = getNocks(nock);
 nock.disableNetConnect();
@@ -248,6 +252,36 @@ describe("OpenFGA SDK", function () {
     it("should allow passing in a configuration instance", async () => {
       const configuration = new Configuration(baseConfig);
       expect(() => new OpenFgaApi(configuration)).not.toThrowError();
+    });
+
+    it("should only accept valid telemetry attributes", async () => {
+      // const metricConfig = new TelemetryMetricConfiguration(new Set<TelemetryAttribute>);
+      // const metricsConfig = new TelemetryMetricsConfiguration(
+      //   metricConfig,
+      //   metricConfig,
+      //   metricConfig,
+      // );
+      // const telConfig = new TelemetryConfiguration(metricsConfig);
+      expect(
+        () =>
+          new OpenFgaApi({
+            ...baseConfig,
+            telemetry: telConfig,
+            // telemetry: {
+            //   metrics: {
+            //     counterCredentialsRequest: {
+            //       attributes: ["JUNK"] as any
+            //     },
+            //     histogramQueryDuration: {
+            //       attributes: new Set<TelemetryAttribute>
+            //     },
+            //     histogramRequestDuration: {
+            //       attributes: new Set<TelemetryAttribute>
+            //     }
+            //   }
+            // }
+          })
+      ).toThrow();
     });
   });
 
