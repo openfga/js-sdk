@@ -266,20 +266,20 @@ describe("OpenFGA SDK", function () {
         () =>
           new OpenFgaApi({
             ...baseConfig,
-            telemetry: telConfig,
-            // telemetry: {
-            //   metrics: {
-            //     counterCredentialsRequest: {
-            //       attributes: ["JUNK"] as any
-            //     },
-            //     histogramQueryDuration: {
-            //       attributes: new Set<TelemetryAttribute>
-            //     },
-            //     histogramRequestDuration: {
-            //       attributes: new Set<TelemetryAttribute>
-            //     }
-            //   }
-            // }
+            // telemetry: telConfig,
+            telemetry: {
+              metrics: {
+                counterCredentialsRequest: {
+                  attributes: ["JUNK"] as any
+                },
+                histogramQueryDuration: {
+                  attributes: new Set<TelemetryAttribute>
+                },
+                histogramRequestDuration: {
+                  attributes: new Set<TelemetryAttribute>
+                }
+              }
+            }
           })
       ).toThrow();
     });
