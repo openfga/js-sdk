@@ -25,6 +25,7 @@ import {
   FgaApiValidationError,
   FgaValidationError,
   OpenFgaApi,
+  TelemetryAttribute,
   TelemetryConfiguration,
   TelemetryMetricConfiguration,
   TelemetryMetricsConfiguration,
@@ -38,7 +39,6 @@ import {
   OPENFGA_API_TOKEN_ISSUER,
 } from "./helpers/default-config";
 import { getNocks } from "./helpers/nocks";
-import { TelemetryAttribute } from "../dist";
 
 const nocks = getNocks(nock);
 nock.disableNetConnect();
@@ -262,10 +262,26 @@ describe("OpenFGA SDK", function () {
       //   metricConfig,
       // );
       // const telConfig = new TelemetryConfiguration(metricsConfig);
+
+      // const telemetryConfig = {
+      //   metrics: {
+      //     counterCredentialsRequest: {
+      //       attributes: new Set<TelemetryAttribute>
+      //     },
+      //     histogramRequestDuration: {
+      //       attributes: new Set<TelemetryAttribute>
+      //     },
+      //     histogramQueryDuration: {
+      //       attributes: new Set<TelemetryAttribute>
+      //     }
+      //   }
+      // };
+      
       expect(
         () =>
           new OpenFgaApi({
             ...baseConfig,
+            // telemetry: telemetryConfig,
             // telemetry: telConfig,
             telemetry: {
               metrics: {
