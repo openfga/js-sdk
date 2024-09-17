@@ -16,6 +16,7 @@ import { FgaValidationError, } from "./errors";
 import { assertParamExists, isWellFormedUlidString, isWellFormedUriString } from "./validation";
 import { TelemetryConfiguration, validAttributes } from "./telemetry/configuration";
 import { TelemetryAttribute } from "./telemetry/attributes";
+import { count } from "console";
 
 // default maximum number of retry
 const DEFAULT_MAX_RETRY = 15;
@@ -208,25 +209,25 @@ export class Configuration {
       const validAttrs = validAttributes();
 
       const counterConfigAttrs = this.telemetry.metrics.counterCredentialsRequest?.attributes || new Set<TelemetryAttribute>;
-      for (const counterConfigAttr in counterConfigAttrs) {
-        if (!validAttrs.has(counterConfigAttr as TelemetryAttribute)) {
-          throw new FgaValidationError(`Configuration.telemtry.metrics.counterCredentialsRequest attribute ${counterConfigAttr} is not a valid attribute`);
+      counterConfigAttrs.forEach(counterConfigAttr => {
+        if (!validAttrs.has(counterConfigAttr)) {
+          throw new FgaValidationError(`Configuration.telemtry.metrics.counterCredentialsRequest attribute '${counterConfigAttrs}' is not a valid attribute`);
         }
-      }
+      });
 
       const histogramRequestDurationConfigAttrs = this.telemetry.metrics.histogramRequestDuration?.attributes || new Set<TelemetryAttribute>;
-      for (const histogramRequestDurationAttr in histogramRequestDurationConfigAttrs) {
-        if (!validAttrs.has(histogramRequestDurationAttr as TelemetryAttribute)) {
-          throw new FgaValidationError(`Configuration.telemtry.metrics.histogramRequestDuration attribute ${histogramRequestDurationAttr} is not a valid attribute`);
+      histogramRequestDurationConfigAttrs.forEach(histogramRequestDurationAttr => {
+        if (!validAttrs.has(histogramRequestDurationAttr)) {
+          throw new FgaValidationError(`Configuration.telemtry.metrics.histogramRequestDuration attribute '${histogramRequestDurationAttr}' is not a valid attribute`);
         }
-      }
+      });
 
       const histogramQueryDurationConfigAttrs = this.telemetry.metrics.histogramQueryDuration?.attributes || new Set<TelemetryAttribute>;
-      for (const histogramQueryDurationConfigAttr in histogramQueryDurationConfigAttrs) {
-        if (!validAttrs.has(histogramQueryDurationConfigAttr as TelemetryAttribute)) {
-          throw new FgaValidationError(`Configuration.telemtry.metrics.counterCredentialsRequest attribute ${histogramQueryDurationConfigAttrs} is not a valid attribute`);
+      histogramQueryDurationConfigAttrs.forEach(histogramQueryDurationConfigAttr => {
+        if (!validAttrs.has(histogramQueryDurationConfigAttr)) {
+          throw new FgaValidationError(`Configuration.telemtry.metrics.histogramQueryDuration attribute '${histogramQueryDurationConfigAttrs}' is not a valid attribute`);
         }
-      }
+      });
     }
 
     return true;
