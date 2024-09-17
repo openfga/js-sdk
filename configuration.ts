@@ -208,22 +208,22 @@ export class Configuration {
       const validAttrs = validAttributes();
 
       const counterConfigAttrs = this.telemetry.metrics.counterCredentialsRequest?.attributes || new Set<TelemetryAttribute>;
-      for (let counterConfigAttr in counterConfigAttrs) {
-       if (!validAttrs.has(counterConfigAttr as TelemetryAttribute)) {
+      for (const counterConfigAttr in counterConfigAttrs) {
+        if (!validAttrs.has(counterConfigAttr as TelemetryAttribute)) {
           throw new FgaValidationError(`Configuration.telemtry.metrics.counterCredentialsRequest attribute ${counterConfigAttr} is not a valid attribute`);
         }
       }
 
       const histogramRequestDurationConfigAttrs = this.telemetry.metrics.histogramRequestDuration?.attributes || new Set<TelemetryAttribute>;
-      for (let histogramRequestDurationAttr in histogramRequestDurationConfigAttrs) {
-       if (!validAttrs.has(histogramRequestDurationAttr as TelemetryAttribute)) {
+      for (const histogramRequestDurationAttr in histogramRequestDurationConfigAttrs) {
+        if (!validAttrs.has(histogramRequestDurationAttr as TelemetryAttribute)) {
           throw new FgaValidationError(`Configuration.telemtry.metrics.histogramRequestDuration attribute ${histogramRequestDurationAttr} is not a valid attribute`);
         }
       }
 
       const histogramQueryDurationConfigAttrs = this.telemetry.metrics.histogramQueryDuration?.attributes || new Set<TelemetryAttribute>;
-      for (let histogramQueryDurationConfigAttr in histogramQueryDurationConfigAttrs) {
-       if (!validAttrs.has(histogramQueryDurationConfigAttr as TelemetryAttribute)) {
+      for (const histogramQueryDurationConfigAttr in histogramQueryDurationConfigAttrs) {
+        if (!validAttrs.has(histogramQueryDurationConfigAttr as TelemetryAttribute)) {
           throw new FgaValidationError(`Configuration.telemtry.metrics.counterCredentialsRequest attribute ${histogramQueryDurationConfigAttrs} is not a valid attribute`);
         }
       }
