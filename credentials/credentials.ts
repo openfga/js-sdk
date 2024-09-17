@@ -16,20 +16,21 @@ import globalAxios, { AxiosInstance } from "axios";
 import { assertParamExists, isWellFormedUriString } from "../validation";
 import { FgaApiAuthenticationError, FgaApiError, FgaError, FgaValidationError } from "../errors";
 import { attemptHttpRequest } from "../common";
-import { ApiTokenConfig, AuthCredentialsConfig, ClientCredentialsConfig, CredentialsMethod } from "./types";
+import { AuthCredentialsConfig, ClientCredentialsConfig, CredentialsMethod } from "./types";
 import { TelemetryAttributes } from "../telemetry/attributes";
 import { TelemetryMetrics } from "../telemetry/metrics";
 import { TelemetryCounters } from "../telemetry/counters";
+import { TelemetryConfiguration } from "../telemetry/configuration";
 
 export class Credentials {
   private accessToken?: string;
   private accessTokenExpiryDate?: Date;
 
-  public static init(configuration: { credentials: AuthCredentialsConfig }): Credentials {
-    return new Credentials(configuration.credentials);
+  public static init(configuration: { credentials: AuthCredentialsConfig, telemetry: TelemetryConfiguration }): Credentials {
+    return new Credentials(configuration.credentials, globalAxios, configuration.telemetry);
   }
 
-  public constructor(private authConfig: AuthCredentialsConfig, private axios: AxiosInstance = globalAxios) {
+  public constructor(private authConfig: AuthCredentialsConfig, private axios: AxiosInstance = globalAxios, private telemetryConfig: TelemetryConfiguration) {
     this.initConfig();
     this.isValid();
   }
@@ -160,25 +161,28 @@ export class Credentials {
         this.accessTokenExpiryDate = new Date(Date.now() + response.data.expires_in * 1000);
       }
 
-      const telemetryAttributes = new TelemetryAttributes();
-      const telemetryMetrics = new TelemetryMetrics();
+      // TODO is this the right check?
+      if (this.telemetryConfig?.metrics?.counterCredentialsRequest?.attributes) {
+        const telemetryAttributes = new TelemetryAttributes();
+        const telemetryMetrics = new TelemetryMetrics();
 
-      let attributes = {};
+        let attributes = {};
 
-      attributes = telemetryAttributes.fromRequest({
-        credentials: clientCredentials,
-        // resendCount: 0, // TODO: implement resend count tracking, not available in the current context
-        attributes,
-      });
+        attributes = telemetryAttributes.fromRequest({
+          credentials: clientCredentials,
+          // resendCount: 0, // TODO: implement resend count tracking, not available in the current context
+          attributes,
+        });
 
-      attributes = telemetryAttributes.fromResponse({
-        response,
-        credentials: clientCredentials,
-        attributes,
-      });
+        attributes = telemetryAttributes.fromResponse({
+          response,
+          credentials: clientCredentials,
+          attributes,
+        });
 
-      attributes = telemetryAttributes.prepare(attributes);
-      telemetryMetrics.counter(TelemetryCounters.credentialsRequest, 1, attributes);
+        attributes = telemetryAttributes.prepare(attributes);
+        telemetryMetrics.counter(TelemetryCounters.credentialsRequest, 1, attributes);
+      }
 
       return this.accessToken;
     } catch (err: unknown) {
