@@ -14,7 +14,7 @@
 import { ApiTokenConfig, AuthCredentialsConfig, ClientCredentialsConfig, CredentialsMethod } from "./credentials/types";
 import { FgaValidationError, } from "./errors";
 import { assertParamExists, isWellFormedUlidString, isWellFormedUriString } from "./validation";
-import { TelemetryConfiguration, validAttributes } from "./telemetry/configuration";
+import { TelemetryConfig, TelemetryConfiguration, validAttributes } from "./telemetry/configuration";
 import { TelemetryAttribute } from "./telemetry/attributes";
 import { count } from "console";
 
@@ -44,7 +44,7 @@ export interface UserConfigurationParams {
   credentials?: CredentialsConfig;
   baseOptions?: any;
   retryParams?: RetryParams;
-  telemetry?: TelemetryConfiguration;
+  telemetry?: TelemetryConfig;
 }
 
 export function GetDefaultRetryParams (maxRetry = DEFAULT_MAX_RETRY, minWaitInMs = DEFAULT_MIN_WAIT_MS) {
@@ -179,7 +179,8 @@ export class Configuration {
 
     this.baseOptions = baseOptions;
     this.retryParams = params.retryParams;
-    this.telemetry = params.telemetry || new TelemetryConfiguration();
+    this.telemetry = new TelemetryConfiguration(params?.telemetry?.metrics);
+    // this.telemetry = params.telemetry || new TelemetryConfiguration();
   }
 
   /**

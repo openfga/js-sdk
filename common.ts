@@ -226,7 +226,7 @@ export const createRequestFunction = function (axiosArgs: RequestArgs, axiosInst
       attributes,
     });
 
-    if (configuration.telemetry?.metrics?.histogramQueryDuration?.attributes?.has(TelemetryAttribute.HttpServerRequestDuration)) {
+    if (configuration.telemetry?.metrics?.histogramQueryDuration) {
       telemetryMetrics.histogram(
         TelemetryHistograms.queryDuration,
         parseInt(attributes[TelemetryAttribute.HttpServerRequestDuration] as string, 10),
@@ -237,7 +237,7 @@ export const createRequestFunction = function (axiosArgs: RequestArgs, axiosInst
       );
     }
 
-    if (configuration.telemetry?.metrics?.histogramQueryDuration?.attributes?.has(TelemetryAttribute.HttpClientRequestDuration)) {
+    if (configuration.telemetry?.metrics?.histogramRequestDuration) {
       telemetryMetrics.histogram(
         TelemetryHistograms.requestDuration,
         Date.now() - start,

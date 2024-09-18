@@ -1,5 +1,6 @@
 import { TelemetryAttribute } from "./attributes";
 
+
 const defaultAttributes = new Set<TelemetryAttribute>([
   TelemetryAttribute.HttpHost,
   TelemetryAttribute.HttpResponseStatusCode,
@@ -22,31 +23,64 @@ const defaultAttributes = new Set<TelemetryAttribute>([
   // TelemetryAttribute.FgaClientUser
 ]);
 
-export class TelemetryMetricConfiguration {
+export class TelemetryMetricConfiguration implements TelemetryMetricConfig {
   constructor(
     public attributes: Set<TelemetryAttribute> = defaultAttributes
   ) {}
 }
 
-export class TelemetryMetricsConfiguration {
+// Drop this whole class. Do this logic in the calling class (TelemetryCOnfiguration)
+export class TelemetryMetricsConfiguration implements MetricsConfig {
+  //  instead of taking 3 individual metrics, accept a map. e.g., 
+  // ["counterCredentialsRequest": TelemetryMetricConfig]
+  // only constructor will change
   constructor(
-    public counterCredentialsRequest: TelemetryMetricConfiguration = new TelemetryMetricConfiguration(),
-    public histogramRequestDuration: TelemetryMetricConfiguration = new TelemetryMetricConfiguration(),
-    public histogramQueryDuration: TelemetryMetricConfiguration = new TelemetryMetricConfiguration()
-  ) {}
+    public counterCredentialsRequest: TelemetryMetricConfig = new TelemetryMetricConfiguration(),
+    public histogramRequestDuration: TelemetryMetricConfig = new TelemetryMetricConfiguration(),
+    public histogramQueryDuration: TelemetryMetricConfig = new TelemetryMetricConfiguration()
+  ) {
+    if (!(counterCredentialsRequest instanceof TelemetryMetricConfiguration)) {
+      counterCredentialsRequest = new TelemetryMetricConfiguration(counterCredentialsRequest.attributes);
+    }
+    if (!(histogramRequestDuration instanceof TelemetryMetricConfiguration)) {
+      histogramRequestDuration = new TelemetryMetricConfiguration(histogramRequestDuration.attributes);
+    }
+    if (!(histogramQueryDuration instanceof TelemetryMetricConfiguration)) {
+      histogramQueryDuration = new TelemetryMetricConfiguration(histogramQueryDuration.attributes);
+    }
+  }
 }
 
-export class TelemetryConfiguration {
-  constructor(public metrics: TelemetryMetricsConfiguration = new TelemetryMetricsConfiguration()) {}
+export interface TelemetryMetricConfig {
+  attributes: Set<TelemetryAttribute>;
+}
+
+export interface MetricsConfig {
+  counterCredentialsRequest: TelemetryMetricConfiguration;
+  histogramRequestDuration: TelemetryMetricConfiguration;
+  histogramQueryDuration: TelemetryMetricConfiguration;
+}
+
+export interface TelemetryConfig {
+  metrics: MetricsConfig
+}
+
+export class TelemetryConfiguration implements TelemetryConfig {
+  constructor(public metrics: MetricsConfig = new TelemetryMetricsConfiguration()) {
+    if (!(metrics instanceof TelemetryMetricsConfiguration)) {
+      // metrics = {"counterCredentialsRequest": new TelemetryMetricConfiguration(metrics.counterCredentialsRequest.attributes) }
+      metrics = new TelemetryMetricsConfiguration(metrics.counterCredentialsRequest, metrics.histogramRequestDuration, metrics.histogramQueryDuration);
+    }
+  }
 
   // TODO move validation to a method here, like this (causing usage issues currently):
-  // isValid(): boolean {
-  //   return true;
-  //   // if (!this.metrics) {
-  //   //   return true;
-  //   // }
-  // ...
-  // }
+  isValid(): boolean {
+    return true;
+    // if (!this.metrics) {
+    //   return true;
+    // }
+
+  }
 }
 
 export function validAttributes(): Set<TelemetryAttribute> {
