@@ -1,3 +1,4 @@
+import { FgaValidationError } from "../errors";
 import { TelemetryAttribute } from "./attributes";
 
 
@@ -68,17 +69,33 @@ export interface TelemetryConfig {
 export class TelemetryConfiguration implements TelemetryConfig {
   constructor(public metrics: MetricsConfig = new TelemetryMetricsConfiguration()) {
     if (!(metrics instanceof TelemetryMetricsConfiguration)) {
-      // metrics = {"counterCredentialsRequest": new TelemetryMetricConfiguration(metrics.counterCredentialsRequest.attributes) }
       metrics = new TelemetryMetricsConfiguration(metrics.counterCredentialsRequest, metrics.histogramRequestDuration, metrics.histogramQueryDuration);
     }
   }
 
-  // TODO move validation to a method here, like this (causing usage issues currently):
-  isValid(): boolean {
-    return true;
-    // if (!this.metrics) {
-    //   return true;
-    // }
+  public ensureValid(): void {
+    const validAttrs = validAttributes();
+
+    const counterConfigAttrs = this.metrics.counterCredentialsRequest?.attributes || new Set<TelemetryAttribute>;
+    counterConfigAttrs.forEach(counterConfigAttr => {
+      if (!validAttrs.has(counterConfigAttr)) {
+        throw new FgaValidationError(`Configuration.telemtry.metrics.counterCredentialsRequest attribute '${counterConfigAttrs}' is not a valid attribute`);
+      }
+    });
+
+    const histogramRequestDurationConfigAttrs = this.metrics.histogramRequestDuration?.attributes || new Set<TelemetryAttribute>;
+    histogramRequestDurationConfigAttrs.forEach(histogramRequestDurationAttr => {
+      if (!validAttrs.has(histogramRequestDurationAttr)) {
+        throw new FgaValidationError(`Configuration.telemtry.metrics.histogramRequestDuration attribute '${histogramRequestDurationAttr}' is not a valid attribute`);
+      }
+    });
+
+    const histogramQueryDurationConfigAttrs = this.metrics.histogramQueryDuration?.attributes || new Set<TelemetryAttribute>;
+    histogramQueryDurationConfigAttrs.forEach(histogramQueryDurationConfigAttr => {
+      if (!validAttrs.has(histogramQueryDurationConfigAttr)) {
+        throw new FgaValidationError(`Configuration.telemtry.metrics.histogramQueryDuration attribute '${histogramQueryDurationConfigAttrs}' is not a valid attribute`);
+      }
+    });
 
   }
 }
