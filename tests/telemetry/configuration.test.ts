@@ -1,5 +1,6 @@
-import { TelemetryMetricConfiguration, TelemetryConfiguration, TelemetryMetricsConfiguration } from "../../telemetry/configuration";
+import { TelemetryMetricConfiguration, TelemetryConfiguration, TelemetryMetricConfig } from "../../telemetry/configuration";
 import { TelemetryAttribute } from "../../telemetry/attributes";
+import { TelemetryMetric } from "../../dist";
 
 describe("TelemetryMetricConfiguration", () => {
   test("should create a default TelemetryMetricConfiguration instance", () => {
@@ -47,6 +48,18 @@ describe("TelemetryConfiguration", () => {
   test("should create a default TelemetryConfiguration instance", () => {
     const config = new TelemetryConfiguration();
 
-    expect(config.metrics).toBeInstanceOf(TelemetryMetricsConfiguration);
+    const counters = config.metrics.counterCredentialsRequest;
+    expect(counters).toBeInstanceOf(TelemetryMetricConfiguration);
+    expect(counters.attributes).toEqual(TelemetryConfiguration.defaultAttributes);
+    
+    const histogramQueryDuration = config.metrics.histogramQueryDuration;
+    expect(histogramQueryDuration).toBeInstanceOf(TelemetryMetricConfiguration);
+    expect(histogramQueryDuration.attributes).toEqual(TelemetryConfiguration.defaultAttributes);
+
+    const histogramRequestDuration = config.metrics.histogramRequestDuration;
+    expect(counters).toBeInstanceOf(TelemetryMetricConfiguration);
+    expect(counters.attributes).toEqual(TelemetryConfiguration.defaultAttributes);
   });
+
+  // TODO verify behavior for only specifying some of the metrics, what should the others be set to?
 });

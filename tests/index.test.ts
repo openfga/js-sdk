@@ -23,12 +23,8 @@ import {
   FgaApiNotFoundError,
   FgaApiRateLimitExceededError,
   FgaApiValidationError,
-  FgaValidationError,
   OpenFgaApi,
   TelemetryAttribute,
-  TelemetryConfiguration,
-  TelemetryMetricConfiguration,
-  TelemetryMetricsConfiguration,
 } from "../index";
 import { CallResult } from "../common";
 import { GetDefaultRetryParams } from "../configuration";

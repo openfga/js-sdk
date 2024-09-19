@@ -1,9 +1,13 @@
-import { Counter, Histogram, Meter, ValueType } from "@opentelemetry/api";
-import { TelemetryConfiguration, TelemetryMetricsConfiguration } from "./configuration";
-import { TelemetryCounters, TelemetryCounter } from "./counters";
-import { TelemetryHistograms, TelemetryHistogram } from "./histograms";
-import { TelemetryAttributes, TelemetryAttribute } from "./attributes";
+import { Counter, Histogram, Meter } from "@opentelemetry/api";
+import { TelemetryCounter } from "./counters";
+import { TelemetryHistogram } from "./histograms";
 import { metrics } from "@opentelemetry/api";
+
+export enum TelemetryMetric {
+  CounterCredentialsRequest = "counterCredentialsRequest",
+  HistogramRequestDuration = "histogramRequestDuration",
+  HistogramQueryDuration = "histogramQueryDuration",
+}
 
 export class TelemetryMetrics {
   private _meter: Meter | null = null;
