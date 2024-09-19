@@ -34,7 +34,7 @@ describe("TelemetryMetrics", () => {
   });
 
   test("should handle creating metrics with custom attributes", () => {
-    const attributes = new TelemetryAttributes().prepare({ "http.host": "example.com" });
+    const attributes = TelemetryAttributes.prepare({ "http.host": "example.com" });
     const counter = telemetryMetrics.counter(TelemetryCounters.credentialsRequest, 3, attributes);
 
     expect(counter.add).toHaveBeenCalledWith(3, attributes);

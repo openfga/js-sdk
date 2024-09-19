@@ -21,7 +21,7 @@ export enum TelemetryAttribute {
 }
 
 export class TelemetryAttributes {
-  prepare(
+  static prepare(
     attributes?: Record<string, string | number>,
     filter?: Set<TelemetryAttribute>
   ): Record<string, string | number> {
@@ -38,7 +38,7 @@ export class TelemetryAttributes {
     return result;
   }
 
-  fromRequest({
+  static fromRequest({
     userAgent,
     fgaMethod,
     httpMethod,
@@ -77,7 +77,7 @@ export class TelemetryAttributes {
     return attributes;
   }
 
-  fromResponse({
+  static fromResponse({
     response,
     credentials,
     attributes = {},

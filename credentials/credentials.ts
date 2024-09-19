@@ -161,26 +161,25 @@ export class Credentials {
         this.accessTokenExpiryDate = new Date(Date.now() + response.data.expires_in * 1000);
       }
 
-      // TODO is this the right check?
       if (this.telemetryConfig?.metrics?.counterCredentialsRequest?.attributes) {
-        const telemetryAttributes = new TelemetryAttributes();
+        // TODO shouldn't need a new instance per each request?
         const telemetryMetrics = new TelemetryMetrics();
 
         let attributes = {};
 
-        attributes = telemetryAttributes.fromRequest({
+        attributes = TelemetryAttributes.fromRequest({
           credentials: clientCredentials,
           // resendCount: 0, // TODO: implement resend count tracking, not available in the current context
           attributes,
         });
 
-        attributes = telemetryAttributes.fromResponse({
+        attributes = TelemetryAttributes.fromResponse({
           response,
           credentials: clientCredentials,
           attributes,
         });
 
-        attributes = telemetryAttributes.prepare(attributes);
+        attributes = TelemetryAttributes.prepare(attributes);
         telemetryMetrics.counter(TelemetryCounters.credentialsRequest, 1, attributes);
       }
 

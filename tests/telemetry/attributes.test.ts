@@ -1,11 +1,6 @@
 import { TelemetryAttribute, TelemetryAttributes } from "../../telemetry/attributes";
 
 describe("TelemetryAttributes", () => {
-  let telemetryAttributes: TelemetryAttributes;
-
-  beforeEach(() => {
-    telemetryAttributes = new TelemetryAttributes();
-  });
 
   test("should prepare attributes correctly", () => {
     const attributes = {
@@ -14,7 +9,7 @@ describe("TelemetryAttributes", () => {
     };
 
     const filter = new Set<TelemetryAttribute>([TelemetryAttribute.FgaClientRequestClientId]);
-    const prepared = telemetryAttributes.prepare(attributes, filter);
+    const prepared = TelemetryAttributes.prepare(attributes, filter);
 
     expect(prepared).toEqual({ "fga-client.request.client_id": "test-client-id" });
   });
@@ -24,14 +19,14 @@ describe("TelemetryAttributes", () => {
       [TelemetryAttribute.HttpHost]: "example.com",
       [TelemetryAttribute.HttpResponseStatusCode]: 200,
     };
-    expect(telemetryAttributes.prepare(attributes)).toEqual({});
+    expect(TelemetryAttributes.prepare(attributes)).toEqual({});
   });
 
   test("should return an empty object when filter is provided but attributes is undefined", () => {
     const filter = new Set<TelemetryAttribute>([
       TelemetryAttribute.HttpHost,
     ]);
-    expect(telemetryAttributes.prepare(undefined, filter)).toEqual({});
+    expect(TelemetryAttributes.prepare(undefined, filter)).toEqual({});
   });
 
   test("should return an empty object when none of the attributes are in the filter set", () => {
@@ -42,11 +37,11 @@ describe("TelemetryAttributes", () => {
     const filter = new Set<TelemetryAttribute>([
       TelemetryAttribute.UserAgentOriginal,
     ]);
-    expect(telemetryAttributes.prepare(attributes, filter)).toEqual({});
+    expect(TelemetryAttributes.prepare(attributes, filter)).toEqual({});
   });
 
   test("should create attributes from request correctly", () => {
-    const result = telemetryAttributes.fromRequest({
+    const result = TelemetryAttributes.fromRequest({
       userAgent: "Mozilla/5.0",
       fgaMethod: "GET",
       httpMethod: "POST",
@@ -65,7 +60,7 @@ describe("TelemetryAttributes", () => {
 
   test("should create attributes from response correctly", () => {
     const response = { status: 200, headers: { "openfga-authorization-model-id": "model-id", "fga-query-duration-ms": "10" } };
-    const result = telemetryAttributes.fromResponse({ response });
+    const result = TelemetryAttributes.fromResponse({ response });
 
     // Verify line 90 is covered - status is correctly set
     expect(result["http.response.status_code"]).toEqual(200);
@@ -75,7 +70,7 @@ describe("TelemetryAttributes", () => {
 
   test("should handle response without status correctly", () => {
     const response = { headers: { "openfga-authorization-model-id": "model-id", "fga-query-duration-ms": "10" } };
-    const result = telemetryAttributes.fromResponse({ response });
+    const result = TelemetryAttributes.fromResponse({ response });
 
     // Verify that no status code is set when response does not have a status
     expect(result["http.response.status_code"]).toBeUndefined();
@@ -86,7 +81,7 @@ describe("TelemetryAttributes", () => {
   test("should create attributes from response with client credentials", () => {
     const response = { status: 200, headers: {} };
     const credentials = { method: "client_credentials", configuration: { clientId: "client-id" } };
-    const result = telemetryAttributes.fromResponse({ response, credentials });
+    const result = TelemetryAttributes.fromResponse({ response, credentials });
 
     // Check that the client ID is set correctly from the credentials
     expect(result["http.response.status_code"]).toEqual(200);
