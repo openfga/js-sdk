@@ -1,6 +1,5 @@
 import "dotenv/config";
-import { CredentialsMethod, FgaApiValidationError, OpenFgaClient, TelemetryAttribute, TelemetryMetricConfiguration, TelemetryMetricsConfiguration } from "@openfga/sdk";
-// import { TelemetryConfiguration } from "../../telemetry/configuration";
+import { CredentialsMethod, FgaApiValidationError, OpenFgaClient, TelemetryAttribute, TelemetryConfiguration } from "@openfga/sdk";
 
 let credentials;
 if (process.env.FGA_CLIENT_ID) {
@@ -23,25 +22,8 @@ const counterCredentialsRequestAttributes = new Set([
   TelemetryAttribute.FgaClientRequestClientId
 ]);
 
-const histogramRequestDurationAttributes = new Set([
-  TelemetryAttribute.HttpResponseStatusCode,
-  TelemetryAttribute.UserAgentOriginal,
-  TelemetryAttribute.HttpRequestMethod,
-  TelemetryAttribute.FgaClientRequestClientId,
-  TelemetryAttribute.FgaClientRequestStoreId,
-  TelemetryAttribute.FgaClientResponseModelId,
-  TelemetryAttribute.HttpRequestResendCount,
-]);
-
-const histogramQueryDurationAttributes = new Set([
-  TelemetryAttribute.HttpResponseStatusCode,
-  TelemetryAttribute.UserAgentOriginal,
-  TelemetryAttribute.HttpRequestMethod,
-  TelemetryAttribute.FgaClientRequestClientId,
-  TelemetryAttribute.FgaClientRequestStoreId,
-  TelemetryAttribute.FgaClientResponseModelId,
-  TelemetryAttribute.HttpRequestResendCount,
-]);
+const histogramRequestDurationAttributes = TelemetryConfiguration.validAttriburtes;
+const histogramQueryDurationAttributes = TelemetryConfiguration.validAttriburtes;
 
 const telemetryConfig = {
   metrics: {
