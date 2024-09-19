@@ -1,6 +1,5 @@
 import { TelemetryMetricConfiguration, TelemetryConfiguration, TelemetryMetricConfig } from "../../telemetry/configuration";
 import { TelemetryAttribute } from "../../telemetry/attributes";
-import { TelemetryMetric } from "../../dist";
 
 describe("TelemetryMetricConfiguration", () => {
   test("should create a default TelemetryMetricConfiguration instance", () => {
