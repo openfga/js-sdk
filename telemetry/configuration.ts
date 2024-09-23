@@ -1,6 +1,6 @@
 import { FgaValidationError } from "../errors";
 import { TelemetryAttribute } from "./attributes";
-import { TelemetryMetric } from "./metrics";
+import { TelemetryMetric, MetricRecorder } from "./metrics";
 
 /**
  * Configuration for a telemetry metric.
@@ -19,7 +19,7 @@ export interface TelemetryMetricConfig {
  * @property {Record<TelemetryMetric, TelemetryMetricConfig>} metrics - A record mapping telemetry metrics to their configurations.
  */
 export interface TelemetryConfig {
-  metrics: Record<TelemetryMetric, TelemetryMetricConfig>;
+  metrics: Partial<Record<TelemetryMetric, TelemetryMetricConfig>>;
 }
 
 /**
@@ -100,15 +100,24 @@ export class TelemetryConfiguration implements TelemetryConfig {
   /**
    * Creates an instance of TelemetryConfiguration.
    * 
-   * @param {Record<TelemetryMetric, TelemetryMetricConfig>} [metrics] - A record mapping telemetry metrics to their configurations.
+   * @param {Partial<Record<TelemetryMetric, TelemetryMetricConfig>>} [metrics] - A record mapping telemetry metrics to their configurations.
    */
   constructor(
-    public metrics: Record<TelemetryMetric, TelemetryMetricConfig> = {
+    public metrics: Partial<Record<TelemetryMetric, TelemetryMetricConfig>> = {},
+    public recorder: MetricRecorder = new MetricRecorder(),
+  ) {
+    const defaultMetrics: Record<TelemetryMetric, TelemetryMetricConfig> = {
       [TelemetryMetric.CounterCredentialsRequest]: new TelemetryMetricConfiguration(),
       [TelemetryMetric.HistogramRequestDuration]: new TelemetryMetricConfiguration(),
       [TelemetryMetric.HistogramQueryDuration]: new TelemetryMetricConfiguration(),
-    },
-  ) {}
+    };
+
+    // Merge provided metrics with default metrics
+    this.metrics = {
+      ...defaultMetrics,
+      ...metrics,
+    };
+  }
 
   /**
    * Validates that the configured metrics use only valid attributes.

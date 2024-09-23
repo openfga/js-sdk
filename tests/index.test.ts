@@ -251,34 +251,11 @@ describe("OpenFGA SDK", function () {
     });
 
     it("should only accept valid telemetry attributes", async () => {
-      // const metricConfig = new TelemetryMetricConfiguration(new Set<TelemetryAttribute>);
-      // const metricsConfig = new TelemetryMetricsConfiguration(
-      //   metricConfig,
-      //   metricConfig,
-      //   metricConfig,
-      // );
-      // const telConfig = new TelemetryConfiguration(metricsConfig);
-
-      // const telemetryConfig = {
-      //   metrics: {
-      //     counterCredentialsRequest: {
-      //       attributes: new Set<TelemetryAttribute>
-      //     },
-      //     histogramRequestDuration: {
-      //       attributes: new Set<TelemetryAttribute>
-      //     },
-      //     histogramQueryDuration: {
-      //       attributes: new Set<TelemetryAttribute>
-      //     }
-      //   }
-      // };
-      
+    
       expect(
         () =>
           new OpenFgaApi({
             ...baseConfig,
-            // telemetry: telemetryConfig,
-            // telemetry: telConfig,
             telemetry: {
               metrics: {
                 counterCredentialsRequest: {
@@ -290,6 +267,26 @@ describe("OpenFGA SDK", function () {
                 histogramRequestDuration: {
                   attributes: new Set<TelemetryAttribute>
                 }
+              }
+            }
+          })
+      ).toThrow();
+    });
+
+    it("should only accept valid telemetry metrics", async () => {
+    
+      expect(
+        () =>
+          new OpenFgaApi({
+            ...baseConfig,
+            telemetry: {
+              metrics: {
+                histogramRequestDuration: {
+                  attributes: new Set<TelemetryAttribute>
+                },
+                counterCredentialsRequest: {
+                  attributes: ["JUNK"] as any
+                },
               }
             }
           })

@@ -1,4 +1,4 @@
-import { TelemetryMetrics } from "../../telemetry/metrics";
+import { MetricRecorder } from "../../telemetry/metrics";
 import { TelemetryCounters } from "../../telemetry/counters";
 import { TelemetryHistograms } from "../../telemetry/histograms";
 import { TelemetryAttributes } from "../../telemetry/attributes";
@@ -13,10 +13,10 @@ jest.mock("@opentelemetry/api", () => ({
 }));
 
 describe("TelemetryMetrics", () => {
-  let telemetryMetrics: TelemetryMetrics;
+  let telemetryMetrics: MetricRecorder;
 
   beforeEach(() => {
-    telemetryMetrics = new TelemetryMetrics();
+    telemetryMetrics = new MetricRecorder();
   });
 
   test("should create a counter and add a value", () => {

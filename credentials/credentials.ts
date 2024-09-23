@@ -18,7 +18,7 @@ import { FgaApiAuthenticationError, FgaApiError, FgaError, FgaValidationError } 
 import { attemptHttpRequest } from "../common";
 import { AuthCredentialsConfig, ClientCredentialsConfig, CredentialsMethod } from "./types";
 import { TelemetryAttributes } from "../telemetry/attributes";
-import { TelemetryMetrics } from "../telemetry/metrics";
+import { MetricRecorder } from "../telemetry/metrics";
 import { TelemetryCounters } from "../telemetry/counters";
 import { TelemetryConfiguration } from "../telemetry/configuration";
 
@@ -162,8 +162,6 @@ export class Credentials {
       }
 
       if (this.telemetryConfig?.metrics?.counterCredentialsRequest?.attributes) {
-        // TODO shouldn't need a new instance per each request?
-        const telemetryMetrics = new TelemetryMetrics();
 
         let attributes = {};
 
@@ -180,7 +178,7 @@ export class Credentials {
         });
 
         attributes = TelemetryAttributes.prepare(attributes);
-        telemetryMetrics.counter(TelemetryCounters.credentialsRequest, 1, attributes);
+        this.telemetryConfig.recorder.counter(TelemetryCounters.credentialsRequest, 1, attributes);
       }
 
       return this.accessToken;

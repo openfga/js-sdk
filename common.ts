@@ -26,7 +26,7 @@ import {
 } from "./errors";
 import { setNotEnumerableProperty } from "./utils";
 import { TelemetryAttribute, TelemetryAttributes } from "./telemetry/attributes";
-import { TelemetryMetrics } from "./telemetry/metrics";
+import { MetricRecorder } from "./telemetry/metrics";
 import { TelemetryHistograms } from "./telemetry/histograms";
 
 /**
@@ -209,9 +209,6 @@ export const createRequestFunction = function (axiosArgs: RequestArgs, axiosInst
     const result: CallResult<any> = { ...data };
     setNotEnumerableProperty(result, "$response", response);
 
-    // TODO shouldn't need a new instance per each request?
-    const telemetryMetrics = new TelemetryMetrics();
-
     let attributes: StringIndexable = {};
 
     attributes = TelemetryAttributes.fromRequest({
@@ -227,7 +224,7 @@ export const createRequestFunction = function (axiosArgs: RequestArgs, axiosInst
     });
 
     if (configuration.telemetry?.metrics?.histogramQueryDuration) {
-      telemetryMetrics.histogram(
+      configuration.telemetry.recorder.histogram(
         TelemetryHistograms.queryDuration,
         parseInt(attributes[TelemetryAttribute.HttpServerRequestDuration] as string, 10),
         TelemetryAttributes.prepare(
@@ -238,7 +235,7 @@ export const createRequestFunction = function (axiosArgs: RequestArgs, axiosInst
     }
 
     if (configuration.telemetry?.metrics?.histogramRequestDuration) {
-      telemetryMetrics.histogram(
+      configuration.telemetry.recorder.histogram(
         TelemetryHistograms.requestDuration,
         Date.now() - start,
         TelemetryAttributes.prepare(

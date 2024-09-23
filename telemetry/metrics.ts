@@ -9,7 +9,8 @@ export enum TelemetryMetric {
   HistogramQueryDuration = "histogramQueryDuration",
 }
 
-export class TelemetryMetrics {
+export class MetricRecorder {
+
   private _meter: Meter | null = null;
   private _counters: Record<string, Counter> = {};
   private _histograms: Record<string, Histogram> = {};
