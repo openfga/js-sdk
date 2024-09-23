@@ -133,7 +133,10 @@ export class Credentials {
    */
   private async refreshAccessToken() {
     const clientCredentials = (this.authConfig as { method: CredentialsMethod.ClientCredentials; config: ClientCredentialsConfig })?.config;
-
+    const url = clientCredentials.apiTokenIssuer.includes('/')
+      ? `https://${clientCredentials.apiTokenIssuer}`
+      : `https://${clientCredentials.apiTokenIssuer}/oauth/token`;
+    
     try {
       const response = await attemptHttpRequest<{
           client_id: string,
@@ -144,7 +147,7 @@ export class Credentials {
         access_token: string,
         expires_in: number,
       }>({
-        url: `https://${clientCredentials.apiTokenIssuer}/oauth/token`,
+        url: url,
         method: "post",
         data: {
           client_id: clientCredentials.clientId,
