@@ -7,13 +7,11 @@ export enum TelemetryAttribute {
   FgaClientRequestStoreId = "fga-client.request.store_id",
   FgaClientResponseModelId  = "fga-client.response.model_id",
   FgaClientUser = "fga-client.user",
-  // remove this attribute, keep as metric
   HttpClientRequestDuration = "http.client.request.duration",
   HttpHost = "http.host",
   HttpRequestMethod = "http.request.method",
   HttpRequestResendCount = "http.request.resend_count",
   HttpResponseStatusCode = "http.response.status_code",
-  // remove this attribute, keep as metric
   HttpServerRequestDuration = "http.server.request.duration",
   UrlScheme = "url.scheme",
   UrlFull = "url.full",
@@ -26,7 +24,8 @@ export class TelemetryAttributes {
     filter?: Set<TelemetryAttribute>
   ): Record<string, string | number> {
     attributes = attributes || {};
-    filter = filter || new Set();
+    // ensure we are always using a set
+    filter = new Set(filter) || new Set();
     const result: Record<string, string | number> = {};
   
     for (const key in attributes) {
