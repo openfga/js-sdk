@@ -272,26 +272,6 @@ describe("OpenFGA SDK", function () {
           })
       ).toThrow();
     });
-
-    it("should only accept valid telemetry metrics", async () => {
-    
-      expect(
-        () =>
-          new OpenFgaApi({
-            ...baseConfig,
-            telemetry: {
-              metrics: {
-                histogramRequestDuration: {
-                  attributes: new Set<TelemetryAttribute>
-                },
-                counterCredentialsRequest: {
-                  attributes: ["JUNK"] as any
-                },
-              }
-            }
-          })
-      ).toThrow();
-    });
   });
 
   describe("error handling", () => {

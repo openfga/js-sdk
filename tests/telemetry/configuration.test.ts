@@ -84,6 +84,4 @@ describe("TelemetryConfiguration", () => {
       ])));
     expect(config.metrics.histogramRequestDuration?.attributes).toEqual(TelemetryConfiguration.defaultAttributes);
   });
-
-  // TODO verify behavior for only specifying some of the metrics, what should the others be set to?
 });
