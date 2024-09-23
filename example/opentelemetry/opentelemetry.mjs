@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { CredentialsMethod, FgaApiValidationError, OpenFgaClient, TelemetryAttribute, TelemetryConfiguration } from "@openfga/sdk";
+import { CredentialsMethod, FgaApiValidationError, OpenFgaClient, TelemetryAttribute, TelemetryConfiguration, TelemetryMetric } from "@openfga/sdk";
 
 let credentials;
 if (process.env.FGA_CLIENT_ID) {
@@ -14,27 +14,40 @@ if (process.env.FGA_CLIENT_ID) {
   };
 }
 
-// define desired telemetry options
-const counterCredentialsRequestAttributes = new Set([
-  TelemetryAttribute.HttpHost,
-  TelemetryAttribute.HttpResponseStatusCode,
-  TelemetryAttribute.UserAgentOriginal,
-  TelemetryAttribute.FgaClientRequestClientId
-]);
-
-const histogramRequestDurationAttributes = TelemetryConfiguration.validAttriburtes;
-const histogramQueryDurationAttributes = TelemetryConfiguration.validAttriburtes;
-
 const telemetryConfig = {
   metrics: {
-    counterCredentialsRequest: {
-      attributes: counterCredentialsRequestAttributes
+    [TelemetryMetric.CounterCredentialsRequest]: {
+      attributes: new Set([
+        TelemetryAttribute.UrlScheme,
+        TelemetryAttribute.UserAgentOriginal,
+        TelemetryAttribute.HttpRequestMethod,
+        TelemetryAttribute.FgaClientRequestClientId,
+        TelemetryAttribute.FgaClientRequestStoreId,
+        TelemetryAttribute.FgaClientRequestModelId,
+        TelemetryAttribute.HttpRequestResendCount,
+      ])
     },
-    histogramRequestDuration: {
-      attributes: histogramRequestDurationAttributes
+    [TelemetryMetric.HistogramRequestDuration]: {
+      attributes: new Set([
+        TelemetryAttribute.HttpResponseStatusCode,
+        TelemetryAttribute.UserAgentOriginal,
+        TelemetryAttribute.FgaClientRequestMethod,
+        TelemetryAttribute.FgaClientRequestClientId,
+        TelemetryAttribute.FgaClientRequestStoreId,
+        TelemetryAttribute.FgaClientRequestModelId,
+        TelemetryAttribute.HttpRequestResendCount,
+      ])
     },
-    histogramQueryDuration: {
-      attributes: histogramQueryDurationAttributes
+    [TelemetryMetric.HistogramQueryDuration]: {
+      attributes: new Set([
+        TelemetryAttribute.HttpResponseStatusCode,
+        TelemetryAttribute.UserAgentOriginal,
+        TelemetryAttribute.FgaClientRequestMethod,
+        TelemetryAttribute.FgaClientRequestClientId,
+        TelemetryAttribute.FgaClientRequestStoreId,
+        TelemetryAttribute.FgaClientRequestModelId,
+        TelemetryAttribute.HttpRequestResendCount,
+      ])
     }
   }
 };
