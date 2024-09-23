@@ -9,7 +9,7 @@ import { TelemetryMetric, MetricRecorder } from "./metrics";
  * @property {Set<TelemetryAttribute>} attributes - A set of attributes associated with the telemetry metric.
  */
 export interface TelemetryMetricConfig {
-  attributes: Set<TelemetryAttribute>;
+  attributes?: Set<TelemetryAttribute>;
 }
 
 /**
@@ -19,20 +19,7 @@ export interface TelemetryMetricConfig {
  * @property {Record<TelemetryMetric, TelemetryMetricConfig>} metrics - A record mapping telemetry metrics to their configurations.
  */
 export interface TelemetryConfig {
-  metrics: Partial<Record<TelemetryMetric, TelemetryMetricConfig>>;
-}
-
-/**
- * Provides the configuration for a specific telemetry metric.
- * 
- * @class TelemetryMetricConfiguration
- * @implements {TelemetryMetricConfig}
- * @param {Set<TelemetryAttribute>} [attributes=TelemetryConfiguration.defaultAttributes] - A set of attributes for the metric. Defaults to the standard attributes.
- */
-export class TelemetryMetricConfiguration implements TelemetryMetricConfig {
-  constructor(
-    public attributes: Set<TelemetryAttribute> = TelemetryConfiguration.defaultAttributes
-  ) {}
+  metrics?: Partial<Record<TelemetryMetric, TelemetryMetricConfig>>;
 }
 
 /**
@@ -43,6 +30,8 @@ export class TelemetryMetricConfiguration implements TelemetryMetricConfig {
  */
 export class TelemetryConfiguration implements TelemetryConfig {
 
+  public readonly recorder: MetricRecorder = new MetricRecorder();
+  
   /**
    * Default attributes for telemetry metrics.
    * 
@@ -103,20 +92,21 @@ export class TelemetryConfiguration implements TelemetryConfig {
    * @param {Partial<Record<TelemetryMetric, TelemetryMetricConfig>>} [metrics] - A record mapping telemetry metrics to their configurations.
    */
   constructor(
-    public metrics: Partial<Record<TelemetryMetric, TelemetryMetricConfig>> = {},
-    public recorder: MetricRecorder = new MetricRecorder(),
+    public metrics?: Partial<Record<TelemetryMetric, TelemetryMetricConfig>>,
   ) {
-    const defaultMetrics: Record<TelemetryMetric, TelemetryMetricConfig> = {
-      [TelemetryMetric.CounterCredentialsRequest]: new TelemetryMetricConfiguration(),
-      [TelemetryMetric.HistogramRequestDuration]: new TelemetryMetricConfiguration(),
-      [TelemetryMetric.HistogramQueryDuration]: new TelemetryMetricConfiguration(),
-    };
-
-    // Merge provided metrics with default metrics
-    this.metrics = {
-      ...defaultMetrics,
-      ...metrics,
-    };
+    if (!metrics) {
+      this.metrics = {
+        [TelemetryMetric.CounterCredentialsRequest]: {attributes: TelemetryConfiguration.defaultAttributes},
+        [TelemetryMetric.HistogramRequestDuration]: {attributes: TelemetryConfiguration.defaultAttributes},
+        [TelemetryMetric.HistogramQueryDuration]: {attributes: TelemetryConfiguration.defaultAttributes},
+      };
+    } else {
+      this.metrics = {
+        [TelemetryMetric.CounterCredentialsRequest]: metrics[TelemetryMetric.CounterCredentialsRequest] || undefined,
+        [TelemetryMetric.HistogramRequestDuration]: metrics[TelemetryMetric.HistogramRequestDuration] || undefined,
+        [TelemetryMetric.HistogramQueryDuration]: metrics[TelemetryMetric.HistogramQueryDuration] || undefined,
+      };
+    }
   }
 
   /**
@@ -127,21 +117,21 @@ export class TelemetryConfiguration implements TelemetryConfig {
   public ensureValid(): void {
     const validAttrs = TelemetryConfiguration.validAttriburtes;
 
-    const counterConfigAttrs = this.metrics.counterCredentialsRequest?.attributes || new Set<TelemetryAttribute>();
+    const counterConfigAttrs = this.metrics?.counterCredentialsRequest?.attributes || new Set<TelemetryAttribute>();
     counterConfigAttrs.forEach(counterConfigAttr => {
       if (!validAttrs.has(counterConfigAttr)) {
         throw new FgaValidationError(`Configuration.telemetry.metrics.counterCredentialsRequest attribute '${counterConfigAttr}' is not a valid attribute`);
       }
     });
 
-    const histogramRequestDurationConfigAttrs = this.metrics.histogramRequestDuration?.attributes || new Set<TelemetryAttribute>();
+    const histogramRequestDurationConfigAttrs = this.metrics?.histogramRequestDuration?.attributes || new Set<TelemetryAttribute>();
     histogramRequestDurationConfigAttrs.forEach(histogramRequestDurationAttr => {
       if (!validAttrs.has(histogramRequestDurationAttr)) {
         throw new FgaValidationError(`Configuration.telemetry.metrics.histogramRequestDuration attribute '${histogramRequestDurationAttr}' is not a valid attribute`);
       }
     });
 
-    const histogramQueryDurationConfigAttrs = this.metrics.histogramQueryDuration?.attributes || new Set<TelemetryAttribute>();
+    const histogramQueryDurationConfigAttrs = this.metrics?.histogramQueryDuration?.attributes || new Set<TelemetryAttribute>();
     histogramQueryDurationConfigAttrs.forEach(histogramQueryDurationConfigAttr => {
       if (!validAttrs.has(histogramQueryDurationConfigAttr)) {
         throw new FgaValidationError(`Configuration.telemetry.metrics.histogramQueryDuration attribute '${histogramQueryDurationConfigAttr}' is not a valid attribute`);

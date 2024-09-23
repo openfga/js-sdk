@@ -1,87 +1,45 @@
-import { TelemetryMetricConfiguration, TelemetryConfiguration, TelemetryMetricConfig } from "../../telemetry/configuration";
+import { TelemetryConfiguration, TelemetryMetricConfig } from "../../telemetry/configuration";
 import { TelemetryAttribute } from "../../telemetry/attributes";
 import { TelemetryMetric } from "../../telemetry/metrics";
 
-describe("TelemetryMetricConfiguration", () => {
-  test("should create a default TelemetryMetricConfiguration instance", () => {
-    const config = new TelemetryMetricConfiguration();
-
-    expect(config.attributes.has(TelemetryAttribute.HttpHost));
-    expect(config.attributes.has(TelemetryAttribute.HttpResponseStatusCode));
-    expect(config.attributes.has(TelemetryAttribute.UserAgentOriginal));
-    expect(config.attributes.has(TelemetryAttribute.HttpRequestMethod));
-    expect(config.attributes.has(TelemetryAttribute.FgaClientRequestMethod));
-    expect(config.attributes.has(TelemetryAttribute.FgaClientRequestClientId));
-    expect(config.attributes.has(TelemetryAttribute.FgaClientRequestStoreId));
-    expect(config.attributes.has(TelemetryAttribute.FgaClientRequestModelId));
-    expect(config.attributes.has(TelemetryAttribute.HttpRequestResendCount));
-    expect(config.attributes.has(TelemetryAttribute.FgaClientResponseModelId));
-
-    // should not be there
-    expect(config.attributes.has(TelemetryAttribute.UrlScheme)).toBe(false);
-    expect(config.attributes.has(TelemetryAttribute.HttpRequestMethod)).toBe(false);
-    expect(config.attributes.has(TelemetryAttribute.UrlFull)).toBe(false);
-    expect(config.attributes.has(TelemetryAttribute.FgaClientUser)).toBe(false);
-  });
-
-  test("should return correct attributes based on enabled properties", () => {
-    const config = new TelemetryMetricConfiguration(
-      new Set<TelemetryAttribute>([
-        TelemetryAttribute.FgaClientRequestClientId,
-        TelemetryAttribute.HttpResponseStatusCode,
-        TelemetryAttribute.UrlScheme,
-        TelemetryAttribute.HttpRequestMethod,
-      ])
-    );
-
-    const attributes = config.attributes;
-
-    expect(attributes.size).toBe(4);
-    expect(attributes.has(TelemetryAttribute.FgaClientRequestClientId));
-    expect(attributes.has(TelemetryAttribute.HttpResponseStatusCode));
-    expect(attributes.has(TelemetryAttribute.UrlScheme));
-    expect(attributes.has(TelemetryAttribute.HttpRequestMethod));
-  });
-});
-
 describe("TelemetryConfiguration", () => {
-  test("should create a default TelemetryConfiguration instance", () => {
-    const config = new TelemetryConfiguration();
-
-    const counters = config.metrics.counterCredentialsRequest;
-    expect(counters).toBeInstanceOf(TelemetryMetricConfiguration);
-    expect(counters?.attributes).toEqual(TelemetryConfiguration.defaultAttributes);
-    
-    const histogramQueryDuration = config.metrics.histogramQueryDuration;
-    expect(histogramQueryDuration).toBeInstanceOf(TelemetryMetricConfiguration);
-    expect(histogramQueryDuration?.attributes).toEqual(TelemetryConfiguration.defaultAttributes);
-
-    const histogramRequestDuration = config.metrics.histogramRequestDuration;
-    expect(counters).toBeInstanceOf(TelemetryMetricConfiguration);
-    expect(counters?.attributes).toEqual(TelemetryConfiguration.defaultAttributes);
-  });
-
   test("should use defaults if not all metrics defined", () => {
     const config = new TelemetryConfiguration({
-      [TelemetryMetric.CounterCredentialsRequest]:  new TelemetryMetricConfiguration(),
-      [TelemetryMetric.HistogramQueryDuration]: new TelemetryMetricConfiguration(
-        new Set<TelemetryAttribute>([
+      [TelemetryMetric.CounterCredentialsRequest]: {},
+      [TelemetryMetric.HistogramQueryDuration]: {
+        attributes: new Set<TelemetryAttribute>([
           TelemetryAttribute.FgaClientRequestClientId,
           TelemetryAttribute.HttpResponseStatusCode,
           TelemetryAttribute.UrlScheme,
           TelemetryAttribute.HttpRequestMethod,
         ])
-      ),
+      }
     });
 
-    expect(config.metrics.counterCredentialsRequest?.attributes).toEqual(TelemetryConfiguration.defaultAttributes);
-    expect(config.metrics.histogramQueryDuration?.attributes).toEqual(new Set<TelemetryAttribute>(
+    expect(config.metrics?.counterCredentialsRequest?.attributes).toEqual(undefined);
+    expect(config.metrics?.histogramQueryDuration?.attributes).toEqual(new Set<TelemetryAttribute>(
       new Set<TelemetryAttribute>([
         TelemetryAttribute.FgaClientRequestClientId,
         TelemetryAttribute.HttpResponseStatusCode,
         TelemetryAttribute.UrlScheme,
         TelemetryAttribute.HttpRequestMethod,
       ])));
-    expect(config.metrics.histogramRequestDuration?.attributes).toEqual(TelemetryConfiguration.defaultAttributes);
+    expect(config.metrics?.histogramRequestDuration?.attributes).toEqual(undefined);
   });
+
+  test("should use defaults", () => {
+    const config = new TelemetryConfiguration();
+
+    expect(config.metrics?.counterCredentialsRequest?.attributes).toEqual(TelemetryConfiguration.defaultAttributes);
+    expect(config.metrics?.histogramQueryDuration?.attributes).toEqual(TelemetryConfiguration.defaultAttributes);
+    expect(config.metrics?.histogramRequestDuration?.attributes).toEqual(TelemetryConfiguration.defaultAttributes);
+  }); 
+
+  test("should be undefined if empty object passed", () => {
+    const config = new TelemetryConfiguration({});
+
+    expect(config.metrics?.counterCredentialsRequest?.attributes).toEqual(undefined);
+    expect(config.metrics?.histogramQueryDuration?.attributes).toEqual(undefined);
+    expect(config.metrics?.histogramRequestDuration?.attributes).toEqual(undefined);
+  }); 
 });

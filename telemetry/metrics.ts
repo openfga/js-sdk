@@ -15,16 +15,6 @@ export class MetricRecorder {
   private _counters: Record<string, Counter> = {};
   private _histograms: Record<string, Histogram> = {};
 
-  constructor(
-    meter?: Meter,
-    counters?: Record<string, Counter>,
-    histograms?: Record<string, Histogram>
-  ) {
-    this._meter = meter || null;
-    this._counters = counters || {};
-    this._histograms = histograms || {};
-  }
-
   meter(): Meter {
     if (!this._meter) {
       this._meter = metrics.getMeter("@openfga/sdk", "0.6.3");
