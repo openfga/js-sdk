@@ -67,7 +67,7 @@ export class TelemetryAttributes {
       attributes[TelemetryAttribute.UrlFull] = url;
     }
 
-    if (start) attributes[TelemetryAttribute.HttpClientRequestDuration] = Date.now() - start;
+    if (start) attributes[TelemetryAttribute.HttpClientRequestDuration] = Math.round(performance.now() - start);
     if (resendCount) attributes[TelemetryAttribute.HttpRequestResendCount] = resendCount;
     if (credentials && credentials.method === "client_credentials") {
       attributes[TelemetryAttribute.FgaClientRequestClientId] = credentials.configuration.clientId;
@@ -78,24 +78,22 @@ export class TelemetryAttributes {
 
   static fromResponse({
     response,
-    credentials,
     attributes = {},
   }: {
     response: any;
-    credentials?: any;
     attributes?: Record<string, string | number>;
   }): Record<string, string | number> {
     if (response?.status) attributes[TelemetryAttribute.HttpResponseStatusCode] = response.status;
 
     const responseHeaders = response?.headers || {};
     const responseModelId = responseHeaders["openfga-authorization-model-id"];
-    const responseQueryDuration = responseHeaders["fga-query-duration-ms"];
+    const responseQueryDuration = responseHeaders["fga-query-duration-ms"] ? parseInt(responseHeaders["fga-query-duration-ms"], 10) : undefined;
 
-    if (responseModelId) attributes[TelemetryAttribute.FgaClientResponseModelId] = responseModelId;
-    if (responseQueryDuration) attributes[TelemetryAttribute.HttpServerRequestDuration] = responseQueryDuration;
-
-    if (credentials && credentials.method === "client_credentials") {
-      attributes[TelemetryAttribute.FgaClientRequestClientId] = credentials.configuration.clientId;
+    if (responseModelId) {
+      attributes[TelemetryAttribute.FgaClientResponseModelId] = responseModelId;
+    }
+    if (typeof responseQueryDuration !== "undefined" && Number.isFinite(responseQueryDuration)) {
+      attributes[TelemetryAttribute.HttpServerRequestDuration] = responseQueryDuration as number;
     }
 
     return attributes;

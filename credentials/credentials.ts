@@ -26,11 +26,11 @@ export class Credentials {
   private accessToken?: string;
   private accessTokenExpiryDate?: Date;
 
-  public static init(configuration: { credentials: AuthCredentialsConfig, telemetry: TelemetryConfiguration }): Credentials {
-    return new Credentials(configuration.credentials, globalAxios, configuration.telemetry);
+  public static init(configuration: { credentials: AuthCredentialsConfig, telemetry: TelemetryConfiguration, baseOptions?: any }): Credentials {
+    return new Credentials(configuration.credentials, globalAxios, configuration.telemetry, configuration.baseOptions);
   }
 
-  public constructor(private authConfig: AuthCredentialsConfig, private axios: AxiosInstance = globalAxios, private telemetryConfig: TelemetryConfiguration) {
+  public constructor(private authConfig: AuthCredentialsConfig, private axios: AxiosInstance = globalAxios, private telemetryConfig: TelemetryConfiguration, private baseOptions?: any) {
     this.initConfig();
     this.isValid();
   }
@@ -129,9 +129,10 @@ export class Credentials {
    */
   private async refreshAccessToken() {
     const clientCredentials = (this.authConfig as { method: CredentialsMethod.ClientCredentials; config: ClientCredentialsConfig })?.config;
+    const url = `https://${clientCredentials.apiTokenIssuer}/oauth/token`;
 
     try {
-      const response = await attemptHttpRequest<{
+      const wrappedResponse = await attemptHttpRequest<{
           client_id: string,
           client_secret: string,
           audience: string,
@@ -140,8 +141,8 @@ export class Credentials {
         access_token: string,
         expires_in: number,
       }>({
-        url: `https://${clientCredentials.apiTokenIssuer}/oauth/token`,
-        method: "post",
+        url,
+        method: "POST",
         data: {
           client_id: clientCredentials.clientId,
           client_secret: clientCredentials.clientSecret,
@@ -156,6 +157,7 @@ export class Credentials {
         minWaitInMs: 100,
       }, globalAxios);
 
+      const response = wrappedResponse?.response;
       if (response) {
         this.accessToken = response.data.access_token;
         this.accessTokenExpiryDate = new Date(Date.now() + response.data.expires_in * 1000);
@@ -166,18 +168,22 @@ export class Credentials {
         let attributes = {};
 
         attributes = TelemetryAttributes.fromRequest({
+          userAgent: this.baseOptions?.headers["User-Agent"],
+          fgaMethod: "TokenExchange",
+          url,
+          resendCount: wrappedResponse?.retries,
+          httpMethod: "POST",
           credentials: clientCredentials,
-          // resendCount: 0, // TODO: implement resend count tracking, not available in the current context
+          start: performance.now(),
           attributes,
         });
 
         attributes = TelemetryAttributes.fromResponse({
           response,
-          credentials: clientCredentials,
-          attributes,
+          attributes,  
         });
 
-        attributes = TelemetryAttributes.prepare(attributes);
+        attributes = TelemetryAttributes.prepare(attributes, this.telemetryConfig.metrics?.counterCredentialsRequest?.attributes);
         this.telemetryConfig.recorder.counter(TelemetryCounters.credentialsRequest, 1, attributes);
       }
 

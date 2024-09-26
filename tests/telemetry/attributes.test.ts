@@ -65,7 +65,7 @@ describe("TelemetryAttributes", () => {
     // Verify line 90 is covered - status is correctly set
     expect(result["http.response.status_code"]).toEqual(200);
     expect(result["fga-client.response.model_id"]).toEqual("model-id");
-    expect(result["http.server.request.duration"]).toEqual("10");
+    expect(result["http.server.request.duration"]).toEqual(10);
   });
 
   test("should handle response without status correctly", () => {
@@ -75,16 +75,6 @@ describe("TelemetryAttributes", () => {
     // Verify that no status code is set when response does not have a status
     expect(result["http.response.status_code"]).toBeUndefined();
     expect(result["fga-client.response.model_id"]).toEqual("model-id");
-    expect(result["http.server.request.duration"]).toEqual("10");
-  });
-
-  test("should create attributes from response with client credentials", () => {
-    const response = { status: 200, headers: {} };
-    const credentials = { method: "client_credentials", configuration: { clientId: "client-id" } };
-    const result = TelemetryAttributes.fromResponse({ response, credentials });
-
-    // Check that the client ID is set correctly from the credentials
-    expect(result["http.response.status_code"]).toEqual(200);
-    expect(result["fga-client.request.client_id"]).toEqual("client-id");
+    expect(result["http.server.request.duration"]).toEqual(10);
   });
 });

@@ -33,7 +33,7 @@ In cases when metrics events are sent, they will not be viewable outside of infr
 | `url.full`                     | `string`  | No                 | The full URL of the request                                                         |
 | `url.scheme`                   | `string`  | No                 | HTTP Scheme of the request (http/https)                                             |
 | `http.request.resend_count`    | `int`     | Yes                | The number of retries attempted                                                     |
-| `http.client.request.duration` | `int`     | No                 | Time taken by the FGA server to process and evaluate the request, in milliseconds   |
+| `http.client.request.duration` | `int`     | No                 | Time taken by the FGA server to process and evaluate the request, rounded to the nearest milliseconds   |
 | `http.server.request.duration` | `int`     | No                 | The number of retries attempted                                                     |
 
 ## Default attributes

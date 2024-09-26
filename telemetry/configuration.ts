@@ -55,7 +55,7 @@ export class TelemetryConfiguration implements TelemetryConfig {
     // TelemetryAttribute.HttpRequestMethod,
     // TelemetryAttribute.UrlFull,
     // TelemetryAttribute.HttpClientRequestDuration,
-    // TelemetryAttribute.HttpServerRequestDuration
+    // TelemetryAttribute.HttpServerRequestDuration,
   
     // This not included by default as it has a very high cardinality which could increase costs for users
     // TelemetryAttribute.FgaClientUser
