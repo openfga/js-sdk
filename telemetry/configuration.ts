@@ -68,7 +68,7 @@ export class TelemetryConfiguration implements TelemetryConfig {
    * @readonly
    * @type {Set<TelemetryAttribute>}
    */
-  public static readonly validAttriburtes: Set<TelemetryAttribute> = new Set<TelemetryAttribute>([
+  public static readonly validAttributes: Set<TelemetryAttribute> = new Set<TelemetryAttribute>([
     TelemetryAttribute.HttpHost,
     TelemetryAttribute.HttpResponseStatusCode,
     TelemetryAttribute.UserAgentOriginal,
@@ -115,7 +115,7 @@ export class TelemetryConfiguration implements TelemetryConfig {
    * @throws {FgaValidationError} Throws an error if any attribute in the metric configurations is invalid.
    */
   public ensureValid(): void {
-    const validAttrs = TelemetryConfiguration.validAttriburtes;
+    const validAttrs = TelemetryConfiguration.validAttributes;
 
     const counterConfigAttrs = this.metrics?.counterCredentialsRequest?.attributes || new Set<TelemetryAttribute>();
     counterConfigAttrs.forEach(counterConfigAttr => {
