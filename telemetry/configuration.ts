@@ -1,0 +1,141 @@
+import { FgaValidationError } from "../errors";
+import { TelemetryAttribute } from "./attributes";
+import { TelemetryMetric, MetricRecorder } from "./metrics";
+
+/**
+ * Configuration for a telemetry metric.
+ * 
+ * @interface TelemetryMetricConfig
+ * @property {Set<TelemetryAttribute>} attributes - A set of attributes associated with the telemetry metric.
+ */
+export interface TelemetryMetricConfig {
+  attributes?: Set<TelemetryAttribute>;
+}
+
+/**
+ * Represents the overall configuration for telemetry, including various metrics.
+ * 
+ * @interface TelemetryConfig
+ * @property {Record<TelemetryMetric, TelemetryMetricConfig>} metrics - A record mapping telemetry metrics to their configurations.
+ */
+export interface TelemetryConfig {
+  metrics?: Partial<Record<TelemetryMetric, TelemetryMetricConfig>>;
+}
+
+/**
+ * Manages the overall telemetry configuration, including default and valid attributes.
+ * 
+ * @class TelemetryConfiguration
+ * @implements {TelemetryConfig}
+ */
+export class TelemetryConfiguration implements TelemetryConfig {
+
+  public readonly recorder: MetricRecorder = new MetricRecorder();
+  
+  /**
+   * Default attributes for telemetry metrics.
+   * 
+   * @static
+   * @readonly
+   * @type {Set<TelemetryAttribute>}
+   */
+  public static readonly defaultAttributes: Set<TelemetryAttribute> = new Set<TelemetryAttribute>([
+    TelemetryAttribute.HttpHost,
+    TelemetryAttribute.HttpResponseStatusCode,
+    TelemetryAttribute.UserAgentOriginal,
+    TelemetryAttribute.FgaClientRequestMethod,
+    TelemetryAttribute.FgaClientRequestClientId,
+    TelemetryAttribute.FgaClientRequestStoreId,
+    TelemetryAttribute.FgaClientRequestModelId,
+    TelemetryAttribute.HttpRequestResendCount,
+    TelemetryAttribute.FgaClientResponseModelId,
+ 
+    // These metrics are not included by default because they are usually less useful
+    // TelemetryAttribute.UrlScheme,
+    // TelemetryAttribute.HttpRequestMethod,
+    // TelemetryAttribute.UrlFull,
+    // TelemetryAttribute.HttpClientRequestDuration,
+    // TelemetryAttribute.HttpServerRequestDuration,
+  
+    // This not included by default as it has a very high cardinality which could increase costs for users
+    // TelemetryAttribute.FgaClientUser
+  ]);
+
+  /**
+   * Valid attributes that can be used in telemetry metrics.
+   * 
+   * @static
+   * @readonly
+   * @type {Set<TelemetryAttribute>}
+   */
+  public static readonly validAttributes: Set<TelemetryAttribute> = new Set<TelemetryAttribute>([
+    TelemetryAttribute.HttpHost,
+    TelemetryAttribute.HttpResponseStatusCode,
+    TelemetryAttribute.UserAgentOriginal,
+    TelemetryAttribute.FgaClientRequestMethod,
+    TelemetryAttribute.FgaClientRequestClientId,
+    TelemetryAttribute.FgaClientRequestStoreId,
+    TelemetryAttribute.FgaClientRequestModelId,
+    TelemetryAttribute.HttpRequestResendCount,
+    TelemetryAttribute.FgaClientResponseModelId,
+    TelemetryAttribute.UrlScheme,
+    TelemetryAttribute.HttpRequestMethod,
+    TelemetryAttribute.UrlFull,
+    TelemetryAttribute.HttpClientRequestDuration,
+    TelemetryAttribute.HttpServerRequestDuration,
+    TelemetryAttribute.FgaClientUser,
+  ]);
+
+  /**
+   * Creates an instance of TelemetryConfiguration.
+   * 
+   * @param {Partial<Record<TelemetryMetric, TelemetryMetricConfig>>} [metrics] - A record mapping telemetry metrics to their configurations.
+   */
+  constructor(
+    public metrics?: Partial<Record<TelemetryMetric, TelemetryMetricConfig>>,
+  ) {
+    if (!metrics) {
+      this.metrics = {
+        [TelemetryMetric.CounterCredentialsRequest]: {attributes: TelemetryConfiguration.defaultAttributes},
+        [TelemetryMetric.HistogramRequestDuration]: {attributes: TelemetryConfiguration.defaultAttributes},
+        [TelemetryMetric.HistogramQueryDuration]: {attributes: TelemetryConfiguration.defaultAttributes},
+      };
+    } else {
+      this.metrics = {
+        [TelemetryMetric.CounterCredentialsRequest]: metrics[TelemetryMetric.CounterCredentialsRequest] || undefined,
+        [TelemetryMetric.HistogramRequestDuration]: metrics[TelemetryMetric.HistogramRequestDuration] || undefined,
+        [TelemetryMetric.HistogramQueryDuration]: metrics[TelemetryMetric.HistogramQueryDuration] || undefined,
+      };
+    }
+  }
+
+  /**
+   * Validates that the configured metrics use only valid attributes.
+   * 
+   * @throws {FgaValidationError} Throws an error if any attribute in the metric configurations is invalid.
+   */
+  public ensureValid(): void {
+    const validAttrs = TelemetryConfiguration.validAttributes;
+
+    const counterConfigAttrs = this.metrics?.counterCredentialsRequest?.attributes || new Set<TelemetryAttribute>();
+    counterConfigAttrs.forEach(counterConfigAttr => {
+      if (!validAttrs.has(counterConfigAttr)) {
+        throw new FgaValidationError(`Configuration.telemetry.metrics.counterCredentialsRequest attribute '${counterConfigAttr}' is not a valid attribute`);
+      }
+    });
+
+    const histogramRequestDurationConfigAttrs = this.metrics?.histogramRequestDuration?.attributes || new Set<TelemetryAttribute>();
+    histogramRequestDurationConfigAttrs.forEach(histogramRequestDurationAttr => {
+      if (!validAttrs.has(histogramRequestDurationAttr)) {
+        throw new FgaValidationError(`Configuration.telemetry.metrics.histogramRequestDuration attribute '${histogramRequestDurationAttr}' is not a valid attribute`);
+      }
+    });
+
+    const histogramQueryDurationConfigAttrs = this.metrics?.histogramQueryDuration?.attributes || new Set<TelemetryAttribute>();
+    histogramQueryDurationConfigAttrs.forEach(histogramQueryDurationConfigAttr => {
+      if (!validAttrs.has(histogramQueryDurationConfigAttr)) {
+        throw new FgaValidationError(`Configuration.telemetry.metrics.histogramQueryDuration attribute '${histogramQueryDurationConfigAttr}' is not a valid attribute`);
+      }
+    });
+  }
+}

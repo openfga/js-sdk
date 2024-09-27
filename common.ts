@@ -12,7 +12,6 @@
 
 
 import { AxiosInstance, AxiosRequestConfig, AxiosResponse } from "axios";
-import { metrics } from "@opentelemetry/api";
 
 import { Configuration } from "./configuration";
 import type { Credentials } from "./credentials";
@@ -26,17 +25,9 @@ import {
   FgaError
 } from "./errors";
 import { setNotEnumerableProperty } from "./utils";
-import { buildAttributes } from "./telemetry";
-
-const meter = metrics.getMeter("@openfga/sdk", "0.6.3");
-const durationHist = meter.createHistogram("fga-client.request.duration", {
-  description: "The duration of requests",
-  unit: "milliseconds",
-});
-const queryDurationHist = meter.createHistogram("fga-client.query.duration", {
-  description: "The duration of queries on the FGA server",
-  unit: "milliseconds",
-});
+import { TelemetryAttribute, TelemetryAttributes } from "./telemetry/attributes";
+import { MetricRecorder } from "./telemetry/metrics";
+import { TelemetryHistograms } from "./telemetry/histograms";
 
 /**
  *
@@ -127,6 +118,10 @@ export const toPathString = function (url: URL) {
 
 type ObjectOrVoid = object | void;
 
+interface StringIndexable {
+  [key: string]: any;
+}
+
 export type CallResult<T extends ObjectOrVoid> = T & {
     $response: AxiosResponse<T>
 };
@@ -147,6 +142,11 @@ function randomTime(loopCount: number, minWaitInMs: number): number {
   return Math.floor(Math.random() * (max - min) + min); //The maximum is exclusive and the minimum is inclusive
 }
 
+interface WrappedAxiosResponse<R> {
+  response?: AxiosResponse<R>;
+  retries: number;
+}
+
 export async function attemptHttpRequest<B, R>(
   request: AxiosRequestConfig<B>,
   config: {
@@ -154,12 +154,16 @@ export async function attemptHttpRequest<B, R>(
         minWaitInMs: number;
     },
   axiosInstance: AxiosInstance,
-): Promise<AxiosResponse<R> | undefined> {
+): Promise<WrappedAxiosResponse<R> | undefined> {
   let iterationCount = 0;
   do {
     iterationCount++;
     try {
-      return await axiosInstance(request);
+      const response = await axiosInstance(request);
+      return {
+        response: response,
+        retries: iterationCount - 1,
+      };
     } catch (err: any) {
       if (!isAxiosError(err)) {
         throw new FgaError(err);
@@ -192,39 +196,70 @@ export async function attemptHttpRequest<B, R>(
 /**
  * creates an axios request function
  */
-export const createRequestFunction = function (axiosArgs: RequestArgs, axiosInstance: AxiosInstance, configuration: Configuration, credentials: Credentials, methodAttributes: Record<string, unknown> = {}) {
+export const createRequestFunction = function (axiosArgs: RequestArgs, axiosInstance: AxiosInstance, configuration: Configuration, credentials: Credentials, methodAttributes: Record<string, string | number> = {}) {
   configuration.isValid();
 
   const retryParams = axiosArgs.options?.retryParams ? axiosArgs.options?.retryParams : configuration.retryParams;
   const maxRetry:number = retryParams ? retryParams.maxRetry : 0;
   const minWaitInMs:number = retryParams ? retryParams.minWaitInMs : 0;
 
-  const start = Date.now();
+  const start = performance.now();
 
   return async (axios: AxiosInstance = axiosInstance) : PromiseResult<any> => {
     await setBearerAuthToObject(axiosArgs.options.headers, credentials!);
 
-    const axiosRequestArgs = {...axiosArgs.options, url: configuration.getBasePath() + axiosArgs.url};
-    const response = await attemptHttpRequest(axiosRequestArgs, {
+    const url = configuration.getBasePath() + axiosArgs.url;
+
+    const axiosRequestArgs = {...axiosArgs.options, url: url};
+    const wrappedResponse = await attemptHttpRequest(axiosRequestArgs, {
       maxRetry,
       minWaitInMs,
     }, axios);
-    const executionTime = Date.now() - start;
-
+    const response = wrappedResponse?.response;
     const data = typeof response?.data === "undefined" ? {} : response?.data;
     const result: CallResult<any> = { ...data };
     setNotEnumerableProperty(result, "$response", response);
 
-    const attributes = buildAttributes(response, configuration.credentials, methodAttributes);
+    let attributes: StringIndexable = {};
 
-    if (response?.headers) {
-      const duration = response.headers["fga-query-duration-ms"];
-      if (duration !== undefined) {
-        queryDurationHist.record(parseInt(duration, 10), attributes);
-      }
+    attributes = TelemetryAttributes.fromRequest({
+      userAgent: configuration.baseOptions?.headers["User-Agent"],
+      httpMethod: axiosArgs.options?.method,
+      url,
+      resendCount: wrappedResponse?.retries,
+      start: start,
+      credentials: credentials,
+      attributes: methodAttributes,
+    });
+
+    attributes = TelemetryAttributes.fromResponse({
+      response,
+      attributes,
+    });
+
+    // only if hisogramQueryDuration set AND if response header contains fga-query-duration-ms
+    const serverRequestDuration = attributes[TelemetryAttribute.HttpServerRequestDuration];
+    if (configuration.telemetry?.metrics?.histogramQueryDuration && typeof serverRequestDuration !== "undefined") {
+      configuration.telemetry.recorder.histogram(
+        TelemetryHistograms.queryDuration,
+        parseInt(attributes[TelemetryAttribute.HttpServerRequestDuration] as string, 10),
+        TelemetryAttributes.prepare(
+          attributes,
+          configuration.telemetry.metrics.histogramQueryDuration.attributes
+        )
+      );
     }
 
-    durationHist.record(executionTime, attributes);
+    if (configuration.telemetry?.metrics?.histogramRequestDuration) {
+      configuration.telemetry.recorder.histogram(
+        TelemetryHistograms.requestDuration,
+        attributes[TelemetryAttribute.HttpClientRequestDuration],
+        TelemetryAttributes.prepare(
+          attributes,
+          configuration.telemetry.metrics.histogramRequestDuration.attributes
+        )
+      );
+    }
 
     return result;
   };

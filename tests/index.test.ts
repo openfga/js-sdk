@@ -23,8 +23,8 @@ import {
   FgaApiNotFoundError,
   FgaApiRateLimitExceededError,
   FgaApiValidationError,
-  FgaValidationError,
   OpenFgaApi,
+  TelemetryAttribute,
 } from "../index";
 import { CallResult } from "../common";
 import { GetDefaultRetryParams } from "../configuration";
@@ -248,6 +248,29 @@ describe("OpenFGA SDK", function () {
     it("should allow passing in a configuration instance", async () => {
       const configuration = new Configuration(baseConfig);
       expect(() => new OpenFgaApi(configuration)).not.toThrowError();
+    });
+
+    it("should only accept valid telemetry attributes", async () => {
+    
+      expect(
+        () =>
+          new OpenFgaApi({
+            ...baseConfig,
+            telemetry: {
+              metrics: {
+                counterCredentialsRequest: {
+                  attributes: ["JUNK"] as any
+                },
+                histogramQueryDuration: {
+                  attributes: new Set<TelemetryAttribute>
+                },
+                histogramRequestDuration: {
+                  attributes: new Set<TelemetryAttribute>
+                }
+              }
+            }
+          })
+      ).toThrow();
     });
   });
 

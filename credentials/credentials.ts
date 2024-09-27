@@ -16,20 +16,21 @@ import globalAxios, { AxiosInstance } from "axios";
 import { assertParamExists, isWellFormedUriString } from "../validation";
 import { FgaApiAuthenticationError, FgaApiError, FgaError, FgaValidationError } from "../errors";
 import { attemptHttpRequest } from "../common";
-import { buildAttributes } from "../telemetry";
-import { ApiTokenConfig, AuthCredentialsConfig, ClientCredentialsConfig, CredentialsMethod } from "./types";
-import { Counter, metrics } from "@opentelemetry/api";
+import { AuthCredentialsConfig, ClientCredentialsConfig, CredentialsMethod } from "./types";
+import { TelemetryAttributes } from "../telemetry/attributes";
+import { MetricRecorder } from "../telemetry/metrics";
+import { TelemetryCounters } from "../telemetry/counters";
+import { TelemetryConfiguration } from "../telemetry/configuration";
 
 export class Credentials {
   private accessToken?: string;
   private accessTokenExpiryDate?: Date;
-  private tokenCounter?: Counter;
 
-  public static init(configuration: { credentials: AuthCredentialsConfig }): Credentials {
-    return new Credentials(configuration.credentials);
+  public static init(configuration: { credentials: AuthCredentialsConfig, telemetry: TelemetryConfiguration, baseOptions?: any }): Credentials {
+    return new Credentials(configuration.credentials, globalAxios, configuration.telemetry, configuration.baseOptions);
   }
 
-  public constructor(private authConfig: AuthCredentialsConfig, private axios: AxiosInstance = globalAxios) {
+  public constructor(private authConfig: AuthCredentialsConfig, private axios: AxiosInstance = globalAxios, private telemetryConfig: TelemetryConfiguration, private baseOptions?: any) {
     this.initConfig();
     this.isValid();
   }
@@ -51,11 +52,6 @@ export class Credentials {
         }
       }
       break;
-    case CredentialsMethod.ClientCredentials: {
-      const meter = metrics.getMeter("@openfga/sdk", "0.6.3");
-      this.tokenCounter = meter.createCounter("fga-client.credentials.request");
-      break;
-    }
     case CredentialsMethod.None:
     default:
       break;
@@ -133,9 +129,10 @@ export class Credentials {
    */
   private async refreshAccessToken() {
     const clientCredentials = (this.authConfig as { method: CredentialsMethod.ClientCredentials; config: ClientCredentialsConfig })?.config;
+    const url = `https://${clientCredentials.apiTokenIssuer}/oauth/token`;
 
     try {
-      const response = await attemptHttpRequest<{
+      const wrappedResponse = await attemptHttpRequest<{
           client_id: string,
           client_secret: string,
           audience: string,
@@ -144,8 +141,8 @@ export class Credentials {
         access_token: string,
         expires_in: number,
       }>({
-        url: `https://${clientCredentials.apiTokenIssuer}/oauth/token`,
-        method: "post",
+        url,
+        method: "POST",
         data: {
           client_id: clientCredentials.clientId,
           client_secret: clientCredentials.clientSecret,
@@ -160,12 +157,35 @@ export class Credentials {
         minWaitInMs: 100,
       }, globalAxios);
 
+      const response = wrappedResponse?.response;
       if (response) {
         this.accessToken = response.data.access_token;
         this.accessTokenExpiryDate = new Date(Date.now() + response.data.expires_in * 1000);
       }
 
-      this.tokenCounter?.add(1, buildAttributes(response, this.authConfig));
+      if (this.telemetryConfig?.metrics?.counterCredentialsRequest?.attributes) {
+
+        let attributes = {};
+
+        attributes = TelemetryAttributes.fromRequest({
+          userAgent: this.baseOptions?.headers["User-Agent"],
+          fgaMethod: "TokenExchange",
+          url,
+          resendCount: wrappedResponse?.retries,
+          httpMethod: "POST",
+          credentials: clientCredentials,
+          start: performance.now(),
+          attributes,
+        });
+
+        attributes = TelemetryAttributes.fromResponse({
+          response,
+          attributes,  
+        });
+
+        attributes = TelemetryAttributes.prepare(attributes, this.telemetryConfig.metrics?.counterCredentialsRequest?.attributes);
+        this.telemetryConfig.recorder.counter(TelemetryCounters.credentialsRequest, 1, attributes);
+      }
 
       return this.accessToken;
     } catch (err: unknown) {
