@@ -142,7 +142,7 @@ function randomTime(loopCount: number, minWaitInMs: number): number {
   return Math.floor(Math.random() * (max - min) + min); //The maximum is exclusive and the minimum is inclusive
 }
 
-export interface WrappedAxiosResponse<R> {
+interface WrappedAxiosResponse<R> {
   response?: AxiosResponse<R>;
   retries: number;
 }
