@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.7.0
+
+### [0.7.0](https://github.com/openfga/js-sdk/compare/v0.6.3...v0.7.0) (2024-08-30)
+
+- feat!: enhancements to OpenTelemetry support (#149)
+
+BREAKING CHANGE:
+
+This version changes the way in which telemetry is configured and reported. See #149 for additional information.
+
+## v0.6.3
+
 ### [0.6.3](https://github.com/openfga/js-sdk/compare/v0.6.2...v0.6.3) (2024-08-28)
 
 - fix: set the consistency parameter correctly in OpenFgaClient (#143)
