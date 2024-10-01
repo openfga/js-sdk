@@ -53,7 +53,7 @@ import {
   generateRandomIdWithNonUniqueFallback,
   setHeaderIfNotSet,
 } from "./utils";
-import { isWellFormedUlidString } from "./validation";
+import { assertParamExists, isWellFormedUlidString } from "./validation";
 
 export type UserClientConfigurationParams = UserConfigurationParams & {
   storeId?: string;
@@ -210,9 +210,10 @@ export class OpenFgaClient extends BaseAPI {
     } else {
       this.configuration = new ClientConfiguration(configuration);
     }
+    const { apiUrl } = this.configuration; 
+    assertParamExists("OpenFgaClient", "apiUrl", apiUrl);
+    
     this.configuration.isValid();
-
-
     this.api = new OpenFgaApi(this.configuration, axios);
     this.storeId = configuration.storeId;
     this.authorizationModelId = configuration.authorizationModelId;
