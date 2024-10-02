@@ -53,7 +53,7 @@ import {
   generateRandomIdWithNonUniqueFallback,
   setHeaderIfNotSet,
 } from "./utils";
-import { assertParamExists, isWellFormedUlidString } from "./validation";
+import { isWellFormedUlidString } from "./validation";
 
 export type UserClientConfigurationParams = UserConfigurationParams & {
   storeId?: string;
