@@ -4,7 +4,7 @@ A set of Examples on how to call the OpenFGA JS SDK
 
 ### Examples
 Example 1:
-A bare-bones example. It creates a store, and runs a set of calls against it including creating a model, writing tuples and checking for access.
+A bare-bones example. It creates a store and runs a set of calls against it including creating a model, writing tuples, and checking for access.
 
 OpenTelemetry:
 An example that demonstrates how to integrate the OpenFGA JS SDK with OpenTelemetry.
@@ -28,7 +28,7 @@ Steps
 
 Steps
 1. Build the SDK
-2. In the Example `package.json` change the `@openfga/sdk` dependency from a semver range like below
+2. In the Example `package.json` change the `@openfga/sdk` dependency from a server range like below
 ```json
 "dependencies": {
     "@openfga/sdk": "^0.7.0"
