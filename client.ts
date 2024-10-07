@@ -211,8 +211,6 @@ export class OpenFgaClient extends BaseAPI {
       this.configuration = new ClientConfiguration(configuration);
     }
     this.configuration.isValid();
-
-
     this.api = new OpenFgaApi(this.configuration, axios);
     this.storeId = configuration.storeId;
     this.authorizationModelId = configuration.authorizationModelId;
