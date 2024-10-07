@@ -670,7 +670,7 @@ If a network request fails with a 429 or 5xx error from the server, the SDK will
 
 To customize this behavior, create an object with `maxRetry` and `minWaitInMs` properties. `maxRetry` determines the maximum number of retries (up to 15), while `minWaitInMs` sets the minimum wait time between retries in milliseconds.
 
-Apply your custom retry values by setting to `retryParams` on to the configuration object passed to the `OpenFgaClient` call.
+Apply your custom retry values by setting to `retryParams` on the configuration object passed to the `OpenFgaClient` call.
 
 ```javascript
 const { OpenFgaClient } = require('@openfga/sdk'); // OR import { OpenFgaClient } from '@openfga/sdk';
