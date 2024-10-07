@@ -2,7 +2,7 @@
 
 This SDK produces [metrics](https://opentelemetry.io/docs/concepts/signals/metrics/) using [OpenTelemetry](https://opentelemetry.io/) to allow you to view data such as request timings. These metrics also include attributes for the model and store ID and the API called to allow you to build reporting.
 
-When an OpenTelemetry SDK instance is configured, the metrics will be exported and sent to the collector configured as part of your application's configuration. If you are not using OpenTelemetry, the metric functionality is a no-op, and the events are never sent.
+When an OpenTelemetry SDK instance is configured, the metrics will be exported and sent to the collector configured as part of your application's configuration. If you are not using OpenTelemetry, the metric functionality is a no-op and the events are never sent.
 
 In cases when metrics events are sent, they will not be viewable outside of infrastructure configured in your application, and are never available to the OpenFGA team or contributors.
 
