@@ -28,7 +28,7 @@ Steps
 
 Steps
 1. Build the SDK
-2. In the Example `package.json` change the `@openfga/sdk` dependency from a server range like below
+2. In the Example `package.json` change the `@openfga/sdk` dependency from a semver range like below
 ```json
 "dependencies": {
     "@openfga/sdk": "^0.7.0"
