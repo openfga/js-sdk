@@ -87,7 +87,7 @@ yarn add @openfga/sdk
 
 [Learn how to initialize your SDK](https://openfga.dev/docs/getting-started/setup-sdk-client)
 
-We strongly recommend you initialize the `OpenFgaClient` only once and then re-use it throughout your app, otherwise you will incur the cost of having to re-initialize multiple times or at every request, the cost of reduced connection pooling and re-use, and would be particularly costly in the client credentials flow, as that flow will be preformed on every request.
+We strongly recommend you initialize the `OpenFgaClient` only once and then re-use it throughout your app, otherwise you will incur the cost of having to re-initialize multiple times or at every request, the cost of reduced connection pooling and re-use, and would be particularly costly in the client credentials flow, as that flow will be performed on every request.
 
 > The `OpenFgaClient` will by default retry API requests up to 15 times on 429 and 5xx errors.
 
@@ -670,7 +670,7 @@ If a network request fails with a 429 or 5xx error from the server, the SDK will
 
 To customize this behavior, create an object with `maxRetry` and `minWaitInMs` properties. `maxRetry` determines the maximum number of retries (up to 15), while `minWaitInMs` sets the minimum wait time between retries in milliseconds.
 
-Apply your custom retry values by setting to `retryParams` on the to the configuration object passed to the `OpenFgaClient` call.
+Apply your custom retry values by setting to `retryParams` on the configuration object passed to the `OpenFgaClient` call.
 
 ```javascript
 const { OpenFgaClient } = require('@openfga/sdk'); // OR import { OpenFgaClient } from '@openfga/sdk';
