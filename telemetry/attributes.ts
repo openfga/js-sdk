@@ -111,4 +111,16 @@ export class TelemetryAttributes {
 
     return attributes;
   }
+
+  static fromRequestBody(body: any, attributes: Record<string, string | number> = {}): Record<string, string | number>  {
+    if (body?.authorization_model_id) {
+      attributes[TelemetryAttribute.FgaClientRequestModelId] = body.authorization_model_id;
+    }
+
+    if (body?.tuple_key?.user) {
+      attributes[TelemetryAttribute.FgaClientUser] = body.tuple_key.user;
+    }
+
+    return attributes;
+  }
 }
