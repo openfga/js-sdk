@@ -4,7 +4,7 @@ A set of Examples on how to call the OpenFGA JS SDK
 
 ### Examples
 Example 1:
-A bare-bones example. It creates a store, and runs a set of calls against it including creating a model, writing tuples and checking for access.
+A bare-bones example. It creates a store and runs a set of calls against it including creating a model, writing tuples, and checking for access.
 
 OpenTelemetry:
 An example that demonstrates how to integrate the OpenFGA JS SDK with OpenTelemetry.
