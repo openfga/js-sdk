@@ -186,9 +186,10 @@ export class Configuration {
    * @throws {FgaValidationError}
    */
   public isValid(): boolean {
-    if (!this.apiUrl && !this.apiHost) {
-         assertParamExists("Configuration", "apiUrl", this.apiUrl);
-       }
+    if (!this.apiUrl) {
+      assertParamExists("Configuration", "apiScheme", this.apiScheme);
+      assertParamExists("Configuration", "apiHost", this.apiHost);
+    }
 
     if (!isWellFormedUriString(this.getBasePath())) {
       throw new FgaValidationError(

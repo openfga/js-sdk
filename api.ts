@@ -761,7 +761,8 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
       return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials, {
         [TelemetryAttribute.FgaClientRequestMethod]: "Check",
         [TelemetryAttribute.FgaClientRequestStoreId]: storeId ?? "",
-        ...TelemetryAttributes.fromRequestBody(body)
+        [TelemetryAttribute.FgaClientRequestModelId]: body.authorization_model_id ?? "",
+        [TelemetryAttribute.FgaClientUser]: body.tuple_key.user
       });
     },
     /**
@@ -775,7 +776,6 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
       const localVarAxiosArgs = localVarAxiosParamCreator.createStore(body, options);
       return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials, {
         [TelemetryAttribute.FgaClientRequestMethod]: "CreateStore",
-        ...TelemetryAttributes.fromRequestBody(body)
       });
     },
     /**
@@ -789,7 +789,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
       const localVarAxiosArgs = localVarAxiosParamCreator.deleteStore(storeId, options);
       return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials, {
         [TelemetryAttribute.FgaClientRequestMethod]: "DeleteStore",
-        [TelemetryAttribute.FgaClientRequestStoreId]: storeId ?? "",
+        [TelemetryAttribute.FgaClientRequestStoreId]: storeId,
       });
     },
     /**
@@ -804,8 +804,8 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
       const localVarAxiosArgs = localVarAxiosParamCreator.expand(storeId, body, options);
       return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials, {
         [TelemetryAttribute.FgaClientRequestMethod]: "Expand",
+        [TelemetryAttribute.FgaClientRequestModelId]: body.authorization_model_id ?? "",
         [TelemetryAttribute.FgaClientRequestStoreId]: storeId ?? "",
-        ...TelemetryAttributes.fromRequestBody(body)
       });
     },
     /**
@@ -819,7 +819,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
       const localVarAxiosArgs = localVarAxiosParamCreator.getStore(storeId, options);
       return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials, {
         [TelemetryAttribute.FgaClientRequestMethod]: "GetStore",
-        [TelemetryAttribute.FgaClientRequestStoreId]: storeId ?? "",
+        [TelemetryAttribute.FgaClientRequestStoreId]: storeId,
       });
     },
     /**
@@ -835,11 +835,12 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
       return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials, {
         [TelemetryAttribute.FgaClientRequestMethod]: "ListObjects",
         [TelemetryAttribute.FgaClientRequestStoreId]: storeId ?? "",
-        ...TelemetryAttributes.fromRequestBody(body)
+        [TelemetryAttribute.FgaClientRequestModelId]: body.authorization_model_id ?? "",
+        [TelemetryAttribute.FgaClientUser]: body.user
       });
     },
     /**
-         * Returns a paginated list of OpenFGA stores and a continuation token to get additional stores. The continuation token will be empty if there are no more stores. 
+         * Returns a paginated list of OpenFGA stores and a continuation token to get additional stores. The continuation token will be empty if there are no more stores.
          * @summary List all stores
          * @param {number} [pageSize]
          * @param {string} [continuationToken]
@@ -865,7 +866,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
       return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials, {
         [TelemetryAttribute.FgaClientRequestMethod]: "ListUsers",
         [TelemetryAttribute.FgaClientRequestStoreId]: storeId ?? "",
-        ...TelemetryAttributes.fromRequestBody(body)
+        [TelemetryAttribute.FgaClientRequestModelId]: body.authorization_model_id ?? "",
       });
     },
     /**
@@ -880,12 +881,11 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
       const localVarAxiosArgs = localVarAxiosParamCreator.read(storeId, body, options);
       return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials, {
         [TelemetryAttribute.FgaClientRequestMethod]: "Read",
-        [TelemetryAttribute.FgaClientRequestStoreId]: storeId ?? "",
-        ...TelemetryAttributes.fromRequestBody(body)
+        [TelemetryAttribute.FgaClientRequestStoreId]: storeId,
       });
     },
     /**
-         * The ReadAssertions API will return, for a given authorization model id, all the assertions stored for it. An assertion is an object that contains a tuple key, and the expectation of whether a call to the Check API of that tuple key will return true or false. 
+         * The ReadAssertions API will return, for a given authorization model id, all the assertions stored for it. An assertion is an object that contains a tuple key, and the expectation of whether a call to the Check API of that tuple key will return true or false.
          * @summary Read assertions for an authorization model ID
          * @param {string} storeId
          * @param {string} authorizationModelId
@@ -896,7 +896,8 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
       const localVarAxiosArgs = localVarAxiosParamCreator.readAssertions(storeId, authorizationModelId, options);
       return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials, {
         [TelemetryAttribute.FgaClientRequestMethod]: "ReadAssertions",
-        [TelemetryAttribute.FgaClientRequestStoreId]: storeId ?? "",
+        [TelemetryAttribute.FgaClientRequestStoreId]: storeId,
+        [TelemetryAttribute.FgaClientRequestModelId]: authorizationModelId,
       });
     },
     /**
@@ -911,7 +912,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
       const localVarAxiosArgs = localVarAxiosParamCreator.readAuthorizationModel(storeId, id, options);
       return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials, {
         [TelemetryAttribute.FgaClientRequestMethod]: "ReadAuthorizationModel",
-        [TelemetryAttribute.FgaClientRequestStoreId]: storeId ?? "",
+        [TelemetryAttribute.FgaClientRequestStoreId]: storeId,
       });
     },
     /**
@@ -927,7 +928,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
       const localVarAxiosArgs = localVarAxiosParamCreator.readAuthorizationModels(storeId, pageSize, continuationToken, options);
       return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials, {
         [TelemetryAttribute.FgaClientRequestMethod]: "ReadAuthorizationModels",
-        [TelemetryAttribute.FgaClientRequestStoreId]: storeId ?? "",
+        [TelemetryAttribute.FgaClientRequestStoreId]: storeId,
       });
     },
     /**
@@ -944,7 +945,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
       const localVarAxiosArgs = localVarAxiosParamCreator.readChanges(storeId, type, pageSize, continuationToken, options);
       return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials, {
         [TelemetryAttribute.FgaClientRequestMethod]: "ReadChanges",
-        [TelemetryAttribute.FgaClientRequestStoreId]: storeId ?? "",
+        [TelemetryAttribute.FgaClientRequestStoreId]: storeId,
       });
     },
     /**
@@ -960,7 +961,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
       return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials, {
         [TelemetryAttribute.FgaClientRequestMethod]: "Write",
         [TelemetryAttribute.FgaClientRequestStoreId]: storeId ?? "",
-        ...TelemetryAttributes.fromRequestBody(body)
+        [TelemetryAttribute.FgaClientRequestModelId]: body.authorization_model_id ?? "",
       });
     },
     /**
@@ -976,8 +977,8 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
       const localVarAxiosArgs = localVarAxiosParamCreator.writeAssertions(storeId, authorizationModelId, body, options);
       return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials, {
         [TelemetryAttribute.FgaClientRequestMethod]: "WriteAssertions",
-        [TelemetryAttribute.FgaClientRequestStoreId]: storeId ?? "",
-        ...TelemetryAttributes.fromRequestBody(body)
+        [TelemetryAttribute.FgaClientRequestStoreId]: storeId,
+        [TelemetryAttribute.FgaClientRequestModelId]: authorizationModelId,
       });
     },
     /**
@@ -992,8 +993,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
       const localVarAxiosArgs = localVarAxiosParamCreator.writeAuthorizationModel(storeId, body, options);
       return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials, {
         [TelemetryAttribute.FgaClientRequestMethod]: "WriteAuthorizationModel",
-        [TelemetryAttribute.FgaClientRequestStoreId]: storeId ?? "",
-        ...TelemetryAttributes.fromRequestBody(body)
+        [TelemetryAttribute.FgaClientRequestStoreId]: storeId,
       });
     },
   };
