@@ -90,4 +90,20 @@ describe("TelemetryAttributes", () => {
     expect(result["fga-client.response.model_id"]).toEqual("model-id");
     expect(result["http.server.request.duration"]).toEqual(10);
   });
+
+  test("should create attributes from a request body correctly", () => {
+    const body = { authorization_model_id: "model-id", tuple_key: { user: "user:anne" } };
+    const attributes = TelemetryAttributes.fromRequestBody(body);
+
+    expect(attributes[TelemetryAttribute.FgaClientRequestModelId]).toEqual("model-id");
+    expect(attributes[TelemetryAttribute.FgaClientUser]).toEqual("user:anne");
+  });
+
+  test("should create attributes from a request body without tuple_key", () => {
+    const body = { authorization_model_id: "model-id" };
+    const attributes = TelemetryAttributes.fromRequestBody(body);
+
+    expect(attributes[TelemetryAttribute.FgaClientRequestModelId]).toEqual("model-id");
+    expect(attributes[TelemetryAttribute.FgaClientUser]).toBeUndefined();
+  });
 });
