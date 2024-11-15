@@ -575,7 +575,7 @@ describe("OpenFGA Client", () => {
 
     describe("ListObjects", () => {
       it("should call the api and return the response", async () => {
-        const mockedResponse = { objects: ["document:roadmap"] };
+        const mockedResponse = { objects: ["document:0192ab2a-d83f-756d-9397-c5ed9f3cb69a"] };
         const scope = nocks.listObjects(baseConfig.storeId!, mockedResponse, undefined, ConsistencyPreference.HigherConsistency);
 
         expect(scope.isDone()).toBe(false);
@@ -591,7 +591,7 @@ describe("OpenFGA Client", () => {
             }, {
               user: "folder:product",
               relation: "parent",
-              object: "document:roadmap"
+              object: "document:0192ab2a-d83f-756d-9397-c5ed9f3cb69a"
             }]
         }, {
           authorizationModelId: "01GAHCE4YVKPQEKZQHT2R89MQV",
@@ -808,7 +808,7 @@ describe("OpenFGA Client", () => {
             }, {
               user: "folder:product",
               relation: "parent",
-              object: "document:roadmap"
+              object: "document:0192ab2a-d83f-756d-9397-c5ed9f3cb69a"
             }]
         }, {
           authorizationModelId: "01GAHCE4YVKPQEKZQHT2R89MQV",
@@ -865,7 +865,7 @@ describe("OpenFGA Client", () => {
         await fgaClient.writeAssertions([{
           user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
           relation: "viewer",
-          object: "document:roadmap",
+          object: "document:0192ab2a-d83f-756d-9397-c5ed9f3cb69a",
           expectation: true,
         }], { authorizationModelId: modelId });
 

@@ -330,13 +330,13 @@ Reads the relationship tuples stored in the database. It does not evaluate nor e
 const body = {
   user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
   relation: "viewer",
-  object: "document:roadmap",
+  object: "document:0192ab2a-d83f-756d-9397-c5ed9f3cb69a",
 };
 
 // Find all relationship tuples where a certain user has any relation to a certain document
 const body = {
   user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
-  object: "document:roadmap",
+  object: "document:0192ab2a-d83f-756d-9397-c5ed9f3cb69a",
 };
 
 // Find all relationship tuples where a certain user is a viewer of any document
@@ -354,7 +354,7 @@ const body = {
 
 // Find all relationship tuples where any user has any relation with a particular document
 const body = {
-  object: "document:roadmap",
+  object: "document:0192ab2a-d83f-756d-9397-c5ed9f3cb69a",
 };
 
 // Read all stored relationship tuples
@@ -383,13 +383,13 @@ const options = {};
 options.authorizationModelId = "01GXSA8YR785C4FYS3C0RTG7B1";
 
 await fgaClient.write({
-  writes: [{ user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b", relation: "viewer", object: "document:roadmap" }],
-  deletes: [{ user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b", relation: "editor", object: "document:roadmap" }],
+  writes: [{ user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b", relation: "viewer", object: "document:0192ab2a-d83f-756d-9397-c5ed9f3cb69a" }],
+  deletes: [{ user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b", relation: "editor", object: "document:0192ab2a-d83f-756d-9397-c5ed9f3cb69a" }],
 }, options);
 
 // Convenience functions are available
-await fgaClient.writeTuples([{ user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b", relation: "viewer", object: "document:roadmap" }], options);
-await fgaClient.deleteTuples([{ user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b", relation: "editor", object: "document:roadmap" }], options);
+await fgaClient.writeTuples([{ user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b", relation: "viewer", object: "document:0192ab2a-d83f-756d-9397-c5ed9f3cb69a" }], options);
+await fgaClient.deleteTuples([{ user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b", relation: "editor", object: "document:0192ab2a-d83f-756d-9397-c5ed9f3cb69a" }], options);
 
 // if any error is encountered in the transaction mode, an error will be thrown
 ```
@@ -407,14 +407,14 @@ options.transaction = {
 };
 
 const response = await fgaClient.write({
-  writes: [{ user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b", relation: "viewer", object: "document:roadmap" }],
-  deletes: [{ user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b", relation: "editor", object: "document:roadmap" }],
+  writes: [{ user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b", relation: "viewer", object: "document:0192ab2a-d83f-756d-9397-c5ed9f3cb69a" }],
+  deletes: [{ user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b", relation: "editor", object: "document:0192ab2a-d83f-756d-9397-c5ed9f3cb69a" }],
 }, options);
 
 /*
 response = {
-  writes: [{ tuple_key: { user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b", relation: "viewer", object: "document:roadmap", status: "success" } }],
-  deletes: [{ tuple_key: { user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b", relation: "editor", object: "document:roadmap", status: "failure", err: <FgaError ...>  } }],
+  writes: [{ tuple_key: { user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b", relation: "viewer", object: "document:0192ab2a-d83f-756d-9397-c5ed9f3cb69a", status: "success" } }],
+  deletes: [{ tuple_key: { user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b", relation: "editor", object: "document:0192ab2a-d83f-756d-9397-c5ed9f3cb69a", status: "failure", err: <FgaError ...>  } }],
 };
 */
 ```
@@ -436,7 +436,7 @@ const options = {
 const result = await fgaClient.check({
   user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
   relation: "viewer",
-  object: "document:roadmap",
+  object: "document:0192ab2a-d83f-756d-9397-c5ed9f3cb69a",
 }, options);
 
 // result = { allowed: true }
@@ -455,19 +455,19 @@ const options = {
 const { responses } = await fgaClient.batchCheck([{
   user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
   relation: "viewer",
-  object: "document:budget",
+  object: "document:0192ab2d-d36e-7cb3-a4a8-5d1d67a300c5",
 }, {
   user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
   relation: "member",
-  object: "document:budget",
+  object: "document:0192ab2d-d36e-7cb3-a4a8-5d1d67a300c5",
 }, {
   user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
   relation: "viewer",
-  object: "document:roadmap",
+  object: "document:0192ab2a-d83f-756d-9397-c5ed9f3cb69a",
   contextualTuples: [{
     user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
     relation: "writer",
-    object: "document:roadmap"
+    object: "document:0192ab2a-d83f-756d-9397-c5ed9f3cb69a"
   }],
 }], options);
 
@@ -477,14 +477,14 @@ responses = [{
   _request: {
     user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
     relation: "viewer",
-    object: "document:budget",
+    object: "document:0192ab2d-d36e-7cb3-a4a8-5d1d67a300c5",
   }
 }, {
   allowed: false,
   _request: {
     user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
     relation: "member",
-    object: "document:budget",
+    object: "document:0192ab2d-d36e-7cb3-a4a8-5d1d67a300c5",
   },
   err: <FgaError ...>
 }, {
@@ -492,11 +492,11 @@ responses = [{
   _request: {
     user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
     relation: "viewer",
-    object: "document:roadmap",
+    object: "document:0192ab2a-d83f-756d-9397-c5ed9f3cb69a",
     contextualTuples: [{
       user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
       relation: "writer",
-      object: "document:roadmap"
+      object: "document:0192ab2a-d83f-756d-9397-c5ed9f3cb69a"
     }],
   }},
 ]
@@ -517,10 +517,10 @@ options.authorizationModelId = "01GXSA8YR785C4FYS3C0RTG7B1";
 
 const { tree } = await fgaClient.expand({
   relation: "viewer",
-  object: "document:roadmap",
+  object: "document:0192ab2a-d83f-756d-9397-c5ed9f3cb69a",
 }, options);
 
-// tree  = { root: { name: "document:roadmap#viewer", leaf: { users: { users: ["user:81684243-9356-4421-8fbf-a4f8d36aa31b", "user:f52a4f7a-054d-47ff-bb6e-3ac81269988f"] } } } }
+// tree  = { root: { name: "document:0192ab2a-d83f-756d-9397-c5ed9f3cb69a#viewer", leaf: { users: { users: ["user:81684243-9356-4421-8fbf-a4f8d36aa31b", "user:f52a4f7a-054d-47ff-bb6e-3ac81269988f"] } } } }
 ```
 
 ##### List Objects
@@ -542,11 +542,11 @@ const response = await fgaClient.listObjects({
   contextualTuples: [{
     user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
     relation: "writer",
-    object: "document:budget"
+    object: "document:0192ab2d-d36e-7cb3-a4a8-5d1d67a300c5"
   }],
 }, options);
 
-// response.objects = ["document:roadmap"]
+// response.objects = ["document:0192ab2a-d83f-756d-9397-c5ed9f3cb69a"]
 ```
 
 ##### List Relations
@@ -563,12 +563,12 @@ options.authorization_model_id = "1uHxCSuTP0VKPYSnkq1pbb1jeZw";
 
 const response = await fgaClient.listRelations({
   user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
-  object: "document:roadmap",
+  object: "document:0192ab2a-d83f-756d-9397-c5ed9f3cb69a",
   relations: ["can_view", "can_edit", "can_delete"],
   contextualTuples: [{
     user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
     relation: "writer",
-    object: "document:roadmap"
+    object: "document:0192ab2a-d83f-756d-9397-c5ed9f3cb69a"
   }],
 }, options);
 
@@ -610,7 +610,7 @@ const response = await fgaClient.listUsers({
     }, {
       user: "folder:product",
       relation: "parent",
-      object: "document:roadmap"
+      object: "document:0192ab2a-d83f-756d-9397-c5ed9f3cb69a"
     }]
 }, options);
 
@@ -637,7 +637,7 @@ const response = await fgaClient.readAssertions(options);
 response.assertions = [{
   user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
   relation: "viewer",
-  object: "document:roadmap",
+  object: "document:0192ab2a-d83f-756d-9397-c5ed9f3cb69a",
   expectation: true,
 }];
 */
@@ -658,7 +658,7 @@ options.authorizationModelId = "01GXSA8YR785C4FYS3C0RTG7B1";
 const response = await fgaClient.writeAssertions([{
   user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
   relation: "viewer",
-  object: "document:roadmap",
+  object: "document:0192ab2a-d83f-756d-9397-c5ed9f3cb69a",
   expectation: true,
 }], options);
 ```

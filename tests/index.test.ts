@@ -825,7 +825,7 @@ describe("OpenFGA SDK", function () {
 
     describe("listObjects", () => {
       it("should call the api and return the response", async () => {
-        const mockedResponse = { objects: ["document:roadmap"] };
+        const mockedResponse = { objects: ["document:0192ab2a-d83f-756d-9397-c5ed9f3cb69a"] };
         const scope = nocks.listObjects(baseConfig.storeId!, mockedResponse);
 
         expect(scope.isDone()).toBe(false);
@@ -845,7 +845,7 @@ describe("OpenFGA SDK", function () {
                 }, {
                   user: "folder:product",
                   relation: "parent",
-                  object: "document:roadmap"
+                  object: "document:0192ab2a-d83f-756d-9397-c5ed9f3cb69a"
                 }]
             }
           });
