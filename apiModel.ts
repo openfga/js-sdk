@@ -65,6 +65,18 @@ export interface Assertion {
      * @memberof Assertion
      */
     expectation: boolean;
+    /**
+     * 
+     * @type {Array<TupleKey>}
+     * @memberof Assertion
+     */
+    contextual_tuples?: Array<TupleKey>;
+    /**
+     * Additional request context that will be used to evaluate any ABAC conditions encountered in the query evaluation.
+     * @type {object}
+     * @memberof Assertion
+     */
+    context?: object;
 }
 /**
  * 
@@ -91,6 +103,24 @@ export interface AssertionTupleKey {
      */
     user: string;
 }
+/**
+ * 
+ * @export
+ * @enum {string}
+ */
+
+export enum AuthErrorCode {
+    NoAuthError = 'no_auth_error',
+    AuthFailedInvalidSubject = 'auth_failed_invalid_subject',
+    AuthFailedInvalidAudience = 'auth_failed_invalid_audience',
+    AuthFailedInvalidIssuer = 'auth_failed_invalid_issuer',
+    InvalidClaims = 'invalid_claims',
+    AuthFailedInvalidBearerToken = 'auth_failed_invalid_bearer_token',
+    BearerTokenMissing = 'bearer_token_missing',
+    Unauthenticated = 'unauthenticated',
+    Forbidden = 'forbidden'
+}
+
 /**
  * 
  * @export
@@ -296,7 +326,7 @@ export interface ConditionParamTypeRef {
 
 
 /**
- * - UNSPECIFIED: Default if not set. Behavior will be the same as MINIMIZE_LATENCY  - MINIMIZE_LATENCY: Minimize latency at the potential expense of lower consistency.  - HIGHER_CONSISTENCY: Prefer higher consistency, at the potential expense of increased latency.
+ * Controls the consistency preferences when calling the query APIs.   - UNSPECIFIED: Default if not set. Behavior will be the same as MINIMIZE_LATENCY.  - MINIMIZE_LATENCY: Minimize latency at the potential expense of lower consistency.  - HIGHER_CONSISTENCY: Prefer higher consistency, at the potential expense of increased latency.
  * @export
  * @enum {string}
  */
@@ -437,7 +467,8 @@ export enum ErrorCode {
     InvalidContextualTuple = 'invalid_contextual_tuple',
     DuplicateContextualTuple = 'duplicate_contextual_tuple',
     InvalidAuthorizationModel = 'invalid_authorization_model',
-    UnsupportedSchemaVersion = 'unsupported_schema_version'
+    UnsupportedSchemaVersion = 'unsupported_schema_version',
+    Cancelled = 'cancelled'
 }
 
 /**
@@ -521,6 +552,27 @@ export interface FgaObject {
 /**
  * 
  * @export
+ * @interface ForbiddenResponse
+ */
+export interface ForbiddenResponse {
+    /**
+     * 
+     * @type {AuthErrorCode}
+     * @memberof ForbiddenResponse
+     */
+    code?: AuthErrorCode;
+    /**
+     * 
+     * @type {string}
+     * @memberof ForbiddenResponse
+     */
+    message?: string;
+}
+
+
+/**
+ * 
+ * @export
  * @interface GetStoreResponse
  */
 export interface GetStoreResponse {
@@ -564,7 +616,6 @@ export interface GetStoreResponse {
 export enum InternalErrorCode {
     NoInternalError = 'no_internal_error',
     InternalError = 'internal_error',
-    Cancelled = 'cancelled',
     DeadlineExceeded = 'deadline_exceeded',
     AlreadyExists = 'already_exists',
     ResourceExhausted = 'resource_exhausted',

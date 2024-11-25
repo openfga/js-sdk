@@ -156,7 +156,7 @@ export const getNocks = ((nock: typeof Nock) => ({
           tuple_key: {
             user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
             relation: "viewer",
-            object: "document:roadmap"
+            object: "document:0192ab2a-d83f-756d-9397-c5ed9f3cb69a"
           },
           operation: TupleOperation.Write,
           timestamp: "2000-01-01T00:00:00Z"
