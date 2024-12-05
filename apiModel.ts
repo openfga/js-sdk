@@ -585,8 +585,7 @@ export enum ErrorCode {
     DuplicateContextualTuple = 'duplicate_contextual_tuple',
     InvalidAuthorizationModel = 'invalid_authorization_model',
     UnsupportedSchemaVersion = 'unsupported_schema_version',
-    Cancelled = 'cancelled',
-    InvalidStartTime = 'invalid_start_time'
+    Cancelled = 'cancelled'
 }
 
 /**
@@ -613,12 +612,6 @@ export interface ExpandRequest {
      * @memberof ExpandRequest
      */
     consistency?: ConsistencyPreference;
-    /**
-     * 
-     * @type {ContextualTupleKeys}
-     * @memberof ExpandRequest
-     */
-    contextual_tuples?: ContextualTupleKeys;
 }
 
 
