@@ -511,7 +511,7 @@ describe("OpenFGA Client", () => {
       });
     });
 
-    describe("BatchCheck", () => {
+    describe("ClientBatchCheck", () => {
       it("should properly call the Check API", async () => {
         const tuples = [{
           user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
@@ -526,12 +526,12 @@ describe("OpenFGA Client", () => {
           relation: "reader",
           object: "workspace:3",
         }];
-        const scope0 = nocks.check(defaultConfiguration.storeId!, tuples[0], defaultConfiguration.getBasePath(), { allowed: true }, 200, ConsistencyPreference.HigherConsistency).matchHeader("X-OpenFGA-Client-Method", "BatchCheck");
-        const scope1 = nocks.check(defaultConfiguration.storeId!, tuples[1], defaultConfiguration.getBasePath(), { allowed: false }, 200, ConsistencyPreference.HigherConsistency).matchHeader("X-OpenFGA-Client-Method", "BatchCheck");
+        const scope0 = nocks.check(defaultConfiguration.storeId!, tuples[0], defaultConfiguration.getBasePath(), { allowed: true }, 200, ConsistencyPreference.HigherConsistency).matchHeader("X-OpenFGA-Client-Method", "ClientBatchCheck");
+        const scope1 = nocks.check(defaultConfiguration.storeId!, tuples[1], defaultConfiguration.getBasePath(), { allowed: false }, 200, ConsistencyPreference.HigherConsistency).matchHeader("X-OpenFGA-Client-Method", "ClientBatchCheck");
         const scope2 = nocks.check(defaultConfiguration.storeId!, tuples[2], defaultConfiguration.getBasePath(), {
           "code": "validation_error",
           "message": "relation &#39;workspace#reader&#39; not found"
-        }, 400, ConsistencyPreference.HigherConsistency).matchHeader("X-OpenFGA-Client-Method", "BatchCheck");
+        }, 400, ConsistencyPreference.HigherConsistency).matchHeader("X-OpenFGA-Client-Method", "ClientBatchCheck");
         const scope3 = nock(defaultConfiguration.getBasePath())
           .get(`/stores/${defaultConfiguration.storeId!}/authorization-models`)
           .query({ page_size: 1 })
@@ -542,7 +542,7 @@ describe("OpenFGA Client", () => {
         expect(scope0.isDone()).toBe(false);
         expect(scope1.isDone()).toBe(false);
         expect(scope2.isDone()).toBe(false);
-        const response = await fgaClient.batchCheck([tuples[0], tuples[1], tuples[2]], { consistency: ConsistencyPreference.HigherConsistency });
+        const response = await fgaClient.clientBatchCheck([tuples[0], tuples[1], tuples[2]], { consistency: ConsistencyPreference.HigherConsistency });
 
         expect(scope0.isDone()).toBe(true);
         expect(scope1.isDone()).toBe(true);

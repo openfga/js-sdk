@@ -150,7 +150,7 @@ export interface ClientWriteRequestOpts {
   }
 }
 
-export interface BatchCheckRequestOpts {
+export interface ClientBatchCheckRequestOpts {
   maxParallelRequests?: number;
 }
 
@@ -589,7 +589,7 @@ export class OpenFgaClient extends BaseAPI {
   /**
    * BatchCheck - Run a set of checks (evaluates)
    * @param {ClientBatchCheckRequest} body
-   * @param {ClientRequestOptsWithAuthZModelId & BatchCheckRequestOpts} [options]
+   * @param {ClientRequestOptsWithAuthZModelId & ClientBatchCheckRequestOpts} [options]
    * @param {number} [options.maxParallelRequests] - Max number of requests to issue in parallel. Defaults to `10`
    * @param {string} [options.authorizationModelId] - Overrides the authorization model id in the configuration
    * @param {object} [options.headers] - Custom headers to send alongside the request
@@ -597,9 +597,9 @@ export class OpenFgaClient extends BaseAPI {
    * @param {number} [options.retryParams.maxRetry] - Override the max number of retries on each API request
    * @param {number} [options.retryParams.minWaitInMs] - Override the minimum wait before a retry is initiated
    */
-  async batchCheck(body: ClientBatchCheckRequest, options: ClientRequestOptsWithConsistency & BatchCheckRequestOpts = {}): Promise<ClientBatchCheckResponse> {
+  async clientBatchCheck(body: ClientBatchCheckRequest, options: ClientRequestOptsWithConsistency & ClientBatchCheckRequestOpts = {}): Promise<ClientBatchCheckResponse> {
     const { headers = {}, maxParallelRequests = DEFAULT_MAX_METHOD_PARALLEL_REQS } = options;
-    setHeaderIfNotSet(headers, CLIENT_METHOD_HEADER, "BatchCheck");
+    setHeaderIfNotSet(headers, CLIENT_METHOD_HEADER, "ClientBatchCheck");
     setHeaderIfNotSet(headers, CLIENT_BULK_REQUEST_ID_HEADER, generateRandomIdWithNonUniqueFallback());
 
     const responses: ClientBatchCheckSingleResponse[] = [];
@@ -680,7 +680,7 @@ export class OpenFgaClient extends BaseAPI {
    * @param {object} listRelationsRequest.context The contextual tuples to send
    * @param options
    */
-  async listRelations(listRelationsRequest: ClientListRelationsRequest, options: ClientRequestOptsWithConsistency & BatchCheckRequestOpts = {}): Promise<ClientListRelationsResponse> {
+  async listRelations(listRelationsRequest: ClientListRelationsRequest, options: ClientRequestOptsWithConsistency & ClientBatchCheckRequestOpts = {}): Promise<ClientListRelationsResponse> {
     const { user, object, relations, contextualTuples, context } = listRelationsRequest;
     const { headers = {}, maxParallelRequests = DEFAULT_MAX_METHOD_PARALLEL_REQS } = options;
     setHeaderIfNotSet(headers, CLIENT_METHOD_HEADER, "ListRelations");
@@ -690,7 +690,7 @@ export class OpenFgaClient extends BaseAPI {
       throw new FgaValidationError("relations", "When calling listRelations, at least one relation must be passed in the relations field");
     }
 
-    const batchCheckResults = await this.batchCheck(relations.map(relation => ({
+    const batchCheckResults = await this.clientBatchCheck(relations.map(relation => ({
       user,
       relation,
       object,
