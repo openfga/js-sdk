@@ -17,7 +17,7 @@ import { assertParamExists, isWellFormedUlidString, isWellFormedUriString } from
 import { TelemetryConfig, TelemetryConfiguration } from "./telemetry/configuration";
 
 // default maximum number of retry
-const DEFAULT_MAX_RETRY = 15;
+const DEFAULT_MAX_RETRY = 3;
 
 // default minimum wait period in retry - but will backoff exponentially
 const DEFAULT_MIN_WAIT_MS = 100;
