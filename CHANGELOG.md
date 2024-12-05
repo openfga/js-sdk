@@ -1,5 +1,10 @@
 # Changelog
 
+
+## [Unreleased](https://github.com/openfga/js-sdk/compare/v0.7.0...HEAD)
+
+fix: error correctly if apiUrl is not provided (#161)
+
 ## v0.7.0
 
 ### [0.7.0](https://github.com/openfga/js-sdk/compare/v0.6.3...v0.7.0) (2024-08-30)
