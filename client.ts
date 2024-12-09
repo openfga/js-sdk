@@ -17,6 +17,9 @@ import asyncPool = require("tiny-async-pool");
 import { OpenFgaApi } from "./api";
 import {
   Assertion,
+  BatchCheckRequest,
+  BatchCheckResponse,
+  CheckError,
   CheckRequest,
   CheckRequestTupleKey,
   CheckResponse,
@@ -126,9 +129,9 @@ export type ClientCheckRequest = CheckRequestTupleKey &
     Pick<CheckRequest, "context"> &
     { contextualTuples?: Array<TupleKey> };
 
-export type ClientBatchCheckRequest = ClientCheckRequest[];
+export type ClientBatchCheckClientRequest = ClientCheckRequest[];
 
-export type ClientBatchCheckSingleResponse = {
+export type ClientBatchCheckSingleClientResponse = {
   _request: ClientCheckRequest;
 } & ({
   allowed: boolean;
@@ -138,6 +141,45 @@ export type ClientBatchCheckSingleResponse = {
   error: Error;
 });
 
+export interface ClientBatchCheckClientResponse {
+  responses: ClientBatchCheckSingleClientResponse[];
+}
+
+export interface ClientBatchCheckClientRequestOpts {
+  maxParallelRequests?: number;
+}
+
+// For server batch check
+export type ClientBatchCheckItem = {
+  user: string;
+  relation: string;
+  object: string;
+  correlationId?: string;
+  contextualTuples?: TupleKey[];
+  context?: object;
+};
+
+// for server batch check
+export type ClientBatchCheckRequest = {
+  checks: ClientBatchCheckItem[];
+};
+
+// for server batch check
+export interface ClientBatchCheckRequestOpts {
+    maxParallelRequests?: number;
+    maxBatchSize?: number;
+}
+
+// for server batch check
+export type ClientBatchCheckSingleResponse = {
+    // TODO which are required/optional?
+    allowed: boolean;
+    tupleKey?: TupleKey;
+    correlationId?: string;
+    error?: CheckError;
+}
+
+// for server batch check
 export interface ClientBatchCheckResponse {
   responses: ClientBatchCheckSingleResponse[];
 }
@@ -148,10 +190,6 @@ export interface ClientWriteRequestOpts {
     maxPerChunk?: number;
     maxParallelRequests?: number;
   }
-}
-
-export interface ClientBatchCheckRequestOpts {
-  maxParallelRequests?: number;
 }
 
 export interface ClientWriteRequest {
@@ -588,8 +626,8 @@ export class OpenFgaClient extends BaseAPI {
 
   /**
    * BatchCheck - Run a set of checks (evaluates)
-   * @param {ClientBatchCheckRequest} body
-   * @param {ClientRequestOptsWithAuthZModelId & ClientBatchCheckRequestOpts} [options]
+   * @param {ClientBatchCheckClientRequest} body
+   * @param {ClientRequestOptsWithAuthZModelId & ClientBatchCheckClientRequestOpts} [options]
    * @param {number} [options.maxParallelRequests] - Max number of requests to issue in parallel. Defaults to `10`
    * @param {string} [options.authorizationModelId] - Overrides the authorization model id in the configuration
    * @param {object} [options.headers] - Custom headers to send alongside the request
@@ -597,16 +635,16 @@ export class OpenFgaClient extends BaseAPI {
    * @param {number} [options.retryParams.maxRetry] - Override the max number of retries on each API request
    * @param {number} [options.retryParams.minWaitInMs] - Override the minimum wait before a retry is initiated
    */
-  async clientBatchCheck(body: ClientBatchCheckRequest, options: ClientRequestOptsWithConsistency & ClientBatchCheckRequestOpts = {}): Promise<ClientBatchCheckResponse> {
+  async clientBatchCheck(body: ClientBatchCheckClientRequest, options: ClientRequestOptsWithConsistency & ClientBatchCheckClientRequestOpts = {}): Promise<ClientBatchCheckClientResponse> {
     const { headers = {}, maxParallelRequests = DEFAULT_MAX_METHOD_PARALLEL_REQS } = options;
     setHeaderIfNotSet(headers, CLIENT_METHOD_HEADER, "ClientBatchCheck");
     setHeaderIfNotSet(headers, CLIENT_BULK_REQUEST_ID_HEADER, generateRandomIdWithNonUniqueFallback());
 
-    const responses: ClientBatchCheckSingleResponse[] = [];
+    const responses: ClientBatchCheckSingleClientResponse[] = [];
     for await (const singleCheckResponse of asyncPool(maxParallelRequests, body, (tuple) => this.check(tuple, { ...options, headers })
       .then(response => {
-        (response as ClientBatchCheckSingleResponse)._request = tuple;
-        return response as ClientBatchCheckSingleResponse;
+        (response as ClientBatchCheckSingleClientResponse)._request = tuple;
+        return response as ClientBatchCheckSingleClientResponse;
       })
       .catch(err => {
         if (err instanceof FgaApiAuthenticationError) {
@@ -624,6 +662,23 @@ export class OpenFgaClient extends BaseAPI {
     }
 
     return { responses };
+  }
+
+
+  private singleBatchCheck(body: BatchCheckRequest, options: ClientRequestOptsWithConsistency & ClientBatchCheckRequestOpts = {}): Promise<BatchCheckResponse>  {
+    return this.api.batchCheck(this.getStoreId(options)!, body, options);
+  }
+
+  async batchCheck(body: ClientBatchCheckRequest, options: ClientRequestOptsWithConsistency & ClientBatchCheckRequestOpts = {}): Promise<BatchCheckResponse> {
+    const { checks } = body;
+    // TODO MAKE CONSTANT
+    const { headers = {}, maxParallelRequests = DEFAULT_MAX_METHOD_PARALLEL_REQS, maxBatchSize = 50 } = options;
+    // TODO what's right here?
+    setHeaderIfNotSet(headers, CLIENT_METHOD_HEADER, "BatchCheck");
+    setHeaderIfNotSet(headers, CLIENT_BULK_REQUEST_ID_HEADER, generateRandomIdWithNonUniqueFallback());
+
+    // TODO implement
+    return Promise.resolve({});
   }
 
   /**
@@ -680,7 +735,7 @@ export class OpenFgaClient extends BaseAPI {
    * @param {object} listRelationsRequest.context The contextual tuples to send
    * @param options
    */
-  async listRelations(listRelationsRequest: ClientListRelationsRequest, options: ClientRequestOptsWithConsistency & ClientBatchCheckRequestOpts = {}): Promise<ClientListRelationsResponse> {
+  async listRelations(listRelationsRequest: ClientListRelationsRequest, options: ClientRequestOptsWithConsistency & ClientBatchCheckClientRequestOpts = {}): Promise<ClientListRelationsResponse> {
     const { user, object, relations, contextualTuples, context } = listRelationsRequest;
     const { headers = {}, maxParallelRequests = DEFAULT_MAX_METHOD_PARALLEL_REQS } = options;
     setHeaderIfNotSet(headers, CLIENT_METHOD_HEADER, "ListRelations");
