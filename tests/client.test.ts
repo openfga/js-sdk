@@ -558,6 +558,38 @@ describe("OpenFGA Client", () => {
       });
     });
 
+    describe("BatchCheck", () => {
+      it(" should throw error when correlationIds are duplicated", async () => {
+        expect(
+          fgaClient.batchCheck({
+            checks: [
+              {
+                user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
+                object: "workspace:1",
+                relation: "viewer",
+                correlationId: "cor-id",
+              },
+              {
+                user: "user:91284243-9356-4421-8fbf-a4f8d36aa31b",
+                object: "workspace:2",
+                relation: "viewer",
+                correlationId: "cor-id",
+              },
+            ]
+          }
+        )
+      ).rejects.toThrow(new FgaValidationError("correlationId", "When calling batchCheck, correlation IDs must be unique"));
+    });
+      it(" should throw error when no checks are specified", async () => {
+        expect(
+          fgaClient.batchCheck({
+            checks: []
+          })
+        ).rejects.toThrow(new FgaValidationError("checks", "When calling batchCheck, at least one check must be specified"));     
+      });
+    });
+
+
     describe("Expand", () => {
       it("should properly call the Expand API", async () => {
         const tuple = {

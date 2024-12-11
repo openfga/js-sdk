@@ -17,6 +17,7 @@ import asyncPool = require("tiny-async-pool");
 import { OpenFgaApi } from "./api";
 import {
   Assertion,
+  BatchCheckItem,
   BatchCheckRequest,
   BatchCheckResponse,
   CheckError,
@@ -24,6 +25,7 @@ import {
   CheckRequestTupleKey,
   CheckResponse,
   ConsistencyPreference,
+  ContextualTupleKeys,
   CreateStoreRequest,
   CreateStoreResponse,
   ExpandRequestTupleKey,
@@ -99,6 +101,7 @@ export class ClientConfiguration extends Configuration {
 }
 
 const DEFAULT_MAX_METHOD_PARALLEL_REQS = 10;
+const DEFAULT_MAX_BATCH_SIZE = 50;
 const CLIENT_METHOD_HEADER = "X-OpenFGA-Client-Method";
 const CLIENT_BULK_REQUEST_ID_HEADER = "X-OpenFGA-Client-Bulk-Request-Id";
 
@@ -155,7 +158,7 @@ export type ClientBatchCheckItem = {
   relation: string;
   object: string;
   correlationId?: string;
-  contextualTuples?: TupleKey[];
+  contextualTuples?: ContextualTupleKeys;
   context?: object;
 };
 
@@ -170,12 +173,12 @@ export interface ClientBatchCheckRequestOpts {
     maxBatchSize?: number;
 }
 
+
 // for server batch check
 export type ClientBatchCheckSingleResponse = {
-    // TODO which are required/optional?
     allowed: boolean;
-    tupleKey?: TupleKey;
-    correlationId?: string;
+    request: ClientBatchCheckItem;
+    correlationId: string;
     error?: CheckError;
 }
 
@@ -669,17 +672,36 @@ export class OpenFgaClient extends BaseAPI {
     return this.api.batchCheck(this.getStoreId(options)!, body, options);
   }
 
-  async batchCheck(body: ClientBatchCheckRequest, options: ClientRequestOptsWithConsistency & ClientBatchCheckRequestOpts = {}): Promise<BatchCheckResponse> {
-    const { checks } = body;
-    // TODO MAKE CONSTANT
-    const { headers = {}, maxParallelRequests = DEFAULT_MAX_METHOD_PARALLEL_REQS, maxBatchSize = 50 } = options;
-    // TODO what's right here?
+  async batchCheck(body: ClientBatchCheckRequest, options: ClientRequestOptsWithConsistency & ClientBatchCheckRequestOpts = {}): Promise<ClientBatchCheckResponse> {
+    const {
+      headers = {},
+      maxBatchSize = DEFAULT_MAX_BATCH_SIZE,
+      maxParallelRequests = DEFAULT_MAX_METHOD_PARALLEL_REQS,
+    } = options;
+  
+    // TODO is this right?
     setHeaderIfNotSet(headers, CLIENT_METHOD_HEADER, "BatchCheck");
     setHeaderIfNotSet(headers, CLIENT_BULK_REQUEST_ID_HEADER, generateRandomIdWithNonUniqueFallback());
 
-    // TODO implement
-    return Promise.resolve({});
+    const seenCorrelationIds = new Set<string>();
+    for (const check of body.checks) {
+      if (!check.correlationId) {
+        check.correlationId = generateRandomIdWithNonUniqueFallback();
+      }
+      seenCorrelationIds.add(check.correlationId);
+      if (seenCorrelationIds.has(check.correlationId)) {
+        throw new FgaValidationError("correlationId", "When calling batchCheck, correlation IDs must be unique");
+      }
+    }
+
+    if (!body?.checks?.length) {
+      throw new FgaValidationError("checks", "When calling batchCheck, at least one check must be specified");
+    }
+
+    // TODO implement ;)
+    return Promise.resolve({} as ClientBatchCheckResponse); 
   }
+  
 
   /**
    * Expand - Expands the relationships in userset tree format (evaluates)
