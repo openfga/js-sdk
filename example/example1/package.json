@@ -9,7 +9,7 @@
     "start": "node example1.mjs"
   },
   "dependencies": {
-    "@openfga/sdk": "^0.7.0"
+    "@openfga/sdk": "file:../../"
   },
   "engines": {
     "node": ">=16.13.0"
