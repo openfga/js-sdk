@@ -672,35 +672,168 @@ export class OpenFgaClient extends BaseAPI {
     return this.api.batchCheck(this.getStoreId(options)!, body, options);
   }
 
-  async batchCheck(body: ClientBatchCheckRequest, options: ClientRequestOptsWithConsistency & ClientBatchCheckRequestOpts = {}): Promise<ClientBatchCheckResponse> {
+  async batchCheck(
+    body: ClientBatchCheckRequest,
+    options: ClientRequestOptsWithConsistency & ClientBatchCheckRequestOpts = {}
+  ): Promise<ClientBatchCheckResponse> {
     const {
       headers = {},
       maxBatchSize = DEFAULT_MAX_BATCH_SIZE,
       maxParallelRequests = DEFAULT_MAX_METHOD_PARALLEL_REQS,
     } = options;
   
-    // TODO is this right?
+    // TODO this right? Do it here?
     setHeaderIfNotSet(headers, CLIENT_METHOD_HEADER, "BatchCheck");
     setHeaderIfNotSet(headers, CLIENT_BULK_REQUEST_ID_HEADER, generateRandomIdWithNonUniqueFallback());
-
-    const seenCorrelationIds = new Set<string>();
-    for (const check of body.checks) {
-      if (!check.correlationId) {
-        check.correlationId = generateRandomIdWithNonUniqueFallback();
-      }
-      seenCorrelationIds.add(check.correlationId);
-      if (seenCorrelationIds.has(check.correlationId)) {
-        throw new FgaValidationError("correlationId", "When calling batchCheck, correlation IDs must be unique");
-      }
-    }
-
+  
     if (!body?.checks?.length) {
       throw new FgaValidationError("checks", "When calling batchCheck, at least one check must be specified");
     }
-
-    // TODO implement ;)
-    return Promise.resolve({} as ClientBatchCheckResponse); 
+  
+    const correlationIdToCheck = new Map<string, ClientBatchCheckItem>();
+    const transformed: BatchCheckItem[] = [];
+  
+    // Validate and transform checks
+    for (const check of body.checks) {
+      // Generate a correlation ID if not provided
+      if (!check.correlationId) {
+        check.correlationId = generateRandomIdWithNonUniqueFallback();
+      }
+  
+      // Ensure that correlation IDs are unique
+      if (correlationIdToCheck.has(check.correlationId)) {
+        throw new FgaValidationError("correlationId", "When calling batchCheck, correlation IDs must be unique");
+      }
+      correlationIdToCheck.set(check.correlationId, check);
+  
+      // Transform the check into the BatchCheckItem format
+      transformed.push({
+        tuple_key: {
+          user: check.user,
+          relation: check.relation,
+          object: check.object,
+        },
+        context: check.context,
+        contextual_tuples: check.contextualTuples,
+        correlation_id: check.correlationId,
+      });
+    }
+  
+    // Split the transformed checks into batches based on maxBatchSize
+    const batchedChecks = chunkArray(transformed, maxBatchSize);
+  
+    // Execute batch checks in parallel with a limit of maxParallelRequests
+    const results: ClientBatchCheckSingleResponse[] = [];
+    const executeBatch = async (batch: BatchCheckItem[]) => {
+      // Prepare request payload
+      const batchRequest: BatchCheckRequest = {
+        checks: batch,
+        authorization_model_id: options.authorizationModelId, // TODO this right here?
+        consistency: options.consistency,
+      };
+  
+      // Make API call to execute the batch check
+      const response = await this.singleBatchCheck(batchRequest, options);
+      return response.result;
+    };
+  
+    // Use asyncPool to process batches concurrently, but limit to maxParallelRequests
+    const batchResponses = asyncPool(maxParallelRequests, batchedChecks, executeBatch);
+  
+    // Collect the responses and associate them with their correlation IDs
+    for await (const response of batchResponses) {
+      if (response) { 
+        for (const [correlationId, result] of Object.entries(response)) {
+          const check = correlationIdToCheck.get(correlationId);
+          if (check && result) {
+            results.push({
+              allowed: result.allowed || false,
+              request: check,
+              correlationId,
+              error: result.error,
+            });
+          }
+        }
+      }
+    }
+  
+    // Return the final response in the expected format
+    console.log("Results before returning:", results); // Added logging
+    return { responses: results };
   }
+  
+
+
+
+  
+  // async batchCheck(body: ClientBatchCheckRequest, options: ClientRequestOptsWithConsistency & ClientBatchCheckRequestOpts = {}): Promise<ClientBatchCheckResponse> {
+  //   const {
+  //     headers = {},
+  //     maxBatchSize = DEFAULT_MAX_BATCH_SIZE,
+  //     maxParallelRequests = DEFAULT_MAX_METHOD_PARALLEL_REQS,
+  //   } = options;
+  
+  //   // TODO is this right?
+  //   setHeaderIfNotSet(headers, CLIENT_METHOD_HEADER, "BatchCheck");
+  //   setHeaderIfNotSet(headers, CLIENT_BULK_REQUEST_ID_HEADER, generateRandomIdWithNonUniqueFallback());
+
+  //   // const seenCorrelationIds = new Set<string>();
+  //   // for (const check of body.checks) {
+  //   //   if (!check.correlationId) {
+  //   //     check.correlationId = generateRandomIdWithNonUniqueFallback();
+  //   //   }
+  //   //   seenCorrelationIds.add(check.correlationId);
+  //   //   if (seenCorrelationIds.has(check.correlationId)) {
+  //   //     throw new FgaValidationError("correlationId", "When calling batchCheck, correlation IDs must be unique");
+  //   //   }
+  //   // }
+
+  //   if (!body?.checks?.length) {
+  //     throw new FgaValidationError("checks", "When calling batchCheck, at least one check must be specified");
+  //   }
+
+  //   const checkToId = new Map<String, ClientBatchCheckItem>();
+  //   const transformed: BatchCheckItem[] = [];
+
+  //   for (const check of body.checks) {
+  //     if (!check.correlationId) {
+  //       check.correlationId = generateRandomIdWithNonUniqueFallback();
+  //     }
+  //     if (checkToId.has(check.correlationId)) {
+  //       throw new FgaValidationError("correlationId", "When calling batchCheck, correlation IDs must be unique");
+  //     }
+  //     checkToId.set(check.correlationId, check);
+  //     transformed.push({
+  //       tuple_key: {
+  //         user: check.user,
+  //         relation: check.relation,
+  //         object: check.object,
+  //       },
+  //       context: check.context,
+  //       contextual_tuples: check.contextualTuples,
+  //       correlation_id: check.correlationId,
+  //     });
+  //   }
+
+  //   const batchCheckRequest: BatchCheckRequest = {
+  //     checks: transformed,
+  //     authorization_model_id: options.authorizationModelId,
+  //     consistency: options.consistency,
+  //   };
+
+  //   // TODO does single need to accept options? Have some on the request? What about storeId?
+  //   await this.singleBatchCheck(batchCheckRequest, { ...options, headers })
+  //     .then(response => {
+
+  //     })
+  //     .catch(err => {
+
+  //     });
+
+  //   // return await(this.singleBatchCheck(batchCheckRequest, options))
+  //   // TODO implement ;)
+  //   return Promise.resolve({} as ClientBatchCheckResponse); 
+  // }
   
 
   /**
