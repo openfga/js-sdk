@@ -1128,6 +1128,12 @@ export interface RelationMetadata {
      * @memberof RelationMetadata
      */
     source_info?: SourceInfo;
+    /**
+    *
+    * @type {string}
+    * @memberof RelationMetadata
+    */
+    mixin?: string;
 }
 /**
  * RelationReference represents a relation of a particular object type (e.g. \'document#viewer\').
