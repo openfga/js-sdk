@@ -686,10 +686,6 @@ export class OpenFgaClient extends BaseAPI {
     setHeaderIfNotSet(headers, CLIENT_METHOD_HEADER, "BatchCheck");
     setHeaderIfNotSet(headers, CLIENT_BULK_REQUEST_ID_HEADER, generateRandomIdWithNonUniqueFallback());
   
-    if (!body?.checks?.length) {
-      throw new FgaValidationError("checks", "When calling batchCheck, at least one check must be specified");
-    }
-  
     const correlationIdToCheck = new Map<string, ClientBatchCheckItem>();
     const transformed: BatchCheckItem[] = [];
   
@@ -724,6 +720,7 @@ export class OpenFgaClient extends BaseAPI {
   
     // Execute batch checks in parallel with a limit of maxParallelRequests
     const results: ClientBatchCheckSingleResponse[] = [];
+    
     const executeBatch = async (batch: BatchCheckItem[]) => {
       // Prepare request payload
       const batchRequest: BatchCheckRequest = {
@@ -758,7 +755,6 @@ export class OpenFgaClient extends BaseAPI {
     }
   
     // Return the final response in the expected format
-    console.log("Results before returning:", results); // Added logging
     return { responses: results };
   }
   
