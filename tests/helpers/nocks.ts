@@ -225,7 +225,7 @@ export const getNocks = ((nock: typeof Nock) => ({
       .post(`/stores/${storeId}/batch-check`, (body: BatchCheckRequest) =>
         body.consistency === consistency
       )
-      .reply(200, responseBody)
+      .reply(200, responseBody);
   },
   expand: (
     storeId: string,

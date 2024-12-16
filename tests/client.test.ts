@@ -578,9 +578,9 @@ describe("OpenFGA Client", () => {
               },
             ]
           }
-        )
-      ).rejects.toThrow(new FgaValidationError("correlationId", "When calling batchCheck, correlation IDs must be unique"));
-    });
+          )
+        ).rejects.toThrow(new FgaValidationError("correlationId", "When calling batchCheck, correlation IDs must be unique"));
+      });
       it("should return empty results when empty checks are specified", async () => {
         const response = await fgaClient.batchCheck({
           checks: [],
@@ -588,149 +588,149 @@ describe("OpenFGA Client", () => {
         expect(response.responses.length).toBe(0);
       });
       it("should handle single batch successfully", async () => {
-          const mockedResponse = {
-            result: {
-              "cor-1": {
-                allowed: true,
-                error: undefined,
-              },
-              "cor-2": {
-                allowed: false,
-                error: undefined,
-              },
+        const mockedResponse = {
+          result: {
+            "cor-1": {
+              allowed: true,
+              error: undefined,
             },
-          };
-          const scope = nocks.singleBatchCheck(baseConfig.storeId!, mockedResponse, undefined, ConsistencyPreference.HigherConsistency);
+            "cor-2": {
+              allowed: false,
+              error: undefined,
+            },
+          },
+        };
+        const scope = nocks.singleBatchCheck(baseConfig.storeId!, mockedResponse, undefined, ConsistencyPreference.HigherConsistency);
 
-          expect(scope.isDone()).toBe(false);
-          const response = await fgaClient.batchCheck({
-            checks: [{
-              user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
-              relation: "can_read",
-              object: "document",
-              contextualTuples: {
-                tuple_keys: [{
-                  user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
-                  relation: "editor",
-                  object: "folder:product"
-                }, {
-                  user: "folder:product",
-                  relation: "parent",
-                  object: "document:0192ab2a-d83f-756d-9397-c5ed9f3cb69a"
-                }
+        expect(scope.isDone()).toBe(false);
+        const response = await fgaClient.batchCheck({
+          checks: [{
+            user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
+            relation: "can_read",
+            object: "document",
+            contextualTuples: {
+              tuple_keys: [{
+                user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
+                relation: "editor",
+                object: "folder:product"
+              }, {
+                user: "folder:product",
+                relation: "parent",
+                object: "document:0192ab2a-d83f-756d-9397-c5ed9f3cb69a"
+              }
               ]
             },
             correlationId: "cor-1",
           },
-            {
-              user: "folder:product",
-              relation: "parent",
-              object: "document:0192ab2a-d83f-756d-9397-c5ed9f3cb69a",
-              correlationId: "cor-2",
-            }],
-          }, {
-            authorizationModelId: "01GAHCE4YVKPQEKZQHT2R89MQV",
-            consistency: ConsistencyPreference.HigherConsistency,
-          });
+          {
+            user: "folder:product",
+            relation: "parent",
+            object: "document:0192ab2a-d83f-756d-9397-c5ed9f3cb69a",
+            correlationId: "cor-2",
+          }],
+        }, {
+          authorizationModelId: "01GAHCE4YVKPQEKZQHT2R89MQV",
+          consistency: ConsistencyPreference.HigherConsistency,
+        });
   
-          expect(scope.isDone()).toBe(true);
-          expect(response.responses).toHaveLength(2);
-          expect(response.responses[0].allowed).toBe(true);
-          expect(response.responses[1].allowed).toBe(false);
+        expect(scope.isDone()).toBe(true);
+        expect(response.responses).toHaveLength(2);
+        expect(response.responses[0].allowed).toBe(true);
+        expect(response.responses[1].allowed).toBe(false);
       });
       it("should split batches successfully", async () => {
-          const mockedResponse0 = {
-            result: {
-              "cor-1": {
-                allowed: true,
-                error: undefined,
-              },
-              "cor-2": {
-                allowed: false,
-                error: undefined,
-              },
+        const mockedResponse0 = {
+          result: {
+            "cor-1": {
+              allowed: true,
+              error: undefined,
             },
-          };
-          const mockedResponse1 = {
-            result: {
-              "cor-3": {
-                allowed: false,
-                error: {
-                  inputError: ErrorCode.RelationNotFound,
-                  message: "relation not found",
-                }
+            "cor-2": {
+              allowed: false,
+              error: undefined,
+            },
+          },
+        };
+        const mockedResponse1 = {
+          result: {
+            "cor-3": {
+              allowed: false,
+              error: {
+                inputError: ErrorCode.RelationNotFound,
+                message: "relation not found",
               }
-            },
-          };
+            }
+          },
+        };
 
-          const scope0 = nocks.singleBatchCheck(baseConfig.storeId!, mockedResponse0, undefined, ConsistencyPreference.HigherConsistency);
-          const scope1 = nocks.singleBatchCheck(baseConfig.storeId!, mockedResponse1, undefined, ConsistencyPreference.HigherConsistency);
+        const scope0 = nocks.singleBatchCheck(baseConfig.storeId!, mockedResponse0, undefined, ConsistencyPreference.HigherConsistency);
+        const scope1 = nocks.singleBatchCheck(baseConfig.storeId!, mockedResponse1, undefined, ConsistencyPreference.HigherConsistency);
 
-          expect(scope0.isDone()).toBe(false);
-          expect(scope1.isDone()).toBe(false);
+        expect(scope0.isDone()).toBe(false);
+        expect(scope1.isDone()).toBe(false);
 
-          const response = await fgaClient.batchCheck({
-            checks: [{
-              user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
-              relation: "can_read",
-              object: "document",
-              contextualTuples: {
-                tuple_keys: [{
-                  user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
-                  relation: "editor",
-                  object: "folder:product"
-                }, {
-                  user: "folder:product",
-                  relation: "parent",
-                  object: "document:0192ab2a-d83f-756d-9397-c5ed9f3cb69a"
-                }
+        const response = await fgaClient.batchCheck({
+          checks: [{
+            user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
+            relation: "can_read",
+            object: "document",
+            contextualTuples: {
+              tuple_keys: [{
+                user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
+                relation: "editor",
+                object: "folder:product"
+              }, {
+                user: "folder:product",
+                relation: "parent",
+                object: "document:0192ab2a-d83f-756d-9397-c5ed9f3cb69a"
+              }
               ]
             },
             correlationId: "cor-1",
           },
-            {
-              user: "folder:product",
-              relation: "parent",
-              object: "document:0192ab2a-d83f-756d-9397-c5ed9f3cb69a",
-              correlationId: "cor-2",
-            },
-            {
-              user: "folder:product",
-              relation: "can_view",
-              object: "document:9992ab2a-d83f-756d-9397-c5ed9f3cj8a4",
-              correlationId: "cor-3",
-            }],
-          }, {
-            authorizationModelId: "01GAHCE4YVKPQEKZQHT2R89MQV",
-            consistency: ConsistencyPreference.HigherConsistency,
-            maxBatchSize: 2,
-          });
+          {
+            user: "folder:product",
+            relation: "parent",
+            object: "document:0192ab2a-d83f-756d-9397-c5ed9f3cb69a",
+            correlationId: "cor-2",
+          },
+          {
+            user: "folder:product",
+            relation: "can_view",
+            object: "document:9992ab2a-d83f-756d-9397-c5ed9f3cj8a4",
+            correlationId: "cor-3",
+          }],
+        }, {
+          authorizationModelId: "01GAHCE4YVKPQEKZQHT2R89MQV",
+          consistency: ConsistencyPreference.HigherConsistency,
+          maxBatchSize: 2,
+        });
   
-          expect(scope0.isDone()).toBe(true);
-          expect(scope1.isDone()).toBe(true);
-          expect(response.responses).toHaveLength(3);
+        expect(scope0.isDone()).toBe(true);
+        expect(scope1.isDone()).toBe(true);
+        expect(response.responses).toHaveLength(3);
 
-          const resp0 = response.responses.find(r => r.correlationId === "cor-1");
-          const resp1 = response.responses.find(r => r.correlationId === "cor-2");
-          const resp2 = response.responses.find(r => r.correlationId === "cor-3");
+        const resp0 = response.responses.find(r => r.correlationId === "cor-1");
+        const resp1 = response.responses.find(r => r.correlationId === "cor-2");
+        const resp2 = response.responses.find(r => r.correlationId === "cor-3");
 
-          expect(resp0?.allowed).toBe(true);
-          expect(resp0?.request.user).toBe("user:81684243-9356-4421-8fbf-a4f8d36aa31b");
-          expect(resp0?.request.relation).toBe("can_read");
-          expect(resp0?.request.object).toBe("document");
+        expect(resp0?.allowed).toBe(true);
+        expect(resp0?.request.user).toBe("user:81684243-9356-4421-8fbf-a4f8d36aa31b");
+        expect(resp0?.request.relation).toBe("can_read");
+        expect(resp0?.request.object).toBe("document");
           
-          expect(resp1?.allowed).toBe(false);
-          expect(resp1?.request.user).toBe("folder:product");
-          expect(resp1?.request.relation).toBe("parent");
-          expect(resp1?.request.object).toBe("document:0192ab2a-d83f-756d-9397-c5ed9f3cb69a");
+        expect(resp1?.allowed).toBe(false);
+        expect(resp1?.request.user).toBe("folder:product");
+        expect(resp1?.request.relation).toBe("parent");
+        expect(resp1?.request.object).toBe("document:0192ab2a-d83f-756d-9397-c5ed9f3cb69a");
 
-          expect(resp2?.allowed).toBe(false);
-          expect(resp2?.request.user).toBe("folder:product");
-          expect(resp2?.request.relation).toBe("can_view");
-          expect(resp2?.request.object).toBe("document:9992ab2a-d83f-756d-9397-c5ed9f3cj8a4");
+        expect(resp2?.allowed).toBe(false);
+        expect(resp2?.request.user).toBe("folder:product");
+        expect(resp2?.request.relation).toBe("can_view");
+        expect(resp2?.request.object).toBe("document:9992ab2a-d83f-756d-9397-c5ed9f3cj8a4");
 
-          expect(resp2?.error?.inputError).toBe(ErrorCode.RelationNotFound);
-          expect(resp2?.error?.message).toBe("relation not found");
+        expect(resp2?.error?.inputError).toBe(ErrorCode.RelationNotFound);
+        expect(resp2?.error?.message).toBe("relation not found");
       });
     });
 
