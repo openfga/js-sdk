@@ -682,8 +682,6 @@ export class OpenFgaClient extends BaseAPI {
       maxParallelRequests = DEFAULT_MAX_METHOD_PARALLEL_REQS,
     } = options;
 
-    // TODO this right? Do it here?
-    setHeaderIfNotSet(headers, CLIENT_METHOD_HEADER, "BatchCheck");
     setHeaderIfNotSet(headers, CLIENT_BULK_REQUEST_ID_HEADER, generateRandomIdWithNonUniqueFallback());
   
     const correlationIdToCheck = new Map<string, ClientBatchCheckItem>();
@@ -727,7 +725,7 @@ export class OpenFgaClient extends BaseAPI {
         consistency: options.consistency,
       };
 
-      const response = await this.singleBatchCheck(batchRequest, options);
+      const response = await this.singleBatchCheck(batchRequest, { ...options, headers });
       return response.result;
     });
   

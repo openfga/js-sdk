@@ -600,7 +600,8 @@ describe("OpenFGA Client", () => {
             },
           },
         };
-        const scope = nocks.singleBatchCheck(baseConfig.storeId!, mockedResponse, undefined, ConsistencyPreference.HigherConsistency, "01GAHCE4YVKPQEKZQHT2R89MQV");
+
+        const scope = nocks.singleBatchCheck(baseConfig.storeId!, mockedResponse, undefined, ConsistencyPreference.HigherConsistency, "01GAHCE4YVKPQEKZQHT2R89MQV").matchHeader("X-OpenFGA-Client-Bulk-Request-Id", /.*/);
 
         expect(scope.isDone()).toBe(false);
         const response = await fgaClient.batchCheck({
@@ -663,8 +664,8 @@ describe("OpenFGA Client", () => {
           },
         };
 
-        const scope0 = nocks.singleBatchCheck(baseConfig.storeId!, mockedResponse0, undefined, ConsistencyPreference.HigherConsistency, "01GAHCE4YVKPQEKZQHT2R89MQV");
-        const scope1 = nocks.singleBatchCheck(baseConfig.storeId!, mockedResponse1, undefined, ConsistencyPreference.HigherConsistency, "01GAHCE4YVKPQEKZQHT2R89MQV");
+        const scope0 = nocks.singleBatchCheck(baseConfig.storeId!, mockedResponse0, undefined, ConsistencyPreference.HigherConsistency, "01GAHCE4YVKPQEKZQHT2R89MQV").matchHeader("X-OpenFGA-Client-Bulk-Request-Id", /.*/);
+        const scope1 = nocks.singleBatchCheck(baseConfig.storeId!, mockedResponse1, undefined, ConsistencyPreference.HigherConsistency, "01GAHCE4YVKPQEKZQHT2R89MQV").matchHeader("X-OpenFGA-Client-Bulk-Request-Id", /.*/);
 
         expect(scope0.isDone()).toBe(false);
         expect(scope1.isDone()).toBe(false);
