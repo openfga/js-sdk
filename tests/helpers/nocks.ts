@@ -220,10 +220,12 @@ export const getNocks = ((nock: typeof Nock) => ({
     responseBody: BatchCheckResponse,
     basePath = defaultConfiguration.getBasePath(),
     consistency: ConsistencyPreference|undefined | undefined,
+    authorizationModelId = "auth-model-id",
   ) => {
     return nock(basePath)
       .post(`/stores/${storeId}/batch-check`, (body: BatchCheckRequest) =>
-        body.consistency === consistency
+        body.consistency === consistency &&
+        body.authorization_model_id === authorizationModelId
       )
       .reply(200, responseBody);
   },

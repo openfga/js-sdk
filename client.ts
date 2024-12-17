@@ -681,7 +681,7 @@ export class OpenFgaClient extends BaseAPI {
       maxBatchSize = DEFAULT_MAX_BATCH_SIZE,
       maxParallelRequests = DEFAULT_MAX_METHOD_PARALLEL_REQS,
     } = options;
-  
+
     // TODO this right? Do it here?
     setHeaderIfNotSet(headers, CLIENT_METHOD_HEADER, "BatchCheck");
     setHeaderIfNotSet(headers, CLIENT_BULK_REQUEST_ID_HEADER, generateRandomIdWithNonUniqueFallback());
@@ -720,22 +720,16 @@ export class OpenFgaClient extends BaseAPI {
   
     // Execute batch checks in parallel with a limit of maxParallelRequests
     const results: ClientBatchCheckSingleResponse[] = [];
-    
-    const executeBatch = async (batch: BatchCheckItem[]) => {
-      // Prepare request payload
+    const batchResponses = asyncPool(maxParallelRequests, batchedChecks, async (batch: BatchCheckItem[]) => {
       const batchRequest: BatchCheckRequest = {
         checks: batch,
-        authorization_model_id: options.authorizationModelId, // TODO this right here?
+        authorization_model_id: options.authorizationModelId,
         consistency: options.consistency,
       };
-  
-      // Make API call to execute the batch check
+
       const response = await this.singleBatchCheck(batchRequest, options);
       return response.result;
-    };
-  
-    // Use asyncPool to process batches concurrently, but limit to maxParallelRequests
-    const batchResponses = asyncPool(maxParallelRequests, batchedChecks, executeBatch);
+    });
   
     // Collect the responses and associate them with their correlation IDs
     for await (const response of batchResponses) {
@@ -754,7 +748,6 @@ export class OpenFgaClient extends BaseAPI {
       }
     }
   
-    // Return the final response in the expected format
     return { responses: results };
   }
 
