@@ -23,6 +23,7 @@ import {
   ListUsersResponse,
   ConsistencyPreference,
   ErrorCode,
+  BatchCheckRequest,
 } from "../index";
 import { baseConfig, defaultConfiguration, getNocks } from "./helpers";
 
@@ -733,33 +734,26 @@ describe("OpenFGA Client", () => {
         expect(resp2?.error?.inputError).toBe(ErrorCode.RelationNotFound);
         expect(resp2?.error?.message).toBe("relation not found");
       });
-      // it("should throw an error if auth fails", async () => {
-      //   const tuples = [{
-      //     user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
-      //     relation: "admin",
-      //     object: "workspace:1",
-      //   }];
+      it("should throw an error if auth fails", async () => {
 
-      //   const scope0 = nocks.check(baseConfig.storeId!, tuples[0], defaultConfiguration.getBasePath(), {} as any,401);
-      //   const scope1 = nock(defaultConfiguration.getBasePath())
-      //     .get(`/stores/${defaultConfiguration.storeId!}/authorization-models`)
-      //     .query({ page_size: 1 })
-      //     .reply(401, {
-      //       authorization_models: [],
-      //     });
-      //   try {
-      //     await fgaClient.listRelations({
-      //       user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
-      //       object: "workspace:1",
-      //       relations: ["admin"],
-      //     });
-      //   } catch (err) {
-      //     expect(err).toBeInstanceOf(FgaApiAuthenticationError);
-      //   } finally {
-      //     expect(scope0.isDone()).toBe(true);
-      //     expect(scope1.isDone()).toBe(false);
-      //   }
-      // });
+        const scope = nock(defaultConfiguration.getBasePath())
+          .post(`/stores/${baseConfig.storeId!}/batch-check`)
+          .reply(401, {});
+
+        try {
+          await fgaClient.batchCheck({
+            checks: [{
+              user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
+              relation: "can_read",
+              object: "document",
+            }],
+          });
+        } catch (err) {
+          expect(err).toBeInstanceOf(FgaApiAuthenticationError);
+        } finally {
+          expect(scope.isDone()).toBe(true);
+        }
+      }); 
     });
 
     describe("Expand", () => {

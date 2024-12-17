@@ -628,11 +628,12 @@ export class OpenFgaClient extends BaseAPI {
   }
 
   /**
-   * BatchCheck - Run a set of checks (evaluates)
+   * BatchCheck - Run a set of checks (evaluates) by calling the single check endpoint multiple times in parallel.
    * @param {ClientBatchCheckClientRequest} body
    * @param {ClientRequestOptsWithAuthZModelId & ClientBatchCheckClientRequestOpts} [options]
    * @param {number} [options.maxParallelRequests] - Max number of requests to issue in parallel. Defaults to `10`
    * @param {string} [options.authorizationModelId] - Overrides the authorization model id in the configuration
+   * @param {string} [options.consistency] - Optional consistency level for the request. Default is `MINIMIZE_LATENCY`
    * @param {object} [options.headers] - Custom headers to send alongside the request
    * @param {object} [options.retryParams] - Override the retry parameters for this request
    * @param {number} [options.retryParams.maxRetry] - Override the max number of retries on each API request
@@ -672,6 +673,21 @@ export class OpenFgaClient extends BaseAPI {
     return this.api.batchCheck(this.getStoreId(options)!, body, options);
   }
 
+  /**
+   * BatchCheck - Run a set of checks (evaluates) by calling the batch-check endpoint.
+   * Given the provided list of checks, it will call batch check, splitting the checks into batches based
+   * on the `options.maxBatchSize` parameter (default 50 checks) if needed. 
+   * @param {ClientBatchCheckClientRequest} body
+   * @param {ClientRequestOptsWithAuthZModelId & ClientBatchCheckClientRequestOpts} [options]
+   * @param {number} [options.maxParallelRequests] - Max number of requests to issue in parallel, if executing multiple requests. Defaults to `10`
+   * @param {number} [options.maxBatchSize] - Max number of checks to include in a single batch check request. Defaults to `50`.
+   * @param {string} [options.authorizationModelId] - Overrides the authorization model id in the configuration.
+   * @param {string} [options.consistency] - 
+   * @param {object} [options.headers] - Custom headers to send alongside the request
+   * @param {object} [options.retryParams] - Override the retry parameters for this request
+   * @param {number} [options.retryParams.maxRetry] - Override the max number of retries on each API request
+   * @param {number} [options.retryParams.minWaitInMs] - Override the minimum wait before a retry is initiated
+   */
   async batchCheck(
     body: ClientBatchCheckRequest,
     options: ClientRequestOptsWithConsistency & ClientBatchCheckRequestOpts = {}
