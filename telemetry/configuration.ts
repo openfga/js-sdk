@@ -72,6 +72,7 @@ export class TelemetryConfiguration implements TelemetryConfig {
   
     // This not included by default as it has a very high cardinality which could increase costs for users
     // TelemetryAttribute.FgaClientUser
+    // TelemetryAttribute.FgaClientRequestBatchCheckSize
   ]);
 
   /**
@@ -97,6 +98,7 @@ export class TelemetryConfiguration implements TelemetryConfig {
     TelemetryAttribute.HttpClientRequestDuration,
     TelemetryAttribute.HttpServerRequestDuration,
     TelemetryAttribute.FgaClientUser,
+    TelemetryAttribute.FgaClientRequestBatchCheckSize,
   ]);
 
   /**
