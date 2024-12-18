@@ -14,6 +14,7 @@
 import { URL } from "url";
 
 export enum TelemetryAttribute {
+  FgaClientRequestBatchCheckSize = "fga-client.request.batch_check_size",
   FgaClientRequestClientId = "fga-client.request.client_id",
   FgaClientRequestMethod = "fga-client.request.method",
   FgaClientRequestModelId = "fga-client.request.model_id",
@@ -121,6 +122,9 @@ export class TelemetryAttributes {
       attributes[TelemetryAttribute.FgaClientUser] = body.tuple_key.user;
     }
 
+    if (body?.checks?.length) {
+      attributes[TelemetryAttribute.FgaClientRequestBatchCheckSize] = body.checks.length;
+    }
     return attributes;
   }
 }
