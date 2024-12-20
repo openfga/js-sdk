@@ -579,10 +579,11 @@ export const OpenFgaApiAxiosParamCreator = function (configuration: Configuratio
          * @param {string} [type]
          * @param {number} [pageSize]
          * @param {string} [continuationToken]
+         * @param {string} [startTime] Start date and time of changes to read. Format: ISO 8601 timestamp (e.g., 2022-01-01T00:00:00Z) If a continuation_token is provided along side start_time, the continuation_token will take precedence over start_time.
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    readChanges: (storeId: string, type?: string, pageSize?: number, continuationToken?: string, options: any = {}): RequestArgs => {
+    readChanges: (storeId: string, type?: string, pageSize?: number, continuationToken?: string, startTime?: string, options: any = {}): RequestArgs => {
       // verify required parameter 'storeId' is not null or undefined
       assertParamExists("readChanges", "storeId", storeId);
       const localVarPath = "/stores/{store_id}/changes"
@@ -608,6 +609,12 @@ export const OpenFgaApiAxiosParamCreator = function (configuration: Configuratio
 
       if (continuationToken !== undefined) {
         localVarQueryParameter["continuation_token"] = continuationToken;
+      }
+
+      if (startTime !== undefined) {
+        localVarQueryParameter["start_time"] = (startTime as any instanceof Date) ?
+          (startTime as any).toISOString() :
+          startTime;
       }
 
 
@@ -939,11 +946,12 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @param {string} [type]
          * @param {number} [pageSize]
          * @param {string} [continuationToken]
+         * @param {string} [startTime] Start date and time of changes to read. Format: ISO 8601 timestamp (e.g., 2022-01-01T00:00:00Z) If a continuation_token is provided along side start_time, the continuation_token will take precedence over start_time.
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    async readChanges(storeId: string, type?: string, pageSize?: number, continuationToken?: string, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<ReadChangesResponse>> {
-      const localVarAxiosArgs = localVarAxiosParamCreator.readChanges(storeId, type, pageSize, continuationToken, options);
+    async readChanges(storeId: string, type?: string, pageSize?: number, continuationToken?: string, startTime?: string, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<ReadChangesResponse>> {
+      const localVarAxiosArgs = localVarAxiosParamCreator.readChanges(storeId, type, pageSize, continuationToken, startTime, options);
       return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials, {
         [TelemetryAttribute.FgaClientRequestMethod]: "ReadChanges",
         [TelemetryAttribute.FgaClientRequestStoreId]: storeId ?? "",
@@ -1145,11 +1153,12 @@ export const OpenFgaApiFactory = function (configuration: Configuration, credent
          * @param {string} [type]
          * @param {number} [pageSize]
          * @param {string} [continuationToken]
+         * @param {string} [startTime] Start date and time of changes to read. Format: ISO 8601 timestamp (e.g., 2022-01-01T00:00:00Z) If a continuation_token is provided along side start_time, the continuation_token will take precedence over start_time.
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    readChanges(storeId: string, type?: string, pageSize?: number, continuationToken?: string, options?: any): PromiseResult<ReadChangesResponse> {
-      return localVarFp.readChanges(storeId, type, pageSize, continuationToken, options).then((request) => request(axios));
+    readChanges(storeId: string, type?: string, pageSize?: number, continuationToken?: string, startTime?: string, options?: any): PromiseResult<ReadChangesResponse> {
+      return localVarFp.readChanges(storeId, type, pageSize, continuationToken, startTime, options).then((request) => request(axios));
     },
     /**
          * The Write API will transactionally update the tuples for a certain store. Tuples and type definitions allow OpenFGA to determine whether a relationship exists between an object and an user. In the body, `writes` adds new tuples and `deletes` removes existing tuples. When deleting a tuple, any `condition` specified with it is ignored. The API is not idempotent: if, later on, you try to add the same tuple key (even if the `condition` is different), or if you try to delete a non-existing tuple, it will throw an error. The API will not allow you to write tuples such as `document:2021-budget#viewer@document:2021-budget#viewer`, because they are implicit. An `authorization_model_id` may be specified in the body. If it is, it will be used to assert that each written tuple (not deleted) is valid for the model specified. If it is not specified, the latest authorization model ID will be used. ## Example ### Adding relationships To add `user:anne` as a `writer` for `document:2021-budget`, call write API with the following  ```json {   \"writes\": {     \"tuple_keys\": [       {         \"user\": \"user:anne\",         \"relation\": \"writer\",         \"object\": \"document:2021-budget\"       }     ]   },   \"authorization_model_id\": \"01G50QVV17PECNVAHX1GG4Y5NC\" } ``` ### Removing relationships To remove `user:bob` as a `reader` for `document:2021-budget`, call write API with the following  ```json {   \"deletes\": {     \"tuple_keys\": [       {         \"user\": \"user:bob\",         \"relation\": \"reader\",         \"object\": \"document:2021-budget\"       }     ]   } } ``` 
@@ -1356,12 +1365,13 @@ export class OpenFgaApi extends BaseAPI {
      * @param {string} [type]
      * @param {number} [pageSize]
      * @param {string} [continuationToken]
+     * @param {string} [startTime] Start date and time of changes to read. Format: ISO 8601 timestamp (e.g., 2022-01-01T00:00:00Z) If a continuation_token is provided along side start_time, the continuation_token will take precedence over start_time.
      * @param {*} [options] Override http request option.
      * @throws { FgaError }
      * @memberof OpenFgaApi
      */
-  public readChanges(storeId: string, type?: string, pageSize?: number, continuationToken?: string, options?: any): Promise<CallResult<ReadChangesResponse>> {
-    return OpenFgaApiFp(this.configuration, this.credentials).readChanges(storeId, type, pageSize, continuationToken, options).then((request) => request(this.axios));
+  public readChanges(storeId: string, type?: string, pageSize?: number, continuationToken?: string, startTime?: string, options?: any): Promise<CallResult<ReadChangesResponse>> {
+    return OpenFgaApiFp(this.configuration, this.credentials).readChanges(storeId, type, pageSize, continuationToken, startTime, options).then((request) => request(this.axios));
   }
 
   /**

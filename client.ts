@@ -181,6 +181,7 @@ export interface ClientListRelationsResponse {
 
 export interface ClientReadChangesRequest {
   type: string;
+  startTime?: string;
 }
 
 export type ClientExpandRequest = ExpandRequestTupleKey;
@@ -390,13 +391,14 @@ export class OpenFgaClient extends BaseAPI {
    * @param {ClientRequestOpts & PaginationOptions} [options]
    * @param {number} [options.pageSize]
    * @param {string} [options.continuationToken]
+   * @param {string} [body.startTime]
    * @param {object} [options.headers] - Custom headers to send alongside the request
    * @param {object} [options.retryParams] - Override the retry parameters for this request
    * @param {number} [options.retryParams.maxRetry] - Override the max number of retries on each API request
    * @param {number} [options.retryParams.minWaitInMs] - Override the minimum wait before a retry is initiated
    */
   async readChanges(body?: ClientReadChangesRequest, options: ClientRequestOptsWithStoreId & PaginationOptions = {}): PromiseResult<ReadChangesResponse> {
-    return this.api.readChanges(this.getStoreId(options)!, body?.type, options.pageSize, options.continuationToken, options);
+    return this.api.readChanges(this.getStoreId(options)!, body?.type, options.pageSize, options.continuationToken, body?.startTime, options);
   }
 
   /**
