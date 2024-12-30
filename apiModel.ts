@@ -468,7 +468,8 @@ export enum ErrorCode {
     DuplicateContextualTuple = 'duplicate_contextual_tuple',
     InvalidAuthorizationModel = 'invalid_authorization_model',
     UnsupportedSchemaVersion = 'unsupported_schema_version',
-    Cancelled = 'cancelled'
+    Cancelled = 'cancelled',
+    InvalidStartTime = 'invalid_start_time'
 }
 
 /**

@@ -260,12 +260,13 @@ describe("OpenFGA Client", () => {
       it("should properly call the ReadChanges API", async () => {
         const type = "repo";
         const pageSize = 25;
+        const startTime = "2022-01-01T00:00:00Z";
         const continuationToken = "eyJwayI6IkxBVEVTVF9OU0NPTkZJR19hdXRoMHN0b3JlIiwic2siOiIxem1qbXF3MWZLZExTcUoyN01MdTdqTjh0cWgifQ==";
 
-        const scope = nocks.readChanges(baseConfig.storeId!, type, pageSize, continuationToken);
+        const scope = nocks.readChanges(baseConfig.storeId!, type, pageSize, continuationToken, startTime);
 
         expect(scope.isDone()).toBe(false);
-        const response = await fgaClient.readChanges({ type }, { pageSize, continuationToken });
+        const response = await fgaClient.readChanges({ type, startTime }, { pageSize, continuationToken });
 
         expect(scope.isDone()).toBe(true);
         expect(response).toMatchObject({ changes: expect.arrayContaining([]) });
@@ -274,8 +275,9 @@ describe("OpenFGA Client", () => {
       it("should properly call the ReadChanges API with no type", async () => {
         const pageSize = 25;
         const continuationToken = "eyJwayI6IkxBVEVTVF9OU0NPTkZJR19hdXRoMHN0b3JlIiwic2siOiIxem1qbXF3MWZLZExTcUoyN01MdTdqTjh0cWgifQ==";
+        const startTime = "2022-01-01T00:00:00Z";
 
-        const scope = nocks.readChanges(baseConfig.storeId!, "", pageSize, continuationToken);
+        const scope = nocks.readChanges(baseConfig.storeId!, "", pageSize, continuationToken,"");
 
         expect(scope.isDone()).toBe(false);
         const response = await fgaClient.readChanges(undefined, { pageSize, continuationToken });

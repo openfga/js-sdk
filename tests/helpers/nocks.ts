@@ -143,13 +143,14 @@ export const getNocks = ((nock: typeof Nock) => ({
         authorization_model: authorizationModel
       });
   },
-  readChanges: (storeId: string, type: string, pageSize: number, contToken: string, basePath = defaultConfiguration.getBasePath()) => {
+  readChanges: (storeId: string, type: string, pageSize: number, contToken: string, startTime: string, basePath = defaultConfiguration.getBasePath()) => {
     return nock(basePath)
       .get(`/stores/${storeId}/changes`)
       .query({
         page_size: pageSize,
         continuation_token: contToken,
-        ...(type ? { type } : { })
+        ...(type ? { type } : { }),
+        ...(startTime ? {start_time: startTime } :{})
       })
       .reply(200, {
         changes: [{

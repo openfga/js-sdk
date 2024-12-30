@@ -812,11 +812,12 @@ describe("OpenFGA SDK", function () {
         const type = "repo";
         const pageSize = 25;
         const continuationToken = "eyJwayI6IkxBVEVTVF9OU0NPTkZJR19hdXRoMHN0b3JlIiwic2siOiIxem1qbXF3MWZLZExTcUoyN01MdTdqTjh0cWgifQ==";
+        const startTime = "2022-01-01T00:00:00Z";
 
-        const scope = nocks.readChanges(baseConfig.storeId!, type, pageSize, continuationToken);
+        const scope = nocks.readChanges(baseConfig.storeId!, type, pageSize, continuationToken, startTime);
 
         expect(scope.isDone()).toBe(false);
-        const response = await fgaApi.readChanges(baseConfig.storeId!, type, pageSize, continuationToken);
+        const response = await fgaApi.readChanges(baseConfig.storeId!, type, pageSize, continuationToken, startTime);
 
         expect(scope.isDone()).toBe(true);
         expect(response).toMatchObject({ changes: expect.arrayContaining([]) });
