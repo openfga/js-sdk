@@ -305,12 +305,13 @@ Reads the list of historical relationship tuple writes and deletes.
 
 ```javascript
 const type = 'document';
+const startTime = "2022-01-01T00:00:00Z"
 const options = {
   pageSize: 25,
   continuationToken: 'eyJwayI6IkxBVEVTVF9OU0NPTkZJR19hdXRoMHN0b3JlIiwic2siOiIxem1qbXF3MWZLZExTcUoyN01MdTdqTjh0cWgifQ==',
 };
 
-const response = await fgaClient.readChanges({ type }, options);
+const response = await fgaClient.readChanges({ type, startTime }, options);
 
 // response.continuation_token = ...
 // response.changes = [

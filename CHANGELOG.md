@@ -1,5 +1,12 @@
 # Changelog
 
+
+## [Unreleased](https://github.com/openfga/js-sdk/compare/v0.7.0...HEAD)
+
+- fix: error correctly if apiUrl is not provided (#161)
+- feat: add support for `start_time` parameter in `ReadChanges` endpoint
+- BREAKING: As of this release, the min node version required by the SDK is now v16.15.0
+
 ## v0.7.0
 
 ### [0.7.0](https://github.com/openfga/js-sdk/compare/v0.6.3...v0.7.0) (2024-08-30)
