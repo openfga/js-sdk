@@ -26,9 +26,9 @@ export class Credentials {
   private accessToken?: string;
   private accessTokenExpiryDate?: Date;
 
-  public static init(configuration: { credentials: AuthCredentialsConfig, telemetry: TelemetryConfiguration, baseOptions?: any }): Credentials {
-    return new Credentials(configuration.credentials, globalAxios, configuration.telemetry, configuration.baseOptions);
-  }
+  public static init(configuration: { credentials: AuthCredentialsConfig, telemetry: TelemetryConfiguration, baseOptions?: any }, axios: AxiosInstance = globalAxios): Credentials {
+    return new Credentials(configuration.credentials, axios, configuration.telemetry, configuration.baseOptions);
+}
 
   public constructor(private authConfig: AuthCredentialsConfig, private axios: AxiosInstance = globalAxios, private telemetryConfig: TelemetryConfiguration, private baseOptions?: any) {
     this.initConfig();
@@ -155,7 +155,7 @@ export class Credentials {
       }, {
         maxRetry: 3,
         minWaitInMs: 100,
-      }, globalAxios);
+      }, this.axios);
 
       const response = wrappedResponse?.response;
       if (response) {
@@ -180,7 +180,7 @@ export class Credentials {
 
         attributes = TelemetryAttributes.fromResponse({
           response,
-          attributes,  
+          attributes,
         });
 
         attributes = TelemetryAttributes.prepare(attributes, this.telemetryConfig.metrics?.counterCredentialsRequest?.attributes);

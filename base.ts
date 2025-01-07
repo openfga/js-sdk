@@ -48,7 +48,7 @@ export class BaseAPI {
     }
     this.configuration.isValid();
 
-    this.credentials = Credentials.init(this.configuration);
+    this.credentials = Credentials.init(this.configuration, this.axios);
 
     if (!this.axios) {
       const httpAgent = new http.Agent({ keepAlive: true });
