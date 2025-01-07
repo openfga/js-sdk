@@ -253,13 +253,13 @@ export interface CheckError {
      * @type {ErrorCode}
      * @memberof CheckError
      */
-    inputError?: ErrorCode;
+    input_error?: ErrorCode;
     /**
      * 
      * @type {InternalErrorCode}
      * @memberof CheckError
      */
-    internalError?: InternalErrorCode;
+    internal_error?: InternalErrorCode;
     /**
      * 
      * @type {string}
@@ -585,7 +585,8 @@ export enum ErrorCode {
     DuplicateContextualTuple = 'duplicate_contextual_tuple',
     InvalidAuthorizationModel = 'invalid_authorization_model',
     UnsupportedSchemaVersion = 'unsupported_schema_version',
-    Cancelled = 'cancelled'
+    Cancelled = 'cancelled',
+    InvalidStartTime = 'invalid_start_time'
 }
 
 /**

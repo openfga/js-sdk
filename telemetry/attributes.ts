@@ -14,7 +14,6 @@
 import { URL } from "url";
 
 export enum TelemetryAttribute {
-  FgaClientRequestBatchCheckSize = "fga-client.request.batch_check_size",
   FgaClientRequestClientId = "fga-client.request.client_id",
   FgaClientRequestMethod = "fga-client.request.method",
   FgaClientRequestModelId = "fga-client.request.model_id",
@@ -22,6 +21,7 @@ export enum TelemetryAttribute {
   FgaClientResponseModelId  = "fga-client.response.model_id",
   FgaClientUser = "fga-client.user",
   HttpClientRequestDuration = "http.client.request.duration",
+  FgaClientRequestBatchCheckSize = "fga-client.request.batch_check_size",
   HttpHost = "http.host",
   HttpRequestMethod = "http.request.method",
   HttpRequestResendCount = "http.request.resend_count",

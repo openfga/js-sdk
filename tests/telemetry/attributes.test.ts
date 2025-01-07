@@ -107,6 +107,7 @@ describe("TelemetryAttributes", () => {
     expect(attributes[TelemetryAttribute.FgaClientUser]).toBeUndefined();
   });
 
+
   test("should create attributes from a batchCheck request body correctly", () => {
     const body = {
       authorization_model_id: "model-id",

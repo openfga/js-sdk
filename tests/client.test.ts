@@ -540,7 +540,6 @@ describe("OpenFGA Client", () => {
           .reply(200, {
             authorization_models: [],
           });
-
         expect(scope0.isDone()).toBe(false);
         expect(scope1.isDone()).toBe(false);
         expect(scope2.isDone()).toBe(false);
@@ -634,7 +633,7 @@ describe("OpenFGA Client", () => {
           authorizationModelId: "01GAHCE4YVKPQEKZQHT2R89MQV",
           consistency: ConsistencyPreference.HigherConsistency,
         });
-  
+
         expect(scope.isDone()).toBe(true);
         expect(response.responses).toHaveLength(2);
         expect(response.responses[0].allowed).toBe(true);
@@ -658,7 +657,7 @@ describe("OpenFGA Client", () => {
             "cor-3": {
               allowed: false,
               error: {
-                inputError: ErrorCode.RelationNotFound,
+                input_error: ErrorCode.RelationNotFound,
                 message: "relation not found",
               }
             }
@@ -707,7 +706,7 @@ describe("OpenFGA Client", () => {
           consistency: ConsistencyPreference.HigherConsistency,
           maxBatchSize: 2,
         });
-  
+
         expect(scope0.isDone()).toBe(true);
         expect(scope1.isDone()).toBe(true);
         expect(response.responses).toHaveLength(3);
@@ -720,7 +719,7 @@ describe("OpenFGA Client", () => {
         expect(resp0?.request.user).toBe("user:81684243-9356-4421-8fbf-a4f8d36aa31b");
         expect(resp0?.request.relation).toBe("can_read");
         expect(resp0?.request.object).toBe("document");
-          
+
         expect(resp1?.allowed).toBe(false);
         expect(resp1?.request.user).toBe("folder:product");
         expect(resp1?.request.relation).toBe("parent");
@@ -731,7 +730,7 @@ describe("OpenFGA Client", () => {
         expect(resp2?.request.relation).toBe("can_view");
         expect(resp2?.request.object).toBe("document:9992ab2a-d83f-756d-9397-c5ed9f3cj8a4");
 
-        expect(resp2?.error?.inputError).toBe(ErrorCode.RelationNotFound);
+        expect(resp2?.error?.input_error).toBe(ErrorCode.RelationNotFound);
         expect(resp2?.error?.message).toBe("relation not found");
       });
       it("should throw an error if auth fails", async () => {

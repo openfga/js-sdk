@@ -182,7 +182,6 @@ export type ClientBatchCheckSingleResponse = {
     error?: CheckError;
 }
 
-// for server batch check
 export interface ClientBatchCheckResponse {
   responses: ClientBatchCheckSingleResponse[];
 }
@@ -664,9 +663,9 @@ export class OpenFgaClient extends BaseAPI {
     )) {
       responses.push(singleCheckResponse);
     }
-
     return { responses };
   }
+
 
 
   private singleBatchCheck(body: BatchCheckRequest, options: ClientRequestOptsWithConsistency & ClientBatchCheckRequestOpts = {}): Promise<BatchCheckResponse>  {
@@ -699,23 +698,23 @@ export class OpenFgaClient extends BaseAPI {
     } = options;
 
     setHeaderIfNotSet(headers, CLIENT_BULK_REQUEST_ID_HEADER, generateRandomIdWithNonUniqueFallback());
-  
+
     const correlationIdToCheck = new Map<string, ClientBatchCheckItem>();
     const transformed: BatchCheckItem[] = [];
-  
+
     // Validate and transform checks
     for (const check of body.checks) {
       // Generate a correlation ID if not provided
       if (!check.correlationId) {
         check.correlationId = generateRandomIdWithNonUniqueFallback();
       }
-  
+
       // Ensure that correlation IDs are unique
       if (correlationIdToCheck.has(check.correlationId)) {
         throw new FgaValidationError("correlationId", "When calling batchCheck, correlation IDs must be unique");
       }
       correlationIdToCheck.set(check.correlationId, check);
-  
+
       // Transform the check into the BatchCheckItem format
       transformed.push({
         tuple_key: {
@@ -728,10 +727,10 @@ export class OpenFgaClient extends BaseAPI {
         correlation_id: check.correlationId,
       });
     }
-  
+
     // Split the transformed checks into batches based on maxBatchSize
     const batchedChecks = chunkArray(transformed, maxBatchSize);
-  
+
     // Execute batch checks in parallel with a limit of maxParallelRequests
     const results: ClientBatchCheckSingleResponse[] = [];
     const batchResponses = asyncPool(maxParallelRequests, batchedChecks, async (batch: BatchCheckItem[]) => {
@@ -744,7 +743,7 @@ export class OpenFgaClient extends BaseAPI {
       const response = await this.singleBatchCheck(batchRequest, { ...options, headers });
       return response.result;
     });
-  
+
     // Collect the responses and associate them with their correlation IDs
     for await (const response of batchResponses) {
       if (response) { 
@@ -761,9 +760,9 @@ export class OpenFgaClient extends BaseAPI {
         }
       }
     }
-  
+
     return { responses: results };
-  }
+  } 
 
   /**
    * Expand - Expands the relationships in userset tree format (evaluates)

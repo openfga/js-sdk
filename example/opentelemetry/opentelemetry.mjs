@@ -29,7 +29,6 @@ const telemetryConfig = {
     },
     [TelemetryMetric.HistogramRequestDuration]: {
       attributes: new Set([
-        TelemetryAttribute.FgaClientRequestBatchCheckSize,
         TelemetryAttribute.HttpResponseStatusCode,
         TelemetryAttribute.UserAgentOriginal,
         TelemetryAttribute.FgaClientRequestMethod,
@@ -41,6 +40,7 @@ const telemetryConfig = {
     },
     [TelemetryMetric.HistogramQueryDuration]: {
       attributes: new Set([
+        TelemetryAttribute.FgaClientRequestBatchCheckSize,
         TelemetryAttribute.HttpResponseStatusCode,
         TelemetryAttribute.UserAgentOriginal,
         TelemetryAttribute.FgaClientRequestMethod,
@@ -127,7 +127,7 @@ async function main () {
   }, {
     authorizationModelId: "01JC6KPJ0CKSZ69C5Z26CYWX2N"
   });
-
+  
   console.log("writing tuple");
   await fgaClient.write({
     writes: [
