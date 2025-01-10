@@ -22,6 +22,8 @@ import {
   OpenFgaClient,
   ListUsersResponse,
   ConsistencyPreference,
+  ErrorCode,
+  BatchCheckRequest,
 } from "../index";
 import { baseConfig, defaultConfiguration, getNocks } from "./helpers";
 
@@ -511,7 +513,7 @@ describe("OpenFGA Client", () => {
       });
     });
 
-    describe("BatchCheck", () => {
+    describe("ClientBatchCheck", () => {
       it("should properly call the Check API", async () => {
         const tuples = [{
           user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
@@ -526,36 +528,231 @@ describe("OpenFGA Client", () => {
           relation: "reader",
           object: "workspace:3",
         }];
-        const scope0 = nocks.check(defaultConfiguration.storeId!, tuples[0], defaultConfiguration.getBasePath(), { allowed: true }, 200, ConsistencyPreference.HigherConsistency).matchHeader("X-OpenFGA-Client-Method", "BatchCheck");
-        const scope1 = nocks.check(defaultConfiguration.storeId!, tuples[1], defaultConfiguration.getBasePath(), { allowed: false }, 200, ConsistencyPreference.HigherConsistency).matchHeader("X-OpenFGA-Client-Method", "BatchCheck");
+        const scope0 = nocks.check(defaultConfiguration.storeId!, tuples[0], defaultConfiguration.getBasePath(), { allowed: true }, 200, ConsistencyPreference.HigherConsistency).matchHeader("X-OpenFGA-Client-Method", "ClientBatchCheck");
+        const scope1 = nocks.check(defaultConfiguration.storeId!, tuples[1], defaultConfiguration.getBasePath(), { allowed: false }, 200, ConsistencyPreference.HigherConsistency).matchHeader("X-OpenFGA-Client-Method", "ClientBatchCheck");
         const scope2 = nocks.check(defaultConfiguration.storeId!, tuples[2], defaultConfiguration.getBasePath(), {
           "code": "validation_error",
           "message": "relation &#39;workspace#reader&#39; not found"
-        }, 400, ConsistencyPreference.HigherConsistency).matchHeader("X-OpenFGA-Client-Method", "BatchCheck");
+        }, 400, ConsistencyPreference.HigherConsistency).matchHeader("X-OpenFGA-Client-Method", "ClientBatchCheck");
         const scope3 = nock(defaultConfiguration.getBasePath())
           .get(`/stores/${defaultConfiguration.storeId!}/authorization-models`)
           .query({ page_size: 1 })
           .reply(200, {
             authorization_models: [],
           });
-
         expect(scope0.isDone()).toBe(false);
         expect(scope1.isDone()).toBe(false);
         expect(scope2.isDone()).toBe(false);
-        const response = await fgaClient.batchCheck([tuples[0], tuples[1], tuples[2]], { consistency: ConsistencyPreference.HigherConsistency });
+        const response = await fgaClient.clientBatchCheck([tuples[0], tuples[1], tuples[2]], { consistency: ConsistencyPreference.HigherConsistency });
 
         expect(scope0.isDone()).toBe(true);
         expect(scope1.isDone()).toBe(true);
         expect(scope2.isDone()).toBe(true);
         expect(scope3.isDone()).toBe(false);
-        expect(response.responses.length).toBe(3);
-        expect(response.responses.sort((a, b) => String(a._request.object).localeCompare(b._request.object)))
+        expect(response.result.length).toBe(3);
+        expect(response.result.sort((a, b) => String(a._request.object).localeCompare(b._request.object)))
           .toMatchObject(expect.arrayContaining([
             { _request: tuples[0], allowed: true, },
             { _request: tuples[1], allowed: false },
             { _request: tuples[2], error: expect.any(Error) },
           ]));
       });
+    });
+
+    describe("BatchCheck", () => {
+      it(" should throw error when correlationIds are duplicated", async () => {
+        expect(
+          fgaClient.batchCheck({
+            checks: [
+              {
+                user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
+                object: "workspace:1",
+                relation: "viewer",
+                correlationId: "cor-id",
+              },
+              {
+                user: "user:91284243-9356-4421-8fbf-a4f8d36aa31b",
+                object: "workspace:2",
+                relation: "viewer",
+                correlationId: "cor-id",
+              },
+            ]
+          }
+          )
+        ).rejects.toThrow(new FgaValidationError("correlationId", "When calling batchCheck, correlation IDs must be unique"));
+      });
+      it("should return empty results when empty checks are specified", async () => {
+        const response = await fgaClient.batchCheck({
+          checks: [],
+        });
+        expect(response.result.length).toBe(0);
+      });
+      it("should handle single batch successfully", async () => {
+        const mockedResponse = {
+          result: {
+            "cor-1": {
+              allowed: true,
+              error: undefined,
+            },
+            "cor-2": {
+              allowed: false,
+              error: undefined,
+            },
+          },
+        };
+
+        const scope = nocks.singleBatchCheck(baseConfig.storeId!, mockedResponse, undefined, ConsistencyPreference.HigherConsistency, "01GAHCE4YVKPQEKZQHT2R89MQV").matchHeader("X-OpenFGA-Client-Bulk-Request-Id", /.*/);
+
+        expect(scope.isDone()).toBe(false);
+        const response = await fgaClient.batchCheck({
+          checks: [{
+            user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
+            relation: "can_read",
+            object: "document",
+            contextualTuples: {
+              tuple_keys: [{
+                user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
+                relation: "editor",
+                object: "folder:product"
+              }, {
+                user: "folder:product",
+                relation: "parent",
+                object: "document:0192ab2a-d83f-756d-9397-c5ed9f3cb69a"
+              }
+              ]
+            },
+            correlationId: "cor-1",
+          },
+          {
+            user: "folder:product",
+            relation: "parent",
+            object: "document:0192ab2a-d83f-756d-9397-c5ed9f3cb69a",
+            correlationId: "cor-2",
+          }],
+        }, {
+          authorizationModelId: "01GAHCE4YVKPQEKZQHT2R89MQV",
+          consistency: ConsistencyPreference.HigherConsistency,
+        });
+
+        expect(scope.isDone()).toBe(true);
+        expect(response.result).toHaveLength(2);
+        expect(response.result[0].allowed).toBe(true);
+        expect(response.result[1].allowed).toBe(false);
+      });
+      it("should split batches successfully", async () => {
+        const mockedResponse0 = {
+          result: {
+            "cor-1": {
+              allowed: true,
+              error: undefined,
+            },
+            "cor-2": {
+              allowed: false,
+              error: undefined,
+            },
+          },
+        };
+        const mockedResponse1 = {
+          result: {
+            "cor-3": {
+              allowed: false,
+              error: {
+                input_error: ErrorCode.RelationNotFound,
+                message: "relation not found",
+              }
+            }
+          },
+        };
+
+        const scope0 = nocks.singleBatchCheck(baseConfig.storeId!, mockedResponse0, undefined, ConsistencyPreference.HigherConsistency, "01GAHCE4YVKPQEKZQHT2R89MQV").matchHeader("X-OpenFGA-Client-Bulk-Request-Id", /.*/);
+        const scope1 = nocks.singleBatchCheck(baseConfig.storeId!, mockedResponse1, undefined, ConsistencyPreference.HigherConsistency, "01GAHCE4YVKPQEKZQHT2R89MQV").matchHeader("X-OpenFGA-Client-Bulk-Request-Id", /.*/);
+
+        expect(scope0.isDone()).toBe(false);
+        expect(scope1.isDone()).toBe(false);
+
+        const response = await fgaClient.batchCheck({
+          checks: [{
+            user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
+            relation: "can_read",
+            object: "document",
+            contextualTuples: {
+              tuple_keys: [{
+                user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
+                relation: "editor",
+                object: "folder:product"
+              }, {
+                user: "folder:product",
+                relation: "parent",
+                object: "document:0192ab2a-d83f-756d-9397-c5ed9f3cb69a"
+              }
+              ]
+            },
+            correlationId: "cor-1",
+          },
+          {
+            user: "folder:product",
+            relation: "parent",
+            object: "document:0192ab2a-d83f-756d-9397-c5ed9f3cb69a",
+            correlationId: "cor-2",
+          },
+          {
+            user: "folder:product",
+            relation: "can_view",
+            object: "document:9992ab2a-d83f-756d-9397-c5ed9f3cj8a4",
+            correlationId: "cor-3",
+          }],
+        }, {
+          authorizationModelId: "01GAHCE4YVKPQEKZQHT2R89MQV",
+          consistency: ConsistencyPreference.HigherConsistency,
+          maxBatchSize: 2,
+        });
+
+        expect(scope0.isDone()).toBe(true);
+        expect(scope1.isDone()).toBe(true);
+        expect(response.result).toHaveLength(3);
+
+        const resp0 = response.result.find(r => r.correlationId === "cor-1");
+        const resp1 = response.result.find(r => r.correlationId === "cor-2");
+        const resp2 = response.result.find(r => r.correlationId === "cor-3");
+
+        expect(resp0?.allowed).toBe(true);
+        expect(resp0?.request.user).toBe("user:81684243-9356-4421-8fbf-a4f8d36aa31b");
+        expect(resp0?.request.relation).toBe("can_read");
+        expect(resp0?.request.object).toBe("document");
+
+        expect(resp1?.allowed).toBe(false);
+        expect(resp1?.request.user).toBe("folder:product");
+        expect(resp1?.request.relation).toBe("parent");
+        expect(resp1?.request.object).toBe("document:0192ab2a-d83f-756d-9397-c5ed9f3cb69a");
+
+        expect(resp2?.allowed).toBe(false);
+        expect(resp2?.request.user).toBe("folder:product");
+        expect(resp2?.request.relation).toBe("can_view");
+        expect(resp2?.request.object).toBe("document:9992ab2a-d83f-756d-9397-c5ed9f3cj8a4");
+
+        expect(resp2?.error?.input_error).toBe(ErrorCode.RelationNotFound);
+        expect(resp2?.error?.message).toBe("relation not found");
+      });
+      it("should throw an error if auth fails", async () => {
+
+        const scope = nock(defaultConfiguration.getBasePath())
+          .post(`/stores/${baseConfig.storeId!}/batch-check`)
+          .reply(401, {});
+
+        try {
+          await fgaClient.batchCheck({
+            checks: [{
+              user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
+              relation: "can_read",
+              object: "document",
+            }],
+          });
+        } catch (err) {
+          expect(err).toBeInstanceOf(FgaApiAuthenticationError);
+        } finally {
+          expect(scope.isDone()).toBe(true);
+        }
+      }); 
     });
 
     describe("Expand", () => {

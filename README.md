@@ -89,7 +89,7 @@ yarn add @openfga/sdk
 
 We strongly recommend you initialize the `OpenFgaClient` only once and then re-use it throughout your app, otherwise you will incur the cost of having to re-initialize multiple times or at every request, the cost of reduced connection pooling and re-use, and would be particularly costly in the client credentials flow, as that flow will be performed on every request.
 
-> The `OpenFgaClient` will by default retry API requests up to 15 times on 429 and 5xx errors.
+> The `OpenFgaClient` will by default retry API requests up to 3 times on 429 and 5xx errors.
 
 #### No Credentials
 
@@ -446,7 +446,7 @@ const result = await fgaClient.check({
 ##### Batch Check
 
 Run a set of [checks](#check). Batch Check will return `allowed: false` if it encounters an error, and will return the error in the body.
-If 429s or 5xxs are encountered, the underlying check will retry up to 15 times before giving up.
+If 429s or 5xxs are encountered, the underlying check will retry up to 3 times before giving up.
 
 ```javascript
 const options = {
@@ -667,7 +667,7 @@ const response = await fgaClient.writeAssertions([{
 
 ### Retries
 
-If a network request fails with a 429 or 5xx error from the server, the SDK will automatically retry the request up to 15 times with a minimum wait time of 100 milliseconds between each attempt.
+If a network request fails with a 429 or 5xx error from the server, the SDK will automatically retry the request up to 3 times with a minimum wait time of 100 milliseconds between each attempt.
 
 To customize this behavior, create an object with `maxRetry` and `minWaitInMs` properties. `maxRetry` determines the maximum number of retries (up to 15), while `minWaitInMs` sets the minimum wait time between retries in milliseconds.
 

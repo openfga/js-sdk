@@ -106,4 +106,31 @@ describe("TelemetryAttributes", () => {
     expect(attributes[TelemetryAttribute.FgaClientRequestModelId]).toEqual("model-id");
     expect(attributes[TelemetryAttribute.FgaClientUser]).toBeUndefined();
   });
+
+
+  test("should create attributes from a batchCheck request body correctly", () => {
+    const body = {
+      authorization_model_id: "model-id",
+      checks: [
+        {
+          tuple_key: {
+            user: "user:anne",
+            object: "doc:123",
+            relation: "can_view"
+          }
+        },
+        {
+          tuple_key: {
+            user: "user:anne",
+            object: "doc:789",
+            relation: "can_view"
+          }
+        }
+      ]
+    };
+    const attributes = TelemetryAttributes.fromRequestBody(body);
+
+    expect(attributes[TelemetryAttribute.FgaClientRequestModelId]).toEqual("model-id");
+    expect(attributes[TelemetryAttribute.FgaClientRequestBatchCheckSize]).toEqual(2);
+  });
 });

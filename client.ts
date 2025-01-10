@@ -17,10 +17,15 @@ import asyncPool = require("tiny-async-pool");
 import { OpenFgaApi } from "./api";
 import {
   Assertion,
+  BatchCheckItem,
+  BatchCheckRequest,
+  BatchCheckResponse,
+  CheckError,
   CheckRequest,
   CheckRequestTupleKey,
   CheckResponse,
   ConsistencyPreference,
+  ContextualTupleKeys,
   CreateStoreRequest,
   CreateStoreResponse,
   ExpandRequestTupleKey,
@@ -96,6 +101,7 @@ export class ClientConfiguration extends Configuration {
 }
 
 const DEFAULT_MAX_METHOD_PARALLEL_REQS = 10;
+const DEFAULT_MAX_BATCH_SIZE = 50;
 const CLIENT_METHOD_HEADER = "X-OpenFGA-Client-Method";
 const CLIENT_BULK_REQUEST_ID_HEADER = "X-OpenFGA-Client-Bulk-Request-Id";
 
@@ -126,9 +132,9 @@ export type ClientCheckRequest = CheckRequestTupleKey &
     Pick<CheckRequest, "context"> &
     { contextualTuples?: Array<TupleKey> };
 
-export type ClientBatchCheckRequest = ClientCheckRequest[];
+export type ClientBatchCheckClientRequest = ClientCheckRequest[];
 
-export type ClientBatchCheckSingleResponse = {
+export type ClientBatchCheckSingleClientResponse = {
   _request: ClientCheckRequest;
 } & ({
   allowed: boolean;
@@ -138,8 +144,46 @@ export type ClientBatchCheckSingleResponse = {
   error: Error;
 });
 
+export interface ClientBatchCheckClientResponse {
+  result: ClientBatchCheckSingleClientResponse[];
+}
+
+export interface ClientBatchCheckClientRequestOpts {
+  maxParallelRequests?: number;
+}
+
+// For server batch check
+export type ClientBatchCheckItem = {
+  user: string;
+  relation: string;
+  object: string;
+  correlationId?: string;
+  contextualTuples?: ContextualTupleKeys;
+  context?: object;
+};
+
+// for server batch check
+export type ClientBatchCheckRequest = {
+  checks: ClientBatchCheckItem[];
+};
+
+// for server batch check
+export interface ClientBatchCheckRequestOpts {
+    maxParallelRequests?: number;
+    maxBatchSize?: number;
+}
+
+
+// for server batch check
+export type ClientBatchCheckSingleResponse = {
+    allowed: boolean;
+    request: ClientBatchCheckItem;
+    correlationId: string;
+    error?: CheckError;
+}
+
 export interface ClientBatchCheckResponse {
-  responses: ClientBatchCheckSingleResponse[];
+  result: ClientBatchCheckSingleResponse[];
 }
 
 export interface ClientWriteRequestOpts {
@@ -148,10 +192,6 @@ export interface ClientWriteRequestOpts {
     maxPerChunk?: number;
     maxParallelRequests?: number;
   }
-}
-
-export interface BatchCheckRequestOpts {
-  maxParallelRequests?: number;
 }
 
 export interface ClientWriteRequest {
@@ -587,26 +627,27 @@ export class OpenFgaClient extends BaseAPI {
   }
 
   /**
-   * BatchCheck - Run a set of checks (evaluates)
-   * @param {ClientBatchCheckRequest} body
-   * @param {ClientRequestOptsWithAuthZModelId & BatchCheckRequestOpts} [options]
+   * BatchCheck - Run a set of checks (evaluates) by calling the single check endpoint multiple times in parallel.
+   * @param {ClientBatchCheckClientRequest} body
+   * @param {ClientRequestOptsWithAuthZModelId & ClientBatchCheckClientRequestOpts} [options]
    * @param {number} [options.maxParallelRequests] - Max number of requests to issue in parallel. Defaults to `10`
    * @param {string} [options.authorizationModelId] - Overrides the authorization model id in the configuration
+   * @param {string} [options.consistency] - Optional consistency level for the request. Default is `MINIMIZE_LATENCY`
    * @param {object} [options.headers] - Custom headers to send alongside the request
    * @param {object} [options.retryParams] - Override the retry parameters for this request
    * @param {number} [options.retryParams.maxRetry] - Override the max number of retries on each API request
    * @param {number} [options.retryParams.minWaitInMs] - Override the minimum wait before a retry is initiated
    */
-  async batchCheck(body: ClientBatchCheckRequest, options: ClientRequestOptsWithConsistency & BatchCheckRequestOpts = {}): Promise<ClientBatchCheckResponse> {
+  async clientBatchCheck(body: ClientBatchCheckClientRequest, options: ClientRequestOptsWithConsistency & ClientBatchCheckClientRequestOpts = {}): Promise<ClientBatchCheckClientResponse> {
     const { headers = {}, maxParallelRequests = DEFAULT_MAX_METHOD_PARALLEL_REQS } = options;
-    setHeaderIfNotSet(headers, CLIENT_METHOD_HEADER, "BatchCheck");
+    setHeaderIfNotSet(headers, CLIENT_METHOD_HEADER, "ClientBatchCheck");
     setHeaderIfNotSet(headers, CLIENT_BULK_REQUEST_ID_HEADER, generateRandomIdWithNonUniqueFallback());
 
-    const responses: ClientBatchCheckSingleResponse[] = [];
+    const result: ClientBatchCheckSingleClientResponse[] = [];
     for await (const singleCheckResponse of asyncPool(maxParallelRequests, body, (tuple) => this.check(tuple, { ...options, headers })
       .then(response => {
-        (response as ClientBatchCheckSingleResponse)._request = tuple;
-        return response as ClientBatchCheckSingleResponse;
+        (response as ClientBatchCheckSingleClientResponse)._request = tuple;
+        return response as ClientBatchCheckSingleClientResponse;
       })
       .catch(err => {
         if (err instanceof FgaApiAuthenticationError) {
@@ -620,11 +661,108 @@ export class OpenFgaClient extends BaseAPI {
         };
       })
     )) {
-      responses.push(singleCheckResponse);
+      result.push(singleCheckResponse);
+    }
+    return { result };
+  }
+
+
+
+  private singleBatchCheck(body: BatchCheckRequest, options: ClientRequestOptsWithConsistency & ClientBatchCheckRequestOpts = {}): Promise<BatchCheckResponse>  {
+    return this.api.batchCheck(this.getStoreId(options)!, body, options);
+  }
+
+  /**
+   * BatchCheck - Run a set of checks (evaluates) by calling the batch-check endpoint.
+   * Given the provided list of checks, it will call batch check, splitting the checks into batches based
+   * on the `options.maxBatchSize` parameter (default 50 checks) if needed. 
+   * @param {ClientBatchCheckClientRequest} body
+   * @param {ClientRequestOptsWithAuthZModelId & ClientBatchCheckClientRequestOpts} [options]
+   * @param {number} [options.maxParallelRequests] - Max number of requests to issue in parallel, if executing multiple requests. Defaults to `10`
+   * @param {number} [options.maxBatchSize] - Max number of checks to include in a single batch check request. Defaults to `50`.
+   * @param {string} [options.authorizationModelId] - Overrides the authorization model id in the configuration.
+   * @param {string} [options.consistency] - 
+   * @param {object} [options.headers] - Custom headers to send alongside the request
+   * @param {object} [options.retryParams] - Override the retry parameters for this request
+   * @param {number} [options.retryParams.maxRetry] - Override the max number of retries on each API request
+   * @param {number} [options.retryParams.minWaitInMs] - Override the minimum wait before a retry is initiated
+   */
+  async batchCheck(
+    body: ClientBatchCheckRequest,
+    options: ClientRequestOptsWithConsistency & ClientBatchCheckRequestOpts = {}
+  ): Promise<ClientBatchCheckResponse> {
+    const {
+      headers = {},
+      maxBatchSize = DEFAULT_MAX_BATCH_SIZE,
+      maxParallelRequests = DEFAULT_MAX_METHOD_PARALLEL_REQS,
+    } = options;
+
+    setHeaderIfNotSet(headers, CLIENT_BULK_REQUEST_ID_HEADER, generateRandomIdWithNonUniqueFallback());
+
+    const correlationIdToCheck = new Map<string, ClientBatchCheckItem>();
+    const transformed: BatchCheckItem[] = [];
+
+    // Validate and transform checks
+    for (const check of body.checks) {
+      // Generate a correlation ID if not provided
+      if (!check.correlationId) {
+        check.correlationId = generateRandomIdWithNonUniqueFallback();
+      }
+
+      // Ensure that correlation IDs are unique
+      if (correlationIdToCheck.has(check.correlationId)) {
+        throw new FgaValidationError("correlationId", "When calling batchCheck, correlation IDs must be unique");
+      }
+      correlationIdToCheck.set(check.correlationId, check);
+
+      // Transform the check into the BatchCheckItem format
+      transformed.push({
+        tuple_key: {
+          user: check.user,
+          relation: check.relation,
+          object: check.object,
+        },
+        context: check.context,
+        contextual_tuples: check.contextualTuples,
+        correlation_id: check.correlationId,
+      });
     }
 
-    return { responses };
-  }
+    // Split the transformed checks into batches based on maxBatchSize
+    const batchedChecks = chunkArray(transformed, maxBatchSize);
+
+    // Execute batch checks in parallel with a limit of maxParallelRequests
+    const results: ClientBatchCheckSingleResponse[] = [];
+    const batchResponses = asyncPool(maxParallelRequests, batchedChecks, async (batch: BatchCheckItem[]) => {
+      const batchRequest: BatchCheckRequest = {
+        checks: batch,
+        authorization_model_id: options.authorizationModelId,
+        consistency: options.consistency,
+      };
+
+      const response = await this.singleBatchCheck(batchRequest, { ...options, headers });
+      return response.result;
+    });
+
+    // Collect the responses and associate them with their correlation IDs
+    for await (const response of batchResponses) {
+      if (response) { 
+        for (const [correlationId, result] of Object.entries(response)) {
+          const check = correlationIdToCheck.get(correlationId);
+          if (check && result) {
+            results.push({
+              allowed: result.allowed || false,
+              request: check,
+              correlationId,
+              error: result.error,
+            });
+          }
+        }
+      }
+    }
+
+    return { result: results };
+  } 
 
   /**
    * Expand - Expands the relationships in userset tree format (evaluates)
@@ -680,7 +818,7 @@ export class OpenFgaClient extends BaseAPI {
    * @param {object} listRelationsRequest.context The contextual tuples to send
    * @param options
    */
-  async listRelations(listRelationsRequest: ClientListRelationsRequest, options: ClientRequestOptsWithConsistency & BatchCheckRequestOpts = {}): Promise<ClientListRelationsResponse> {
+  async listRelations(listRelationsRequest: ClientListRelationsRequest, options: ClientRequestOptsWithConsistency & ClientBatchCheckClientRequestOpts = {}): Promise<ClientListRelationsResponse> {
     const { user, object, relations, contextualTuples, context } = listRelationsRequest;
     const { headers = {}, maxParallelRequests = DEFAULT_MAX_METHOD_PARALLEL_REQS } = options;
     setHeaderIfNotSet(headers, CLIENT_METHOD_HEADER, "ListRelations");
@@ -690,7 +828,7 @@ export class OpenFgaClient extends BaseAPI {
       throw new FgaValidationError("relations", "When calling listRelations, at least one relation must be passed in the relations field");
     }
 
-    const batchCheckResults = await this.batchCheck(relations.map(relation => ({
+    const batchCheckResults = await this.clientBatchCheck(relations.map(relation => ({
       user,
       relation,
       object,
@@ -698,12 +836,12 @@ export class OpenFgaClient extends BaseAPI {
       context,
     })), { ...options, headers, maxParallelRequests });
 
-    const firstErrorResponse = batchCheckResults.responses.find(response => (response as any).error);
+    const firstErrorResponse = batchCheckResults.result.find(response => (response as any).error);
     if (firstErrorResponse) {
       throw (firstErrorResponse as any).error;
     }
 
-    return { relations: batchCheckResults.responses.filter(result => result.allowed).map(result => result._request.relation) };
+    return { relations: batchCheckResults.result.filter(result => result.allowed).map(result => result._request.relation) };
   }
 
   /**

@@ -6,6 +6,12 @@
 - fix: error correctly if apiUrl is not provided (#161)
 - feat: add support for `start_time` parameter in `ReadChanges` endpoint
 - BREAKING: As of this release, the min node version required by the SDK is now v16.15.0
+- feat!: add support for server-side `BatchCheck` method.
+
+BREAKING CHNAGES:
+
+- The minimum noce version required by this SDK is now v16.15.0
+- Usage of the existing `batchCheck` method should now use the `clientBatchCheck` method. Additionally, the existing `BatchCheckResponse` has been renamed to `ClientBatchCheckResponse`.
 
 ## v0.7.0
 
