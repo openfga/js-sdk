@@ -101,7 +101,7 @@ async function main () {
   }
 
   console.log("Calling BatcCheck")
-  const { responses } = await fgaClient.batchCheck({
+  await fgaClient.batchCheck({
     checks: [
       {
         object: "doc:roadmap",

@@ -188,7 +188,7 @@ async function main () {
  
   // execute a batch check
   const anneCorrelationId = randomUUID();
-  const { responses } = await fgaClient.batchCheck({
+  const { result } = await fgaClient.batchCheck({
     checks: [
       {
         // should have access
@@ -209,7 +209,7 @@ async function main () {
     ]
   });
   
-  const anneAllowed = responses.filter(r => r.correlationId === anneCorrelationId);
+  const anneAllowed = result.filter(r => r.correlationId === anneCorrelationId);
   console.log(`Anne is allowed access to ${anneAllowed.length} documents`);
   anneAllowed.forEach(item => {
     console.log(`Anne is allowed access to ${item.request.object}`);

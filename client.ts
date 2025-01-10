@@ -145,7 +145,7 @@ export type ClientBatchCheckSingleClientResponse = {
 });
 
 export interface ClientBatchCheckClientResponse {
-  responses: ClientBatchCheckSingleClientResponse[];
+  result: ClientBatchCheckSingleClientResponse[];
 }
 
 export interface ClientBatchCheckClientRequestOpts {
@@ -183,7 +183,7 @@ export type ClientBatchCheckSingleResponse = {
 }
 
 export interface ClientBatchCheckResponse {
-  responses: ClientBatchCheckSingleResponse[];
+  result: ClientBatchCheckSingleResponse[];
 }
 
 export interface ClientWriteRequestOpts {
@@ -643,7 +643,7 @@ export class OpenFgaClient extends BaseAPI {
     setHeaderIfNotSet(headers, CLIENT_METHOD_HEADER, "ClientBatchCheck");
     setHeaderIfNotSet(headers, CLIENT_BULK_REQUEST_ID_HEADER, generateRandomIdWithNonUniqueFallback());
 
-    const responses: ClientBatchCheckSingleClientResponse[] = [];
+    const result: ClientBatchCheckSingleClientResponse[] = [];
     for await (const singleCheckResponse of asyncPool(maxParallelRequests, body, (tuple) => this.check(tuple, { ...options, headers })
       .then(response => {
         (response as ClientBatchCheckSingleClientResponse)._request = tuple;
@@ -661,9 +661,9 @@ export class OpenFgaClient extends BaseAPI {
         };
       })
     )) {
-      responses.push(singleCheckResponse);
+      result.push(singleCheckResponse);
     }
-    return { responses };
+    return { result };
   }
 
 
@@ -761,7 +761,7 @@ export class OpenFgaClient extends BaseAPI {
       }
     }
 
-    return { responses: results };
+    return { result: results };
   } 
 
   /**
@@ -836,12 +836,12 @@ export class OpenFgaClient extends BaseAPI {
       context,
     })), { ...options, headers, maxParallelRequests });
 
-    const firstErrorResponse = batchCheckResults.responses.find(response => (response as any).error);
+    const firstErrorResponse = batchCheckResults.result.find(response => (response as any).error);
     if (firstErrorResponse) {
       throw (firstErrorResponse as any).error;
     }
 
-    return { relations: batchCheckResults.responses.filter(result => result.allowed).map(result => result._request.relation) };
+    return { relations: batchCheckResults.result.filter(result => result.allowed).map(result => result._request.relation) };
   }
 
   /**

@@ -549,8 +549,8 @@ describe("OpenFGA Client", () => {
         expect(scope1.isDone()).toBe(true);
         expect(scope2.isDone()).toBe(true);
         expect(scope3.isDone()).toBe(false);
-        expect(response.responses.length).toBe(3);
-        expect(response.responses.sort((a, b) => String(a._request.object).localeCompare(b._request.object)))
+        expect(response.result.length).toBe(3);
+        expect(response.result.sort((a, b) => String(a._request.object).localeCompare(b._request.object)))
           .toMatchObject(expect.arrayContaining([
             { _request: tuples[0], allowed: true, },
             { _request: tuples[1], allowed: false },
@@ -585,7 +585,7 @@ describe("OpenFGA Client", () => {
         const response = await fgaClient.batchCheck({
           checks: [],
         });
-        expect(response.responses.length).toBe(0);
+        expect(response.result.length).toBe(0);
       });
       it("should handle single batch successfully", async () => {
         const mockedResponse = {
@@ -635,9 +635,9 @@ describe("OpenFGA Client", () => {
         });
 
         expect(scope.isDone()).toBe(true);
-        expect(response.responses).toHaveLength(2);
-        expect(response.responses[0].allowed).toBe(true);
-        expect(response.responses[1].allowed).toBe(false);
+        expect(response.result).toHaveLength(2);
+        expect(response.result[0].allowed).toBe(true);
+        expect(response.result[1].allowed).toBe(false);
       });
       it("should split batches successfully", async () => {
         const mockedResponse0 = {
@@ -709,11 +709,11 @@ describe("OpenFGA Client", () => {
 
         expect(scope0.isDone()).toBe(true);
         expect(scope1.isDone()).toBe(true);
-        expect(response.responses).toHaveLength(3);
+        expect(response.result).toHaveLength(3);
 
-        const resp0 = response.responses.find(r => r.correlationId === "cor-1");
-        const resp1 = response.responses.find(r => r.correlationId === "cor-2");
-        const resp2 = response.responses.find(r => r.correlationId === "cor-3");
+        const resp0 = response.result.find(r => r.correlationId === "cor-1");
+        const resp1 = response.result.find(r => r.correlationId === "cor-2");
+        const resp2 = response.result.find(r => r.correlationId === "cor-3");
 
         expect(resp0?.allowed).toBe(true);
         expect(resp0?.request.user).toBe("user:81684243-9356-4421-8fbf-a4f8d36aa31b");
