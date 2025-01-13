@@ -11,7 +11,7 @@
 BREAKING CHNAGES:
 
 - The minimum noce version required by this SDK is now v16.15.0
-- Usage of the existing `batchCheck` method should now use the `clientBatchCheck` method. Additionally, the existing `BatchCheckResponse` has been renamed to `ClientBatchCheckResponse`.
+- Usage of the existing `batchCheck` method should now use the `clientBatchCheck` method. The existing `BatchCheckResponse` has been renamed to `ClientBatchCheckResponse` and it now bundles the results in a field called `result` instead of `responses`.
 
 ## v0.7.0
 
