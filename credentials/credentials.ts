@@ -14,11 +14,10 @@
 import globalAxios, { AxiosInstance } from "axios";
 
 import { assertParamExists, isWellFormedUriString } from "../validation";
-import { FgaApiAuthenticationError, FgaApiError, FgaError, FgaValidationError } from "../errors";
+import { FgaApiAuthenticationError, FgaApiError, FgaValidationError } from "../errors";
 import { attemptHttpRequest } from "../common";
 import { AuthCredentialsConfig, ClientCredentialsConfig, CredentialsMethod } from "./types";
 import { TelemetryAttributes } from "../telemetry/attributes";
-import { MetricRecorder } from "../telemetry/metrics";
 import { TelemetryCounters } from "../telemetry/counters";
 import { TelemetryConfiguration } from "../telemetry/configuration";
 
@@ -28,7 +27,7 @@ export class Credentials {
 
   public static init(configuration: { credentials: AuthCredentialsConfig, telemetry: TelemetryConfiguration, baseOptions?: any }, axios: AxiosInstance = globalAxios): Credentials {
     return new Credentials(configuration.credentials, axios, configuration.telemetry, configuration.baseOptions);
-}
+  }
 
   public constructor(private authConfig: AuthCredentialsConfig, private axios: AxiosInstance = globalAxios, private telemetryConfig: TelemetryConfiguration, private baseOptions?: any) {
     this.initConfig();
