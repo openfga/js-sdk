@@ -40,6 +40,7 @@ const telemetryConfig = {
     },
     [TelemetryMetric.HistogramQueryDuration]: {
       attributes: new Set([
+        TelemetryAttribute.FgaClientRequestBatchCheckSize,
         TelemetryAttribute.HttpResponseStatusCode,
         TelemetryAttribute.UserAgentOriginal,
         TelemetryAttribute.FgaClientRequestMethod,
@@ -99,6 +100,34 @@ async function main () {
     }
   }
 
+  console.log("Calling BatcCheck")
+  await fgaClient.batchCheck({
+    checks: [
+      {
+        object: "doc:roadmap",
+        relation: "can_read",
+        user: "user:anne",
+      },
+      {
+        object: "doc:roadmap",
+        relation: "can_read",
+        user: "user:dan",
+      },
+      {
+        object: "doc:finances",
+        relation: "can_read",
+        user: "user:dan"
+      },
+      {
+        object: "doc:finances",
+        relation: "can_reads",
+        user: "user:anne",
+      }
+    ]
+  }, {
+    authorizationModelId: "01JC6KPJ0CKSZ69C5Z26CYWX2N"
+  });
+  
   console.log("writing tuple");
   await fgaClient.write({
     writes: [

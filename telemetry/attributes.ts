@@ -21,6 +21,7 @@ export enum TelemetryAttribute {
   FgaClientResponseModelId  = "fga-client.response.model_id",
   FgaClientUser = "fga-client.user",
   HttpClientRequestDuration = "http.client.request.duration",
+  FgaClientRequestBatchCheckSize = "fga-client.request.batch_check_size",
   HttpHost = "http.host",
   HttpRequestMethod = "http.request.method",
   HttpRequestResendCount = "http.request.resend_count",
@@ -121,6 +122,9 @@ export class TelemetryAttributes {
       attributes[TelemetryAttribute.FgaClientUser] = body.tuple_key.user;
     }
 
+    if (body?.checks?.length) {
+      attributes[TelemetryAttribute.FgaClientRequestBatchCheckSize] = body.checks.length;
+    }
     return attributes;
   }
 }

@@ -155,6 +155,123 @@ export interface AuthorizationModel {
 /**
  * 
  * @export
+ * @interface BatchCheckItem
+ */
+export interface BatchCheckItem {
+    /**
+     * 
+     * @type {CheckRequestTupleKey}
+     * @memberof BatchCheckItem
+     */
+    tuple_key: CheckRequestTupleKey;
+    /**
+     * 
+     * @type {ContextualTupleKeys}
+     * @memberof BatchCheckItem
+     */
+    contextual_tuples?: ContextualTupleKeys;
+    /**
+     * 
+     * @type {object}
+     * @memberof BatchCheckItem
+     */
+    context?: object;
+    /**
+     * correlation_id must be a string containing only letters, numbers, or hyphens, with length ≤ 36 characters.
+     * @type {string}
+     * @memberof BatchCheckItem
+     */
+    correlation_id: string;
+}
+/**
+ * 
+ * @export
+ * @interface BatchCheckRequest
+ */
+export interface BatchCheckRequest {
+    /**
+     * 
+     * @type {Array<BatchCheckItem>}
+     * @memberof BatchCheckRequest
+     */
+    checks: Array<BatchCheckItem>;
+    /**
+     * 
+     * @type {string}
+     * @memberof BatchCheckRequest
+     */
+    authorization_model_id?: string;
+    /**
+     * 
+     * @type {ConsistencyPreference}
+     * @memberof BatchCheckRequest
+     */
+    consistency?: ConsistencyPreference;
+}
+
+
+/**
+ * 
+ * @export
+ * @interface BatchCheckResponse
+ */
+export interface BatchCheckResponse {
+    /**
+     * map keys are the correlation_id values from the BatchCheckItems in the request
+     * @type {{ [key: string]: BatchCheckSingleResult; }}
+     * @memberof BatchCheckResponse
+     */
+    result?: { [key: string]: BatchCheckSingleResult; };
+}
+/**
+ * 
+ * @export
+ * @interface BatchCheckSingleResult
+ */
+export interface BatchCheckSingleResult {
+    /**
+     * 
+     * @type {boolean}
+     * @memberof BatchCheckSingleResult
+     */
+    allowed?: boolean;
+    /**
+     * 
+     * @type {CheckError}
+     * @memberof BatchCheckSingleResult
+     */
+    error?: CheckError;
+}
+/**
+ * 
+ * @export
+ * @interface CheckError
+ */
+export interface CheckError {
+    /**
+     * 
+     * @type {ErrorCode}
+     * @memberof CheckError
+     */
+    input_error?: ErrorCode;
+    /**
+     * 
+     * @type {InternalErrorCode}
+     * @memberof CheckError
+     */
+    internal_error?: InternalErrorCode;
+    /**
+     * 
+     * @type {string}
+     * @memberof CheckError
+     */
+    message?: string;
+}
+
+
+/**
+ * 
+ * @export
  * @interface CheckRequest
  */
 export interface CheckRequest {
