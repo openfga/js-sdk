@@ -1,16 +1,25 @@
 # Changelog
 
 
-## [Unreleased](https://github.com/openfga/js-sdk/compare/v0.7.0...HEAD)
+## [Unreleased](https://github.com/openfga/js-sdk/compare/v0.8.0...HEAD)
 
-- fix: error correctly if apiUrl is not provided (#161)
-- feat: add support for `start_time` parameter in `ReadChanges` endpoint
-- BREAKING: As of this release, the min node version required by the SDK is now v16.15.0
-- feat!: add support for server-side `BatchCheck` method.
+## v0.8.0
 
-BREAKING CHNAGES:
+### [0.8.0](https://github.com/openfga/js-sdk/compare/v0.7.0...v0.8.0) (2025-01-14)
 
-- The minimum noce version required by this SDK is now v16.15.0
+- feat!: add support for server-side `BatchCheck` method. This is a more efficient way to check on multiple tuples than calling the existing client-side `BatchCheck`. Using this method requires an OpenFGA [v1.8.0+](https://github.com/openfga/openfga/releases/tag/v1.8.0) server.
+    - The existing `BatchCheck` method has been renamed to `clientBatchCheck` and it now bundles the results in a field called `result` instead of `responses`.
+    - The existing `BatchCheckResponse` has been renamed to `ClientBatchCheckResponse`.
+- feat: add support for  startTime` parameter in `ReadChanges` endpoint
+- feat: support contextual tuples and context in assertions
+- feat: support contextual tuples in Expand
+- fix: error correctly if apiUrl is not provided - thanks @Waheedsys (#161)
+- fix: use provided axios instance in credentials refresh - thanks @Siddhant-K-code (#193)
+- fix!: The minimum node version required by this SDK is now v16.15.0
+- chore(docs): various cleanup and improvements - thanks @tmsagarofficial (#164), @vil02 (https://github.com/openfga/sdk-generator/pull/424, https://github.com/openfga/sdk-generator/pull/422), @sccalabr (https://github.com/openfga/sdk-generator/pull/433)
+
+BREAKING CHANGES:
+- The minimum node version required by this SDK is now v16.15.0
 - Usage of the existing `batchCheck` method should now use the `clientBatchCheck` method. The existing `BatchCheckResponse` has been renamed to `ClientBatchCheckResponse` and it now bundles the results in a field called `result` instead of `responses`.
 
 ## v0.7.0
