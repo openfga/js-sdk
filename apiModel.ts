@@ -613,6 +613,12 @@ export interface ExpandRequest {
      * @memberof ExpandRequest
      */
     consistency?: ConsistencyPreference;
+    /**
+     * 
+     * @type {ContextualTupleKeys}
+     * @memberof ExpandRequest
+     */
+    contextual_tuples?: ContextualTupleKeys;
 }
 
 

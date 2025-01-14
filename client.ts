@@ -28,6 +28,7 @@ import {
   ContextualTupleKeys,
   CreateStoreRequest,
   CreateStoreResponse,
+  ExpandRequest,
   ExpandRequestTupleKey,
   ExpandResponse,
   GetStoreResponse,
@@ -224,7 +225,9 @@ export interface ClientReadChangesRequest {
   startTime?: string;
 }
 
-export type ClientExpandRequest = ExpandRequestTupleKey;
+export type ClientExpandRequest = ExpandRequestTupleKey & Omit<ExpandRequest, "tuple_key" | "authorization_model_id" | "contextual_tuples" | "consistency"> & {
+    contextualTuples?: Array<TupleKey>
+};
 export type ClientReadRequest = ReadRequestTupleKey;
 export type ClientListObjectsRequest = Omit<ListObjectsRequest, "authorization_model_id" | "contextual_tuples" | "consistency"> & {
     contextualTuples?: Array<TupleKey>
@@ -780,7 +783,11 @@ export class OpenFgaClient extends BaseAPI {
   async expand(body: ClientExpandRequest, options: ClientRequestOptsWithConsistency = {}): PromiseResult<ExpandResponse> {
     return this.api.expand(this.getStoreId(options)!, {
       authorization_model_id: this.getAuthorizationModelId(options),
-      tuple_key: body,
+      tuple_key: {
+        object: body.object,
+        relation: body.relation,
+      },
+      contextual_tuples: { tuple_keys: body.contextualTuples || [] },
       consistency: options.consistency
     }, options);
   }
