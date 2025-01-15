@@ -516,7 +516,8 @@ const { result } = await fgaClient.batchCheck({
 ```
 
 If you are using an OpenFGA version less than 1.8.0, you can use the `clientBatchCheck` function, 
-which calls `check` in parallel. 
+which calls `check` in parallel. It will return `allowed: false` if it encounters an error, and will return the error in the body.
+If 429s or 5xxs are encountered, the underlying check will retry up to 3 times before giving up.
 
 ```javascript
 const { responses } = await fgaClient.clientBatchCheck([{
