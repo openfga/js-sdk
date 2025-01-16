@@ -445,15 +445,82 @@ const result = await fgaClient.check({
 
 ##### Batch Check
 
-Run a set of [checks](#check). Batch Check will return `allowed: false` if it encounters an error, and will return the error in the body.
-If 429s or 5xxs are encountered, the underlying check will retry up to 3 times before giving up.
+Similar to [check](#check), but instead of checking a single user-object relationship, accepts a list of relationships to check. Requires OpenFGA version 1.8.0 or greater.
+
+[API Documentation](https://openfga.dev/api/service#/Relationship%20Queries/BatchCheck)
 
 ```javascript
 const options = {
   // if you'd like to override the authorization model id for this request
   authorizationModelId: "01GXSA8YR785C4FYS3C0RTG7B1",
 }
-const { responses } = await fgaClient.batchCheck([{
+
+const corrId = randomUUID();
+const { result } = await fgaClient.batchCheck({
+    checks: [
+      {
+        // should have access
+        user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
+        relation: "viewer",
+        object: "document:0192ab2a-d83f-756d-9397-c5ed9f3cb69a",
+        context: {
+          ViewCount: 100
+        },
+        // optional correliationId to associate request and response. One will be generated
+        // if not provided
+        correlationId: corrId,
+      },
+      {
+        // should NOT have access
+        user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
+        relation: "viewer",
+        object: "document:7772ab2a-d83f-756d-9397-c5ed9f3cb888",
+      }
+    ]
+  }, options);
+
+  const userAllowed = result.filter(r => r.correlationId === corrId);
+  console.log(`User is allowed access to ${userAllowed.length} documents`);
+  userAllowed.forEach(item => {
+    console.log(`User is allowed access to ${item.request.object}`);
+  });
+  /*
+  {
+    "result": [
+      {
+        "allowed": true,
+        "request": {
+          "user": "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
+          "relation": "viewer",
+          "object": "document:0192ab2a-d83f-756d-9397-c5ed9f3cb69a",
+          "correlationId": "4187674b-0ec0-4ed5-abb5-327bd21c89a3"
+        },
+        "correlationId": "4187674b-0ec0-4ed5-abb5-327bd21c89a3"
+      },
+      {
+        "allowed": true,
+        "request": {
+          "user": "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
+          "relation": "viewer",
+          "object": "document:7772ab2a-d83f-756d-9397-c5ed9f3cb888",
+          "context": {
+            "ViewCount": 100
+          },
+          "correlationId": "5874b4fb-10f1-4e0c-ae32-559220b06dc8"
+        },
+        "correlationId": "5874b4fb-10f1-4e0c-ae32-559220b06dc8"
+      }
+    ]
+  }
+  */
+```
+
+If you are using an OpenFGA version less than 1.8.0, you can use the `clientBatchCheck` function, 
+which calls `check` in parallel. It will return `allowed: false` if it encounters an error, and will return the error in the body.
+If 429s or 5xxs are encountered, the underlying check will retry up to 3 times before giving up.
+
+```javascript
+const { responses } = await fgaClient.clientBatchCheck([{
   user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
   relation: "viewer",
   object: "document:0192ab2d-d36e-7cb3-a4a8-5d1d67a300c5",
@@ -473,7 +540,7 @@ const { responses } = await fgaClient.batchCheck([{
 }], options);
 
 /*
-responses = [{
+result = [{
   allowed: false,
   _request: {
     user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
@@ -702,6 +769,7 @@ const fgaClient = new OpenFgaClient({
 | [**Read**](https://openfga.dev/api/service#/Relationship%20Tuples/Read) | **POST** /stores/{store_id}/read | Get tuples from the store that matches a query, without following userset rewrite rules |
 | [**Write**](https://openfga.dev/api/service#/Relationship%20Tuples/Write) | **POST** /stores/{store_id}/write | Add or delete tuples from the store |
 | [**Check**](https://openfga.dev/api/service#/Relationship%20Queries/Check) | **POST** /stores/{store_id}/check | Check whether a user is authorized to access an object |
+| [**BatchCheck**](https://openfga.dev/api/service#/Relationship%20Queries/BatcjCheck) | **POST** /stores/{store_id}/batch-check | Similar to check, but accepts a list of relations to check |
 | [**Expand**](https://openfga.dev/api/service#/Relationship%20Queries/Expand) | **POST** /stores/{store_id}/expand | Expand all relationships in userset tree format, and following userset rewrite rules.  Useful to reason about and debug a certain relationship |
 | [**ListObjects**](https://openfga.dev/api/service#/Relationship%20Queries/ListObjects) | **POST** /stores/{store_id}/list-objects | [EXPERIMENTAL] Get all objects of the given type that the user has a relation with |
 | [**ReadAssertions**](https://openfga.dev/api/service#/Assertions/ReadAssertions) | **GET** /stores/{store_id}/assertions/{authorization_model_id} | Read assertions for an authorization model ID |
