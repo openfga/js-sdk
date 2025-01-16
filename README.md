@@ -769,7 +769,7 @@ const fgaClient = new OpenFgaClient({
 | [**Read**](https://openfga.dev/api/service#/Relationship%20Tuples/Read) | **POST** /stores/{store_id}/read | Get tuples from the store that matches a query, without following userset rewrite rules |
 | [**Write**](https://openfga.dev/api/service#/Relationship%20Tuples/Write) | **POST** /stores/{store_id}/write | Add or delete tuples from the store |
 | [**Check**](https://openfga.dev/api/service#/Relationship%20Queries/Check) | **POST** /stores/{store_id}/check | Check whether a user is authorized to access an object |
-| [**BatchCheck**](https://openfga.dev/api/service#/Relationship%20Queries/BatcjCheck) | **POST** /stores/{store_id}/batch-check | Similar to check, but accepts a list of relations to check |
+| [**BatchCheck**](https://openfga.dev/api/service#/Relationship%20Queries/BatchCheck) | **POST** /stores/{store_id}/batch-check | Similar to check, but accepts a list of relations to check |
 | [**Expand**](https://openfga.dev/api/service#/Relationship%20Queries/Expand) | **POST** /stores/{store_id}/expand | Expand all relationships in userset tree format, and following userset rewrite rules.  Useful to reason about and debug a certain relationship |
 | [**ListObjects**](https://openfga.dev/api/service#/Relationship%20Queries/ListObjects) | **POST** /stores/{store_id}/list-objects | [EXPERIMENTAL] Get all objects of the given type that the user has a relation with |
 | [**ReadAssertions**](https://openfga.dev/api/service#/Assertions/ReadAssertions) | **GET** /stores/{store_id}/assertions/{authorization_model_id} | Read assertions for an authorization model ID |
