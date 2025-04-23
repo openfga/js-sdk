@@ -171,7 +171,7 @@ export class Configuration {
     const baseOptions = params.baseOptions || {};
     baseOptions.headers = baseOptions.headers || {};
 
-    if (typeof process === "object" && process.title === "node" && !baseOptions.headers["User-Agent"]) {
+    if (typeof process === "object" && process.versions?.node && !baseOptions.headers["User-Agent"]) {
       baseOptions.headers["User-Agent"] = DEFAULT_USER_AGENT;
     }
 
