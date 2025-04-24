@@ -1,7 +1,13 @@
 # Changelog
 
 
-## [Unreleased](https://github.com/openfga/js-sdk/compare/v0.8.0...HEAD)
+## [Unreleased](https://github.com/openfga/js-sdk/compare/v0.8.1...HEAD)
+
+## v0.8.1
+
+### [v0.8.1](https://github.com/openfga/js-sdk/compare/v0.8.0...v0.8.1) (2025-04-24)
+
+- fix: change check for Node.js environment to fix issue where `process.title` cannot be read (#222)
 
 ## v0.8.0
 
