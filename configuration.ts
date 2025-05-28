@@ -152,13 +152,7 @@ export class Configuration {
       case CredentialsMethod.ClientCredentials:
         this.credentials = {
           method: CredentialsMethod.ClientCredentials,
-          config: {
-            // We are only copying them from the passed in params here. We will be validating that they are valid in the Credentials constructor
-            clientId: credentialParams.config.clientId,
-            clientSecret: credentialParams.config.clientSecret,
-            apiAudience: credentialParams.config.apiAudience,
-            apiTokenIssuer: credentialParams.config.apiTokenIssuer,
-          }
+          config: credentialParams.config
         };
         break;
       case CredentialsMethod.None:

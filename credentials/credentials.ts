@@ -12,14 +12,30 @@
 
 
 import globalAxios, { AxiosInstance } from "axios";
+import * as jose from "jose";
 
 import { assertParamExists, isWellFormedUriString } from "../validation";
 import { FgaApiAuthenticationError, FgaApiError, FgaValidationError } from "../errors";
 import { attemptHttpRequest } from "../common";
-import { AuthCredentialsConfig, ClientCredentialsConfig, CredentialsMethod } from "./types";
+import { AuthCredentialsConfig, ClientAssertionConfig, ClientCredentialsConfig, ClientSecretConfig, CredentialsMethod } from "./types";
 import { TelemetryAttributes } from "../telemetry/attributes";
 import { TelemetryCounters } from "../telemetry/counters";
 import { TelemetryConfiguration } from "../telemetry/configuration";
+import { randomUUID } from "crypto";
+
+interface ClientSecretRequest {
+  client_id: string;
+  client_secret: string;
+  audience: string;
+  grant_type: "client_credentials";
+}
+
+interface ClientAssertionRequest {
+  client_id: string;
+  client_assertion: string;
+  client_assertion_type: "urn:ietf:params:oauth:client-assertion-type:jwt-bearer";
+  audience: string;
+}
 
 export class Credentials {
   private accessToken?: string;
@@ -73,9 +89,10 @@ export class Credentials {
       break;
     case CredentialsMethod.ClientCredentials:
       assertParamExists("Credentials", "config.clientId", authConfig.config?.clientId);
-      assertParamExists("Credentials", "config.clientSecret", authConfig.config?.clientSecret);
       assertParamExists("Credentials", "config.apiTokenIssuer", authConfig.config?.apiTokenIssuer);
       assertParamExists("Credentials", "config.apiAudience", authConfig.config?.apiAudience);
+
+      assertParamExists("Credentials", "config.clientSecret or config.clientAssertionSigningKey", (authConfig.config as ClientSecretConfig).clientSecret || (authConfig.config as ClientAssertionConfig).clientAssertionSigningKey);
 
       if (!isWellFormedUriString(`https://${authConfig.config?.apiTokenIssuer}`)) {
         throw new FgaValidationError(
@@ -129,25 +146,16 @@ export class Credentials {
   private async refreshAccessToken() {
     const clientCredentials = (this.authConfig as { method: CredentialsMethod.ClientCredentials; config: ClientCredentialsConfig })?.config;
     const url = `https://${clientCredentials.apiTokenIssuer}/oauth/token`;
+    const credentialsPayload = await this.buildClientAuthenticationPayload();
 
     try {
-      const wrappedResponse = await attemptHttpRequest<{
-          client_id: string,
-          client_secret: string,
-          audience: string,
-          grant_type: "client_credentials",
-        }, {
+      const wrappedResponse = await attemptHttpRequest<ClientSecretRequest|ClientAssertionRequest, {
         access_token: string,
         expires_in: number,
       }>({
         url,
         method: "POST",
-        data: {
-          client_id: clientCredentials.clientId,
-          client_secret: clientCredentials.clientSecret,
-          audience: clientCredentials.apiAudience,
-          grant_type: "client_credentials",
-        },
+        data: credentialsPayload,
         headers: {
           "Content-Type": "application/x-www-form-urlencoded"
         }
@@ -198,5 +206,44 @@ export class Credentials {
 
       throw err;
     }
+  }
+
+  private async buildClientAuthenticationPayload(): Promise<ClientSecretRequest|ClientAssertionRequest> {
+    if (this.authConfig?.method !== CredentialsMethod.ClientCredentials) {
+      throw new FgaValidationError("Credentials method is not set to ClientCredentials");
+    }
+
+    const config = this.authConfig.config;
+    if ((config as ClientAssertionConfig).clientAssertionSigningKey) {
+      const alg = (config as ClientAssertionConfig).clientAssertionSigningAlgorithm || "RS256";
+      const privateKey = await jose.importPKCS8((config as ClientAssertionConfig).clientAssertionSigningKey, alg);
+      const assertion = await new jose.SignJWT({})
+        .setProtectedHeader({ alg })
+        .setIssuedAt()
+        .setSubject(config.clientId)
+        .setJti(randomUUID())
+        .setIssuer(config.clientId)
+        .setAudience(`https://${config.apiTokenIssuer}/`)
+        .setExpirationTime("2m")
+        .sign(privateKey);
+      return {
+        ...config.customClaims,
+        client_id: (config as ClientAssertionConfig).clientId,
+        client_assertion: assertion,
+        audience: config.apiAudience,
+        client_assertion_type: "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+        grant_type: "client_credentials",
+      } as ClientAssertionRequest;
+    } else if ((config as ClientSecretConfig).clientSecret) {
+      return {
+        ...config.customClaims,
+        client_id: (config as ClientSecretConfig).clientId,
+        client_secret: (config as ClientSecretConfig).clientSecret,
+        audience: (config as ClientSecretConfig).apiAudience,
+        grant_type: "client_credentials",
+      };
+    }
+
+    throw new FgaValidationError("Credentials method is set to ClientCredentials, but no clientSecret or clientAssertionSigningKey is provided");
   }
 }
