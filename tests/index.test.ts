@@ -33,6 +33,7 @@ import {
   baseConfig,
   defaultConfiguration,
   OPENFGA_API_TOKEN_ISSUER,
+  OPENFGA_CLIENT_ASSERTION_SIGNING_KEY,
 } from "./helpers/default-config";
 import { getNocks } from "./helpers/nocks";
 
@@ -116,7 +117,7 @@ describe("OpenFGA SDK", function () {
               method: CredentialsMethod.ClientCredentials,
             } as AuthCredentialsConfig,
           })
-      ).toThrowError();
+      ).toThrow("config.clientId");
 
       expect(
         () =>
@@ -130,7 +131,7 @@ describe("OpenFGA SDK", function () {
               }
             } as Configuration["credentials"]
           })
-      ).toThrowError();
+      ).toThrow("config.clientId");
 
       expect(
         () =>
@@ -139,12 +140,28 @@ describe("OpenFGA SDK", function () {
             credentials: {
               method: CredentialsMethod.ClientCredentials,
               config: {
-                ...(baseConfig.credentials as any)!.clientCredentials,
+                ...(baseConfig.credentials as any)!.config,
                 clientSecret: undefined!
               }
             } as Configuration["credentials"]
           })
-      ).toThrowError();
+      ).toThrow("config.clientSecret or config.clientAssertionSigningKey");
+
+      expect(
+        () =>
+          new OpenFgaApi({
+            ...baseConfig,
+            credentials: {
+              method: CredentialsMethod.ClientCredentials,
+              config: {
+                ...(baseConfig.credentials as any)!.config,
+                clientSecret: undefined!,
+                clientAssertionSigningKey: undefined!
+              }
+            } as Configuration["credentials"]
+          })
+      ).toThrow("config.clientSecret or config.clientAssertionSigningKey");
+
 
       expect(
         () =>
@@ -158,7 +175,7 @@ describe("OpenFGA SDK", function () {
               }
             } as Configuration["credentials"]
           })
-      ).toThrowError();
+      ).toThrow("config.apiAudience");
 
       expect(
         () =>
@@ -172,7 +189,7 @@ describe("OpenFGA SDK", function () {
               }
             } as Configuration["credentials"]
           })
-      ).toThrowError();
+      ).toThrow("config.apiTokenIssuer");
     });
 
     it("should issue a network call to get the token at the first request if client id is provided", async () => {
@@ -245,13 +262,39 @@ describe("OpenFGA SDK", function () {
       nock.cleanAll();
     });
 
+
+    it("should issue a network call to get the token at the first request if client assertion is provided", async () => {
+      const scope = nocks.tokenExchange(OPENFGA_API_TOKEN_ISSUER);
+      nocks.readAuthorizationModels(baseConfig.storeId!);
+
+      const fgaApi = new OpenFgaApi({
+        ...baseConfig,
+        credentials: {
+          method: CredentialsMethod.ClientCredentials,
+          config: {
+            ...(baseConfig.credentials as any).config,
+            clientAssertionSigningKey: OPENFGA_CLIENT_ASSERTION_SIGNING_KEY
+          }
+        }
+      });
+      expect(scope.isDone()).toBe(false);
+
+      await fgaApi.readAuthorizationModels(baseConfig.storeId!);
+
+      expect(scope.isDone()).toBe(true);
+
+      nock.cleanAll();
+    });
+
+
+
     it("should allow passing in a configuration instance", async () => {
       const configuration = new Configuration(baseConfig);
       expect(() => new OpenFgaApi(configuration)).not.toThrowError();
     });
 
+
     it("should only accept valid telemetry attributes", async () => {
-    
       expect(
         () =>
           new OpenFgaApi({

@@ -19,11 +19,13 @@
     "prepublishOnly": "rm -rf dist/ && npm run build",
     "test": "jest --config ./tests/jest.config.js",
     "lint": "eslint . --ext .ts",
-    "lint:fix": "eslint . --ext .ts --fix"
+    "lint:fix": "eslint . --ext .ts --fix",
+    "prepare": "npm run build"
   },
   "dependencies": {
     "@opentelemetry/api": "^1.9.0",
     "axios": "^1.8.3",
+    "jose": "^5.10.0",
     "tiny-async-pool": "^2.1.0"
   },
   "devDependencies": {
