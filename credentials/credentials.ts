@@ -17,7 +17,7 @@ import * as jose from "jose";
 import { assertParamExists, isWellFormedUriString } from "../validation";
 import { FgaApiAuthenticationError, FgaApiError, FgaValidationError } from "../errors";
 import { attemptHttpRequest } from "../common";
-import { AuthCredentialsConfig, ClientAssertionConfig, ClientCredentialsConfig, ClientSecretConfig, CredentialsMethod } from "./types";
+import { AuthCredentialsConfig, PrivateKeyJWTConfig, ClientCredentialsConfig, ClientSecretConfig, CredentialsMethod } from "./types";
 import { TelemetryAttributes } from "../telemetry/attributes";
 import { TelemetryCounters } from "../telemetry/counters";
 import { TelemetryConfiguration } from "../telemetry/configuration";
@@ -92,7 +92,7 @@ export class Credentials {
       assertParamExists("Credentials", "config.apiTokenIssuer", authConfig.config?.apiTokenIssuer);
       assertParamExists("Credentials", "config.apiAudience", authConfig.config?.apiAudience);
 
-      assertParamExists("Credentials", "config.clientSecret or config.clientAssertionSigningKey", (authConfig.config as ClientSecretConfig).clientSecret || (authConfig.config as ClientAssertionConfig).clientAssertionSigningKey);
+      assertParamExists("Credentials", "config.clientSecret or config.clientAssertionSigningKey", (authConfig.config as ClientSecretConfig).clientSecret || (authConfig.config as PrivateKeyJWTConfig).clientAssertionSigningKey);
 
       if (!isWellFormedUriString(`https://${authConfig.config?.apiTokenIssuer}`)) {
         throw new FgaValidationError(
@@ -214,9 +214,9 @@ export class Credentials {
     }
 
     const config = this.authConfig.config;
-    if ((config as ClientAssertionConfig).clientAssertionSigningKey) {
-      const alg = (config as ClientAssertionConfig).clientAssertionSigningAlgorithm || "RS256";
-      const privateKey = await jose.importPKCS8((config as ClientAssertionConfig).clientAssertionSigningKey, alg);
+    if ((config as PrivateKeyJWTConfig).clientAssertionSigningKey) {
+      const alg = (config as PrivateKeyJWTConfig).clientAssertionSigningAlgorithm || "RS256";
+      const privateKey = await jose.importPKCS8((config as PrivateKeyJWTConfig).clientAssertionSigningKey, alg);
       const assertion = await new jose.SignJWT({})
         .setProtectedHeader({ alg })
         .setIssuedAt()
@@ -228,7 +228,7 @@ export class Credentials {
         .sign(privateKey);
       return {
         ...config.customClaims,
-        client_id: (config as ClientAssertionConfig).clientId,
+        client_id: (config as PrivateKeyJWTConfig).clientId,
         client_assertion: assertion,
         audience: config.apiAudience,
         client_assertion_type: "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",

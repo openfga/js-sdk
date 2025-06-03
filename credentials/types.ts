@@ -55,7 +55,7 @@ export type ClientSecretConfig = BaseClientCredentialsConfig & {
   clientSecret: string;
  
 }
-export type ClientAssertionConfig = BaseClientCredentialsConfig & {
+export type PrivateKeyJWTConfig = BaseClientCredentialsConfig & {
   /**
    * Client assertion signing key
    *
@@ -72,7 +72,7 @@ export type ClientAssertionConfig = BaseClientCredentialsConfig & {
   clientAssertionSigningAlgorithm?: string;
 }
 
-export type ClientCredentialsConfig = ClientSecretConfig | ClientAssertionConfig;
+export type ClientCredentialsConfig = ClientSecretConfig | PrivateKeyJWTConfig;
 
 export interface ApiTokenConfig {
   /**
