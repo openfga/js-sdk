@@ -262,7 +262,6 @@ describe("OpenFGA SDK", function () {
       nock.cleanAll();
     });
 
-
     it("should issue a network call to get the token at the first request if client assertion is provided", async () => {
       const scope = nocks.tokenExchange(OPENFGA_API_TOKEN_ISSUER);
       nocks.readAuthorizationModels(baseConfig.storeId!);
@@ -286,13 +285,10 @@ describe("OpenFGA SDK", function () {
       nock.cleanAll();
     });
 
-
-
     it("should allow passing in a configuration instance", async () => {
       const configuration = new Configuration(baseConfig);
       expect(() => new OpenFgaApi(configuration)).not.toThrowError();
     });
-
 
     it("should only accept valid telemetry attributes", async () => {
       expect(

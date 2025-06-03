@@ -22,7 +22,7 @@ const DEFAULT_MAX_RETRY = 3;
 // default minimum wait period in retry - but will backoff exponentially
 const DEFAULT_MIN_WAIT_MS = 100;
 
-const DEFAULT_USER_AGENT = "openfga-sdk js/0.8.1";
+const DEFAULT_USER_AGENT = "openfga-sdk js/0.9.0";
 
 export interface RetryParams {
   maxRetry?: number;
@@ -75,7 +75,7 @@ export class Configuration {
    * @type {string}
    * @memberof Configuration
    */
-  private static sdkVersion = "0.8.1";
+  private static sdkVersion = "0.9.0";
 
   /**
    * provide the full api URL (e.g. `https://api.fga.example`)
