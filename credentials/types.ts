@@ -17,7 +17,7 @@ export enum CredentialsMethod {
   ClientCredentials = "client_credentials",
 }
 
-export interface ClientCredentialsConfig {
+type BaseClientCredentialsConfig = {
   /**
    * Client ID
    *
@@ -25,6 +25,27 @@ export interface ClientCredentialsConfig {
    * @memberof Configuration
    */
   clientId: string;
+   /**
+   * API Token Issuer
+   *
+   * @type {string}
+   */
+   apiTokenIssuer: string;
+   /**
+    * API Audience
+    *
+    * @type {string}
+    */
+   apiAudience: string;
+   /**
+    * Claims to be included in the token exchange request.
+    * 
+    * @type {Record<string, string>}
+    */
+   customClaims?: Record<string, string>
+}
+
+export type ClientSecretConfig = BaseClientCredentialsConfig & {
   /**
    * Client Secret
    *
@@ -32,19 +53,26 @@ export interface ClientCredentialsConfig {
    * @memberof Configuration
    */
   clientSecret: string;
-  /**
-   * API Token Issuer
-   *
-   * @type {string}
-   */
-  apiTokenIssuer: string;
-  /**
-   * API Audience
-   *
-   * @type {string}
-   */
-  apiAudience: string;
+ 
 }
+export type PrivateKeyJWTConfig = BaseClientCredentialsConfig & {
+  /**
+   * Client assertion signing key
+   *
+   * @type {string}
+   * @memberof Configuration
+   */
+  clientAssertionSigningKey: string;
+  /**
+   * Client assertion signing algorithm,
+   * defaults to `RS256` if not specified.
+   * @type {string}
+   * @memberof Configuration
+   */
+  clientAssertionSigningAlgorithm?: string;
+}
+
+export type ClientCredentialsConfig = ClientSecretConfig | PrivateKeyJWTConfig;
 
 export interface ApiTokenConfig {
   /**

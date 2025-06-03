@@ -24,6 +24,7 @@
   "dependencies": {
     "@opentelemetry/api": "^1.9.0",
     "axios": "^1.8.3",
+    "jose": "^5.10.0",
     "tiny-async-pool": "^2.1.0"
   },
   "devDependencies": {
