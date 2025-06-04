@@ -91,7 +91,6 @@ export class Credentials {
       assertParamExists("Credentials", "config.clientId", authConfig.config?.clientId);
       assertParamExists("Credentials", "config.apiTokenIssuer", authConfig.config?.apiTokenIssuer);
       assertParamExists("Credentials", "config.apiAudience", authConfig.config?.apiAudience);
-
       assertParamExists("Credentials", "config.clientSecret or config.clientAssertionSigningKey", (authConfig.config as ClientSecretConfig).clientSecret || (authConfig.config as PrivateKeyJWTConfig).clientAssertionSigningKey);
 
       if (!isWellFormedUriString(`https://${authConfig.config?.apiTokenIssuer}`)) {
