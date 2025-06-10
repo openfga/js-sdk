@@ -664,7 +664,7 @@ describe("OpenFGA Client", () => {
           },
         };
 
-        // purposefully nock out of order to prove SDK response preserves ordered
+        // purposefully nock out of order to prove SDK response preserves order
         const scope1 = nocks.singleBatchCheck(baseConfig.storeId!, mockedResponse1, undefined, ConsistencyPreference.HigherConsistency, "01GAHCE4YVKPQEKZQHT2R89MQV").matchHeader("X-OpenFGA-Client-Bulk-Request-Id", /.*/);
         const scope0 = nocks.singleBatchCheck(baseConfig.storeId!, mockedResponse0, undefined, ConsistencyPreference.HigherConsistency, "01GAHCE4YVKPQEKZQHT2R89MQV").matchHeader("X-OpenFGA-Client-Bulk-Request-Id", /.*/);
 
