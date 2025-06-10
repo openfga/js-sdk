@@ -11,17 +11,55 @@
  */
 
 
-import {AxiosInstance, AxiosResponse} from "axios";
-
-import {OpenFgaApi} from "./api";
-import {Assertion, BatchCheckItem, BatchCheckRequest, BatchCheckResponse, BatchCheckSingleResult, CheckError, CheckRequest, CheckRequestTupleKey, CheckResponse, ConsistencyPreference, ContextualTupleKeys, CreateStoreRequest, CreateStoreResponse, ExpandRequest, ExpandRequestTupleKey, ExpandResponse, GetStoreResponse, ListObjectsRequest, ListObjectsResponse, ListStoresResponse, ListUsersRequest, ListUsersResponse, ReadAssertionsResponse, ReadAuthorizationModelResponse, ReadAuthorizationModelsResponse, ReadChangesResponse, ReadRequest, ReadRequestTupleKey, ReadResponse, TupleKey, TupleKeyWithoutCondition, WriteAuthorizationModelRequest, WriteAuthorizationModelResponse, WriteRequest,} from "./apiModel";
-import {BaseAPI} from "./base";
-import {CallResult, PromiseResult} from "./common";
-import {Configuration, RetryParams, UserConfigurationParams} from "./configuration";
-import {FgaApiAuthenticationError, FgaRequiredParamError, FgaValidationError} from "./errors";
-import {chunkArray, generateRandomIdWithNonUniqueFallback, setHeaderIfNotSet,} from "./utils";
-import {isWellFormedUlidString} from "./validation";
+import { AxiosResponse, AxiosInstance } from "axios";
 import asyncPool = require("tiny-async-pool");
+
+import { OpenFgaApi } from "./api";
+import {
+  Assertion,
+  BatchCheckItem,
+  BatchCheckRequest,
+  BatchCheckResponse,
+  CheckError,
+  CheckRequest,
+  CheckRequestTupleKey,
+  CheckResponse,
+  ConsistencyPreference,
+  ContextualTupleKeys,
+  CreateStoreRequest,
+  CreateStoreResponse,
+  ExpandRequest,
+  ExpandRequestTupleKey,
+  ExpandResponse,
+  GetStoreResponse,
+  ListObjectsRequest,
+  ListObjectsResponse,
+  ListStoresResponse,
+  ListUsersRequest,
+  ListUsersResponse,
+  ReadAssertionsResponse,
+  ReadAuthorizationModelResponse,
+  ReadAuthorizationModelsResponse,
+  ReadChangesResponse,
+  ReadRequest,
+  ReadRequestTupleKey,
+  ReadResponse,
+  TupleKey,
+  TupleKeyWithoutCondition,
+  WriteAuthorizationModelRequest,
+  WriteAuthorizationModelResponse,
+  WriteRequest,
+} from "./apiModel";
+import { BaseAPI } from "./base";
+import { CallResult, PromiseResult } from "./common";
+import { Configuration, RetryParams, UserConfigurationParams } from "./configuration";
+import { FgaApiAuthenticationError, FgaRequiredParamError, FgaValidationError } from "./errors";
+import {
+  chunkArray,
+  generateRandomIdWithNonUniqueFallback,
+  setHeaderIfNotSet,
+} from "./utils";
+import { isWellFormedUlidString } from "./validation";
 
 export type UserClientConfigurationParams = UserConfigurationParams & {
   storeId?: string;
@@ -82,7 +120,7 @@ export interface AuthorizationModelIdOpts {
 }
 
 export interface ConsistencyOpts {
-  consistency?: ConsistencyPreference;
+  consistency?: ConsistencyPreference
 }
 
 export type ClientRequestOptsWithStoreId = ClientRequestOpts & StoreIdOpts;
@@ -92,8 +130,8 @@ export type ClientRequestOptsWithConsistency = ClientRequestOpts & StoreIdOpts &
 export type PaginationOptions = { pageSize?: number, continuationToken?: string; };
 
 export type ClientCheckRequest = CheckRequestTupleKey &
-  Pick<CheckRequest, "context"> &
-  { contextualTuples?: Array<TupleKey> };
+    Pick<CheckRequest, "context"> &
+    { contextualTuples?: Array<TupleKey> };
 
 export type ClientBatchCheckClientRequest = ClientCheckRequest[];
 
@@ -132,17 +170,17 @@ export type ClientBatchCheckRequest = {
 
 // for server batch check
 export interface ClientBatchCheckRequestOpts {
-  maxParallelRequests?: number;
-  maxBatchSize?: number;
+    maxParallelRequests?: number;
+    maxBatchSize?: number;
 }
 
 
 // for server batch check
 export type ClientBatchCheckSingleResponse = {
-  allowed: boolean;
-  request: ClientBatchCheckItem;
-  correlationId: string;
-  error?: CheckError;
+    allowed: boolean;
+    request: ClientBatchCheckItem;
+    correlationId: string;
+    error?: CheckError;
 }
 
 export interface ClientBatchCheckResponse {
@@ -154,7 +192,7 @@ export interface ClientWriteRequestOpts {
     disable?: boolean;
     maxPerChunk?: number;
     maxParallelRequests?: number;
-  };
+  }
 }
 
 export interface ClientWriteRequest {
@@ -188,17 +226,17 @@ export interface ClientReadChangesRequest {
 }
 
 export type ClientExpandRequest = ExpandRequestTupleKey & Omit<ExpandRequest, "tuple_key" | "authorization_model_id" | "contextual_tuples" | "consistency"> & {
-  contextualTuples?: Array<TupleKey>
+    contextualTuples?: Array<TupleKey>
 };
 export type ClientReadRequest = ReadRequestTupleKey;
 export type ClientListObjectsRequest = Omit<ListObjectsRequest, "authorization_model_id" | "contextual_tuples" | "consistency"> & {
-  contextualTuples?: Array<TupleKey>
+    contextualTuples?: Array<TupleKey>
 };
 export type ClientListUsersRequest = Omit<ListUsersRequest, "authorization_model_id" | "contextual_tuples" | "consistency"> & {
-  contextualTuples?: Array<TupleKey>
+    contextualTuples?: Array<TupleKey>
 };
 export type ClientListRelationsRequest = Omit<ClientCheckRequest, "relation" | "consistency"> & {
-  relations?: string[],
+    relations?: string[],
 };
 export type ClientWriteAssertionsRequest = (CheckRequestTupleKey & Pick<Assertion, "expectation">)[];
 
@@ -377,9 +415,9 @@ export class OpenFgaClient extends BaseAPI {
    * @param {number} [options.retryParams.minWaitInMs] - Override the minimum wait before a retry is initiated
    */
   async readLatestAuthorizationModel(options: ClientRequestOpts = {}): PromiseResult<ReadAuthorizationModelResponse> {
-    const {headers = {}} = options;
+    const { headers = {} } = options;
     setHeaderIfNotSet(headers, CLIENT_METHOD_HEADER, "ReadLatestAuthorizationModel");
-    const authorizationModelsResponse = await this.readAuthorizationModels({...options, pageSize: 1, headers});
+    const authorizationModelsResponse = await this.readAuthorizationModels({ ...options, pageSize: 1, headers });
     const response = authorizationModelsResponse as any as CallResult<ReadAuthorizationModelResponse>;
     response.authorization_model = authorizationModelsResponse.authorization_models?.[0];
     delete (response as any).authorization_models;
@@ -445,12 +483,12 @@ export class OpenFgaClient extends BaseAPI {
    * @param {number} [options.retryParams.minWaitInMs] - Override the minimum wait before a retry is initiated
    */
   async write(body: ClientWriteRequest, options: ClientRequestOptsWithAuthZModelId & ClientWriteRequestOpts = {}): Promise<ClientWriteResponse> {
-    const {transaction = {}, headers = {}} = options;
+    const { transaction = {}, headers = {} } = options;
     const {
       maxPerChunk = 1, // 1 has to be the default otherwise the chunks will be sent in transactions
       maxParallelRequests = DEFAULT_MAX_METHOD_PARALLEL_REQS,
     } = transaction;
-    const {writes, deletes} = body;
+    const { writes, deletes } = body;
     const authorizationModelId = this.getAuthorizationModelId(options);
 
     if (!transaction?.disable) {
@@ -458,10 +496,10 @@ export class OpenFgaClient extends BaseAPI {
         authorization_model_id: authorizationModelId,
       };
       if (writes?.length) {
-        apiBody.writes = {tuple_keys: writes};
+        apiBody.writes = { tuple_keys: writes };
       }
       if (deletes?.length) {
-        apiBody.deletes = {tuple_keys: deletes};
+        apiBody.deletes = { tuple_keys: deletes };
       }
       await this.api.write(this.getStoreId(options)!, apiBody, options);
       return {
@@ -482,7 +520,7 @@ export class OpenFgaClient extends BaseAPI {
     const writeResponses: ClientWriteSingleResponse[][] = [];
     if (writes?.length) {
       for await (const singleChunkResponse of asyncPool(maxParallelRequests, chunkArray(writes, maxPerChunk),
-        (chunk) => this.writeTuples(chunk, {...options, headers, transaction: undefined}).catch(err => {
+        (chunk) => this.writeTuples(chunk,{ ...options, headers, transaction: undefined }).catch(err => {
           if (err instanceof FgaApiAuthenticationError) {
             throw err;
           }
@@ -502,7 +540,7 @@ export class OpenFgaClient extends BaseAPI {
     const deleteResponses: ClientWriteSingleResponse[][] = [];
     if (deletes?.length) {
       for await (const singleChunkResponse of asyncPool(maxParallelRequests, chunkArray(deletes, maxPerChunk),
-        (chunk) => this.deleteTuples(chunk, {...options, headers, transaction: undefined}).catch(err => {
+        (chunk) => this.deleteTuples(chunk, { ...options, headers, transaction: undefined }).catch(err => {
           if (err instanceof FgaApiAuthenticationError) {
             throw err;
           }
@@ -519,7 +557,7 @@ export class OpenFgaClient extends BaseAPI {
       }
     }
 
-    return {writes: writeResponses.flat(), deletes: deleteResponses.flat()};
+    return { writes: writeResponses.flat(), deletes: deleteResponses.flat() };
   }
 
   /**
@@ -537,9 +575,9 @@ export class OpenFgaClient extends BaseAPI {
    * @param {number} [options.retryParams.minWaitInMs] - Override the minimum wait before a retry is initiated
    */
   async writeTuples(tuples: TupleKey[], options: ClientRequestOptsWithAuthZModelId & ClientWriteRequestOpts = {}): Promise<ClientWriteResponse> {
-    const {headers = {}} = options;
+    const { headers = {} } = options;
     setHeaderIfNotSet(headers, CLIENT_METHOD_HEADER, "WriteTuples");
-    return this.write({writes: tuples}, {...options, headers});
+    return this.write({ writes: tuples }, { ...options, headers });
   }
 
   /**
@@ -557,9 +595,9 @@ export class OpenFgaClient extends BaseAPI {
    * @param {number} [options.retryParams.minWaitInMs] - Override the minimum wait before a retry is initiated
    */
   async deleteTuples(tuples: TupleKeyWithoutCondition[], options: ClientRequestOptsWithAuthZModelId & ClientWriteRequestOpts = {}): Promise<ClientWriteResponse> {
-    const {headers = {}} = options;
+    const { headers = {} } = options;
     setHeaderIfNotSet(headers, CLIENT_METHOD_HEADER, "DeleteTuples");
-    return this.write({deletes: tuples}, {...options, headers});
+    return this.write({ deletes: tuples }, { ...options, headers });
   }
 
   /************************
@@ -585,7 +623,7 @@ export class OpenFgaClient extends BaseAPI {
         object: body.object,
       },
       context: body.context,
-      contextual_tuples: {tuple_keys: body.contextualTuples || []},
+      contextual_tuples: { tuple_keys: body.contextualTuples || [] },
       authorization_model_id: this.getAuthorizationModelId(options),
       consistency: options.consistency
     }, options);
@@ -604,12 +642,12 @@ export class OpenFgaClient extends BaseAPI {
    * @param {number} [options.retryParams.minWaitInMs] - Override the minimum wait before a retry is initiated
    */
   async clientBatchCheck(body: ClientBatchCheckClientRequest, options: ClientRequestOptsWithConsistency & ClientBatchCheckClientRequestOpts = {}): Promise<ClientBatchCheckClientResponse> {
-    const {headers = {}, maxParallelRequests = DEFAULT_MAX_METHOD_PARALLEL_REQS} = options;
+    const { headers = {}, maxParallelRequests = DEFAULT_MAX_METHOD_PARALLEL_REQS } = options;
     setHeaderIfNotSet(headers, CLIENT_METHOD_HEADER, "ClientBatchCheck");
     setHeaderIfNotSet(headers, CLIENT_BULK_REQUEST_ID_HEADER, generateRandomIdWithNonUniqueFallback());
 
     const result: ClientBatchCheckSingleClientResponse[] = [];
-    for await (const singleCheckResponse of asyncPool(maxParallelRequests, body, (tuple) => this.check(tuple, {...options, headers})
+    for await (const singleCheckResponse of asyncPool(maxParallelRequests, body, (tuple) => this.check(tuple, { ...options, headers })
       .then(response => {
         (response as ClientBatchCheckSingleClientResponse)._request = tuple;
         return response as ClientBatchCheckSingleClientResponse;
@@ -628,24 +666,25 @@ export class OpenFgaClient extends BaseAPI {
     )) {
       result.push(singleCheckResponse);
     }
-    return {result};
+    return { result };
   }
 
 
-  private singleBatchCheck(body: BatchCheckRequest, options: ClientRequestOptsWithConsistency & ClientBatchCheckRequestOpts = {}): Promise<BatchCheckResponse> {
+
+  private singleBatchCheck(body: BatchCheckRequest, options: ClientRequestOptsWithConsistency & ClientBatchCheckRequestOpts = {}): Promise<BatchCheckResponse>  {
     return this.api.batchCheck(this.getStoreId(options)!, body, options);
   }
 
   /**
    * BatchCheck - Run a set of checks (evaluates) by calling the batch-check endpoint.
    * Given the provided list of checks, it will call batch check, splitting the checks into batches based
-   * on the `options.maxBatchSize` parameter (default 50 checks) if needed.
+   * on the `options.maxBatchSize` parameter (default 50 checks) if needed. 
    * @param {ClientBatchCheckClientRequest} body
    * @param {ClientRequestOptsWithAuthZModelId & ClientBatchCheckClientRequestOpts} [options]
    * @param {number} [options.maxParallelRequests] - Max number of requests to issue in parallel, if executing multiple requests. Defaults to `10`
    * @param {number} [options.maxBatchSize] - Max number of checks to include in a single batch check request. Defaults to `50`.
    * @param {string} [options.authorizationModelId] - Overrides the authorization model id in the configuration.
-   * @param {string} [options.consistency] -
+   * @param {string} [options.consistency] - 
    * @param {object} [options.headers] - Custom headers to send alongside the request
    * @param {object} [options.retryParams] - Override the retry parameters for this request
    * @param {number} [options.retryParams.maxRetry] - Override the max number of retries on each API request
@@ -663,7 +702,7 @@ export class OpenFgaClient extends BaseAPI {
 
     setHeaderIfNotSet(headers, CLIENT_BULK_REQUEST_ID_HEADER, generateRandomIdWithNonUniqueFallback());
 
-    const correlationIdToCheck = new Set<string>();
+    const correlationIdToCheck = new Map<string, ClientBatchCheckItem>();
     const transformed: BatchCheckItem[] = [];
 
     // Validate and transform checks
@@ -677,7 +716,7 @@ export class OpenFgaClient extends BaseAPI {
       if (correlationIdToCheck.has(check.correlationId)) {
         throw new FgaValidationError("correlationId", "When calling batchCheck, correlation IDs must be unique");
       }
-      correlationIdToCheck.add(check.correlationId);
+      correlationIdToCheck.set(check.correlationId, check);
 
       // Transform the check into the BatchCheckItem format
       transformed.push({
@@ -696,7 +735,7 @@ export class OpenFgaClient extends BaseAPI {
     const batchedChecks = chunkArray(transformed, maxBatchSize);
 
     // Execute batch checks in parallel with a limit of maxParallelRequests
-
+    const results: ClientBatchCheckSingleResponse[] = [];
     const batchResponses = asyncPool(maxParallelRequests, batchedChecks, async (batch: BatchCheckItem[]) => {
       const batchRequest: BatchCheckRequest = {
         checks: batch,
@@ -704,36 +743,29 @@ export class OpenFgaClient extends BaseAPI {
         consistency: options.consistency,
       };
 
-      const response = await this.singleBatchCheck(batchRequest, {...options, headers});
+      const response = await this.singleBatchCheck(batchRequest, { ...options, headers });
       return response.result;
     });
 
     // Collect the responses and associate them with their correlation IDs
-    const correlationIdToResult: Record<string, BatchCheckSingleResult> = {};
     for await (const response of batchResponses) {
-      if (response) {
+      if (response) { 
         for (const [correlationId, result] of Object.entries(response)) {
-          correlationIdToResult[correlationId] = result;
+          const check = correlationIdToCheck.get(correlationId);
+          if (check && result) {
+            results.push({
+              allowed: result.allowed || false,
+              request: check,
+              correlationId,
+              error: result.error,
+            });
+          }
         }
       }
     }
 
-    // Preserve order by looping over the argument body to build up the result
-    const results: ClientBatchCheckSingleResponse[] = [];
-    for (const check of body.checks) {
-      const result = correlationIdToResult[check.correlationId!];
-      if (result) {
-        results.push({
-          allowed: result.allowed || false,
-          request: check,
-          correlationId: check.correlationId!,
-          error: result.error,
-        });
-      }
-    }
-
-    return {result: results};
-  }
+    return { result: results };
+  } 
 
   /**
    * Expand - Expands the relationships in userset tree format (evaluates)
@@ -755,7 +787,7 @@ export class OpenFgaClient extends BaseAPI {
         object: body.object,
         relation: body.relation,
       },
-      contextual_tuples: {tuple_keys: body.contextualTuples || []},
+      contextual_tuples: { tuple_keys: body.contextualTuples || [] },
       consistency: options.consistency
     }, options);
   }
@@ -778,7 +810,7 @@ export class OpenFgaClient extends BaseAPI {
       relation: body.relation,
       type: body.type,
       context: body.context,
-      contextual_tuples: {tuple_keys: body.contextualTuples || []},
+      contextual_tuples: { tuple_keys: body.contextualTuples || [] },
       consistency: options.consistency
     }, options);
   }
@@ -794,8 +826,8 @@ export class OpenFgaClient extends BaseAPI {
    * @param options
    */
   async listRelations(listRelationsRequest: ClientListRelationsRequest, options: ClientRequestOptsWithConsistency & ClientBatchCheckClientRequestOpts = {}): Promise<ClientListRelationsResponse> {
-    const {user, object, relations, contextualTuples, context} = listRelationsRequest;
-    const {headers = {}, maxParallelRequests = DEFAULT_MAX_METHOD_PARALLEL_REQS} = options;
+    const { user, object, relations, contextualTuples, context } = listRelationsRequest;
+    const { headers = {}, maxParallelRequests = DEFAULT_MAX_METHOD_PARALLEL_REQS } = options;
     setHeaderIfNotSet(headers, CLIENT_METHOD_HEADER, "ListRelations");
     setHeaderIfNotSet(headers, CLIENT_BULK_REQUEST_ID_HEADER, generateRandomIdWithNonUniqueFallback());
 
@@ -809,14 +841,14 @@ export class OpenFgaClient extends BaseAPI {
       object,
       contextualTuples,
       context,
-    })), {...options, headers, maxParallelRequests});
+    })), { ...options, headers, maxParallelRequests });
 
     const firstErrorResponse = batchCheckResults.result.find(response => (response as any).error);
     if (firstErrorResponse) {
       throw (firstErrorResponse as any).error;
     }
 
-    return {relations: batchCheckResults.result.filter(result => result.allowed).map(result => result._request.relation)};
+    return { relations: batchCheckResults.result.filter(result => result.allowed).map(result => result._request.relation) };
   }
 
   /**
