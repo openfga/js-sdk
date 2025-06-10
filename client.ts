@@ -678,13 +678,13 @@ export class OpenFgaClient extends BaseAPI {
   /**
    * BatchCheck - Run a set of checks (evaluates) by calling the batch-check endpoint.
    * Given the provided list of checks, it will call batch check, splitting the checks into batches based
-   * on the `options.maxBatchSize` parameter (default 50 checks) if needed. 
+   * on the `options.maxBatchSize` parameter (default 50 checks) if needed.
    * @param {ClientBatchCheckClientRequest} body
    * @param {ClientRequestOptsWithAuthZModelId & ClientBatchCheckClientRequestOpts} [options]
    * @param {number} [options.maxParallelRequests] - Max number of requests to issue in parallel, if executing multiple requests. Defaults to `10`
    * @param {number} [options.maxBatchSize] - Max number of checks to include in a single batch check request. Defaults to `50`.
    * @param {string} [options.authorizationModelId] - Overrides the authorization model id in the configuration.
-   * @param {string} [options.consistency] - 
+   * @param {string} [options.consistency] -
    * @param {object} [options.headers] - Custom headers to send alongside the request
    * @param {object} [options.retryParams] - Override the retry parameters for this request
    * @param {number} [options.retryParams.maxRetry] - Override the max number of retries on each API request
@@ -702,7 +702,7 @@ export class OpenFgaClient extends BaseAPI {
 
     setHeaderIfNotSet(headers, CLIENT_BULK_REQUEST_ID_HEADER, generateRandomIdWithNonUniqueFallback());
 
-    const correlationIdToCheck = new Map<string, ClientBatchCheckItem>();
+    const correlationIdToCheck = new Set<string>();
     const transformed: BatchCheckItem[] = [];
 
     // Validate and transform checks
@@ -716,7 +716,7 @@ export class OpenFgaClient extends BaseAPI {
       if (correlationIdToCheck.has(check.correlationId)) {
         throw new FgaValidationError("correlationId", "When calling batchCheck, correlation IDs must be unique");
       }
-      correlationIdToCheck.set(check.correlationId, check);
+      correlationIdToCheck.add(check.correlationId);
 
       // Transform the check into the BatchCheckItem format
       transformed.push({
@@ -735,7 +735,7 @@ export class OpenFgaClient extends BaseAPI {
     const batchedChecks = chunkArray(transformed, maxBatchSize);
 
     // Execute batch checks in parallel with a limit of maxParallelRequests
-    const results: ClientBatchCheckSingleResponse[] = [];
+
     const batchResponses = asyncPool(maxParallelRequests, batchedChecks, async (batch: BatchCheckItem[]) => {
       const batchRequest: BatchCheckRequest = {
         checks: batch,
@@ -743,29 +743,36 @@ export class OpenFgaClient extends BaseAPI {
         consistency: options.consistency,
       };
 
-      const response = await this.singleBatchCheck(batchRequest, { ...options, headers });
+      const response = await this.singleBatchCheck(batchRequest, {...options, headers});
       return response.result;
     });
 
     // Collect the responses and associate them with their correlation IDs
+    const correlationIdToResult: Record<string, BatchCheckSingleResult> = {};
     for await (const response of batchResponses) {
-      if (response) { 
+      if (response) {
         for (const [correlationId, result] of Object.entries(response)) {
-          const check = correlationIdToCheck.get(correlationId);
-          if (check && result) {
-            results.push({
-              allowed: result.allowed || false,
-              request: check,
-              correlationId,
-              error: result.error,
-            });
-          }
+          correlationIdToResult[correlationId] = result;
         }
       }
     }
 
+    // Preserve order by looping over the argument body to build up the result
+    const results: ClientBatchCheckSingleResponse[] = [];
+    for (const check of body.checks) {
+      const result = correlationIdToResult[check.correlationId!];
+      if (result) {
+        results.push({
+          allowed: result.allowed || false,
+          request: check,
+          correlationId: check.correlationId!,
+          error: result.error,
+        });
+      }
+    }
+
     return { result: results };
-  } 
+  }
 
   /**
    * Expand - Expands the relationships in userset tree format (evaluates)
