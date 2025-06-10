@@ -590,12 +590,12 @@ describe("OpenFGA Client", () => {
       it("should handle single batch successfully", async () => {
         const mockedResponse = {
           result: {
-            "cor-1": {
-              allowed: true,
-              error: undefined,
-            },
             "cor-2": {
               allowed: false,
+              error: undefined,
+            },
+            "cor-1": {
+              allowed: true,
               error: undefined,
             },
           },
@@ -642,12 +642,12 @@ describe("OpenFGA Client", () => {
       it("should split batches successfully", async () => {
         const mockedResponse0 = {
           result: {
-            "cor-1": {
-              allowed: true,
-              error: undefined,
-            },
             "cor-2": {
               allowed: false,
+              error: undefined,
+            },
+            "cor-1": {
+              allowed: true,
               error: undefined,
             },
           },
@@ -664,8 +664,9 @@ describe("OpenFGA Client", () => {
           },
         };
 
-        const scope0 = nocks.singleBatchCheck(baseConfig.storeId!, mockedResponse0, undefined, ConsistencyPreference.HigherConsistency, "01GAHCE4YVKPQEKZQHT2R89MQV").matchHeader("X-OpenFGA-Client-Bulk-Request-Id", /.*/);
+        // purposefully nock out of order to prove SDK response preserves order
         const scope1 = nocks.singleBatchCheck(baseConfig.storeId!, mockedResponse1, undefined, ConsistencyPreference.HigherConsistency, "01GAHCE4YVKPQEKZQHT2R89MQV").matchHeader("X-OpenFGA-Client-Bulk-Request-Id", /.*/);
+        const scope0 = nocks.singleBatchCheck(baseConfig.storeId!, mockedResponse0, undefined, ConsistencyPreference.HigherConsistency, "01GAHCE4YVKPQEKZQHT2R89MQV").matchHeader("X-OpenFGA-Client-Bulk-Request-Id", /.*/);
 
         expect(scope0.isDone()).toBe(false);
         expect(scope1.isDone()).toBe(false);
@@ -711,9 +712,13 @@ describe("OpenFGA Client", () => {
         expect(scope1.isDone()).toBe(true);
         expect(response.result).toHaveLength(3);
 
-        const resp0 = response.result.find(r => r.correlationId === "cor-1");
-        const resp1 = response.result.find(r => r.correlationId === "cor-2");
-        const resp2 = response.result.find(r => r.correlationId === "cor-3");
+        const resp0 = response.result[0];
+        const resp1 = response.result[1];
+        const resp2 = response.result[2];
+
+        expect(resp0.correlationId).toBe("cor-1");
+        expect(resp1.correlationId).toBe("cor-2");
+        expect(resp2.correlationId).toBe("cor-3");
 
         expect(resp0?.allowed).toBe(true);
         expect(resp0?.request.user).toBe("user:81684243-9356-4421-8fbf-a4f8d36aa31b");
@@ -752,7 +757,7 @@ describe("OpenFGA Client", () => {
         } finally {
           expect(scope.isDone()).toBe(true);
         }
-      }); 
+      });
     });
 
     describe("Expand", () => {
