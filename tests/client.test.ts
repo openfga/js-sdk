@@ -712,13 +712,13 @@ describe("OpenFGA Client", () => {
         expect(scope1.isDone()).toBe(true);
         expect(response.result).toHaveLength(3);
 
-        expect(response.result[0].correlationId).toBe("cor-1");
-        expect(response.result[1].correlationId).toBe("cor-2");
-        expect(response.result[2].correlationId).toBe("cor-3");
-
         const resp0 = response.result[0];
         const resp1 = response.result[1];
         const resp2 = response.result[2];
+
+        expect(resp0.correlationId).toBe("cor-1");
+        expect(resp1.correlationId).toBe("cor-2");
+        expect(resp2.correlationId).toBe("cor-3");
 
         expect(resp0?.allowed).toBe(true);
         expect(resp0?.request.user).toBe("user:81684243-9356-4421-8fbf-a4f8d36aa31b");
