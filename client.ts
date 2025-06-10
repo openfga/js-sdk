@@ -20,6 +20,7 @@ import {
   BatchCheckItem,
   BatchCheckRequest,
   BatchCheckResponse,
+  BatchCheckSingleResult,
   CheckError,
   CheckRequest,
   CheckRequestTupleKey,
