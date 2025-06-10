@@ -590,12 +590,12 @@ describe("OpenFGA Client", () => {
       it("should handle single batch successfully", async () => {
         const mockedResponse = {
           result: {
-            "cor-1": {
-              allowed: true,
-              error: undefined,
-            },
             "cor-2": {
               allowed: false,
+              error: undefined,
+            },
+            "cor-1": {
+              allowed: true,
               error: undefined,
             },
           },
@@ -642,12 +642,12 @@ describe("OpenFGA Client", () => {
       it("should split batches successfully", async () => {
         const mockedResponse0 = {
           result: {
-            "cor-1": {
-              allowed: true,
-              error: undefined,
-            },
             "cor-2": {
               allowed: false,
+              error: undefined,
+            },
+            "cor-1": {
+              allowed: true,
               error: undefined,
             },
           },
@@ -752,7 +752,7 @@ describe("OpenFGA Client", () => {
         } finally {
           expect(scope.isDone()).toBe(true);
         }
-      }); 
+      });
     });
 
     describe("Expand", () => {
