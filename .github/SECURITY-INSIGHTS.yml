@@ -14,19 +14,19 @@ repository:
   accepts-automated-change-request: true
   no-third-party-packages: false
   core-team:
-  - name: Raghd Hamzeh
-    affiliation: Okta
-    email: raghd.hamzeh@okta.com
-    social: https://github.com/rhamzeh
-    primary: true
-  - name: Adrian Tam
-    affiliation: Okta
-    email: adrian.tam@okta.com
-    social: https://github.com/adriantam
-  - name: Ewan Harris
-    affiliation: Okta
-    email: ewan.harris@okta.com
-    social: https://github.com/ewanharris
+    - name: Raghd Hamzeh
+      affiliation: Okta
+      email: raghd.hamzeh@okta.com
+      social: https://github.com/rhamzeh
+      primary: true
+    - name: Adrian Tam
+      affiliation: Okta
+      email: adrian.tam@okta.com
+      social: https://github.com/adriantam
+    - name: Ewan Harris
+      affiliation: Okta
+      email: ewan.harris@okta.com
+      social: https://github.com/ewanharris
 
   license:
     url: https://raw.githubusercontent.com/openfga/js-sdk/main/LICENSE
