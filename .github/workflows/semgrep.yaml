@@ -5,6 +5,8 @@ on:
       - main
 jobs:
   semgrep:
+    permissions:
+      contents: read
     name: Scan
     runs-on: ubuntu-latest
     container:
