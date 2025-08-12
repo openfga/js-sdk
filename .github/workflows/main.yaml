@@ -9,13 +9,16 @@ on:
 permissions:
   contents: read
 
+env:
+  NODE_VERSION: '24.x'
+
 jobs:
   build:
     runs-on: ubuntu-latest
 
     strategy:
       matrix:
-        node-version: [16, 18, 20]
+        node-version: [16.x, 18.x, 20.x, 22.x, 24.x]
 
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -48,7 +51,7 @@ jobs:
       - name: Set up node
         uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
         with:
-          node-version: 20
+          node-version: ${{ env.NODE_VERSION }}
           cache: "npm"
 
       - name: Install dependencies
@@ -87,7 +90,7 @@ jobs:
       - name: Set up node
         uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
         with:
-          node-version: 20
+          node-version: ${{ env.NODE_VERSION }}
           registry-url: "https://registry.npmjs.org"
           scope: "@openfga"
           always-auth: false
