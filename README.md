@@ -449,6 +449,8 @@ Similar to [check](#check), but instead of checking a single user-object relatio
 
 [API Documentation](https://openfga.dev/api/service#/Relationship%20Queries/BatchCheck)
 
+> **Note**: The order of `batchCheck` results is not guaranteed to match the order of the checks provided. Use `correlationId` to pair responses with requests.
+
 ```javascript
 const options = {
   // if you'd like to override the authorization model id for this request

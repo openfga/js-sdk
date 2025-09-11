@@ -16,6 +16,8 @@ import asyncPool = require("tiny-async-pool");
 
 import { OpenFgaApi } from "./api";
 import {
+  type WriteRequestDeletesOnMissingEnum,
+  type WriteRequestWritesOnDuplicateEnum,
   Assertion,
   BatchCheckItem,
   BatchCheckRequest,
@@ -127,7 +129,7 @@ export type ClientRequestOptsWithStoreId = ClientRequestOpts & StoreIdOpts;
 export type ClientRequestOptsWithAuthZModelId = ClientRequestOpts & StoreIdOpts & AuthorizationModelIdOpts;
 export type ClientRequestOptsWithConsistency = ClientRequestOpts & StoreIdOpts & AuthorizationModelIdOpts & ConsistencyOpts;
 
-export type PaginationOptions = { pageSize?: number, continuationToken?: string; };
+export type PaginationOptions = { pageSize?: number, continuationToken?: string, name?: string; };
 
 export type ClientCheckRequest = CheckRequestTupleKey &
     Pick<CheckRequest, "context"> &
@@ -187,11 +189,30 @@ export interface ClientBatchCheckResponse {
   result: ClientBatchCheckSingleResponse[];
 }
 
+export declare enum ClientWriteRequestWritesOnDuplicateEnum {
+    Error = "error",
+    Ignore = "ignore"
+}
+export declare enum ClientWriteRequestDeletesOnMissingEnum {
+    Error = "error",
+    Ignore = "ignore"
+}
+
 export interface ClientWriteRequestOpts {
   transaction?: {
     disable?: boolean;
     maxPerChunk?: number;
     maxParallelRequests?: number;
+  }
+  idempotence?: {
+    /**
+     * On \'error\' ( or unspecified ), the API returns an error if an identical tuple already exists. On \'ignore\', identical writes are treated as no-ops (matching on user, relation, object, and RelationshipCondition).
+     */
+    on_duplicate?: ClientWriteRequestWritesOnDuplicateEnum;
+    /**
+     * On \'error\', the API returns an error when deleting a tuple that does not exist. On \'ignore\', deletes of non-existent tuples are treated as no-ops.
+     */
+    on_missing?: ClientWriteRequestDeletesOnMissingEnum;
   }
 }
 
@@ -311,6 +332,7 @@ export class OpenFgaClient extends BaseAPI {
    * @param {ClientRequestOpts & PaginationOptions} [options]
    * @param {number} [options.pageSize]
    * @param {string} [options.continuationToken]
+   * @param {string} [options.name] - Filter stores by name
    * @param {object} [options.headers] - Custom headers to send alongside the request
    * @param {object} [options.retryParams] - Override the retry parameters for this request
    * @param {number} [options.retryParams.maxRetry] - Override the max number of retries on each API request
@@ -318,7 +340,7 @@ export class OpenFgaClient extends BaseAPI {
    * @throws { FgaError }
    */
   async listStores(options: ClientRequestOptsWithAuthZModelId & PaginationOptions = {}): PromiseResult<ListStoresResponse> {
-    return this.api.listStores(options.pageSize, options.continuationToken, options);
+    return this.api.listStores(options.pageSize, options.continuationToken, options.name, options);
   }
 
   /**
@@ -497,9 +519,15 @@ export class OpenFgaClient extends BaseAPI {
       };
       if (writes?.length) {
         apiBody.writes = { tuple_keys: writes };
+        if (options.idempotence?.on_duplicate) {
+          apiBody.writes.on_duplicate = options.idempotence.on_duplicate as unknown as WriteRequestWritesOnDuplicateEnum;
+        }
       }
       if (deletes?.length) {
         apiBody.deletes = { tuple_keys: deletes };
+        if (options.idempotence?.on_missing) {
+          apiBody.deletes.on_missing = options.idempotence.on_missing as unknown as WriteRequestDeletesOnMissingEnum;
+        }
       }
       await this.api.write(this.getStoreId(options)!, apiBody, options);
       return {

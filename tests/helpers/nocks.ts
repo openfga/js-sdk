@@ -67,10 +67,13 @@ export const getNocks = ((nock: typeof Nock) => ({
       }]
     },
     responseCode = 200,
+    queryParams?: { page_size?: number; continuation_token?: string; name?: string },
   ) => {
-    return nock(basePath)
-      .get("/stores")
-      .reply(responseCode, response);
+    const mock = nock(basePath).get("/stores");
+    if (queryParams) {
+      mock.query(queryParams);
+    }
+    return mock.reply(responseCode, response);
   },
   createStore: (
     basePath = defaultConfiguration.getBasePath(),
