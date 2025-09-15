@@ -23,7 +23,7 @@ jobs:
           fetch-depth: 0
 
       - name: Set up node
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
         with:
           node-version: ${{ matrix.node-version }}
           registry-url: "https://registry.npmjs.org"
@@ -46,7 +46,7 @@ jobs:
           fetch-depth: 0
 
       - name: Set up node
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
         with:
           node-version: 20
           cache: "npm"
@@ -64,7 +64,7 @@ jobs:
         run: npm test
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@18283e04ce6e62d37312384ff67231eb8fd56d24 # v5.4.3
+        uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7 # v5.5.1
         continue-on-error: true
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
@@ -85,7 +85,7 @@ jobs:
           fetch-depth: 0
 
       - name: Set up node
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
         with:
           node-version: 20
           registry-url: "https://registry.npmjs.org"
