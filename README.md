@@ -143,6 +143,45 @@ const fgaClient = new OpenFgaClient({
 });
 ```
 
+### Custom Headers
+
+#### Default Headers
+
+You can set default headers that will be sent with every request during client initialization:
+
+```javascript
+const { OpenFgaClient } = require('@openfga/sdk'); // OR import { OpenFgaClient } from '@openfga/sdk';
+
+const fgaClient = new OpenFgaClient({
+  apiUrl: process.env.FGA_API_URL,
+  storeId: process.env.FGA_STORE_ID,
+  authorizationModelId: process.env.FGA_MODEL_ID,
+  baseOptions: {
+    headers: {
+      "X-Custom-Header": "default-value",
+      "X-Request-Source": "my-app",
+    }
+  }
+});
+```
+
+#### Per-Request Headers
+
+You can also send custom headers on a per-request basis by using the `options` parameter. Custom headers will override any default headers set in the client configuration.
+
+```javascript
+// Add custom headers to a specific request
+const result = await fgaClient.check({
+  user: "user:anne",
+  relation: "viewer",
+  object: "document:roadmap",
+}, {
+  headers: {
+    "X-Request-ID": "123e4567-e89b-12d3-a456-426614174000",
+    "X-Custom-Header": "custom-value", // these override any default headers set
+  }
+});
+```
 
 ### Get your Store ID
 
