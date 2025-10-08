@@ -110,6 +110,26 @@ describe("OpenFGA Client", () => {
         expect(response.stores).toHaveLength(1);
         expect(response.stores?.[0]).toMatchObject(store);
       });
+
+      it("should properly call the ListStores API with name filter", async () => {
+        const store = { id: "some-id", name: "test-store" };
+        const scope = nocks.listStores(defaultConfiguration.getBasePath(), {
+          continuation_token: "",
+          stores: [{
+            ...store,
+            created_at: "2023-11-02T15:27:47.951Z",
+            updated_at: "2023-11-02T15:27:47.951Z",
+            deleted_at: "2023-11-02T15:27:47.951Z",
+          }],
+        }, 200, { name: "test-store" });
+
+        expect(scope.isDone()).toBe(false);
+        const response = await fgaClient.listStores({ name: "test-store" });
+
+        expect(scope.isDone()).toBe(true);
+        expect(response.stores).toHaveLength(1);
+        expect(response.stores?.[0]).toMatchObject(store);
+      });
     });
 
     describe("CreateStore", () => {
