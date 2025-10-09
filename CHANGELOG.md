@@ -5,7 +5,7 @@
 
 ## v0.9.0
 
-### [v0.9.0](https://github.com/openfga/js-sdk/compare/v0.8.1...v0.9.0) (2025-06-03)
+### [v0.9.0](https://github.com/openfga/js-sdk/compare/v0.8.1...v0.9.0) (2025-06-04)
 
 - feat: support client assertion for client credentials authentication (#228)
 
