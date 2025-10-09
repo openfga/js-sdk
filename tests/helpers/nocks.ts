@@ -46,13 +46,14 @@ export const getNocks = ((nock: typeof Nock) => ({
     accessToken = "test-token",
     expiresIn = 300,
     statusCode = 200,
+    headers = {},
   ) => {
     return nock(`https://${apiTokenIssuer}`, { reqheaders: { "Content-Type": "application/x-www-form-urlencoded"} })
       .post("/oauth/token")
       .reply(statusCode, {
         access_token: accessToken,
         expires_in: expiresIn,
-      });
+      }, headers);
   },
   listStores: (
     basePath = defaultConfiguration.getBasePath(),
@@ -67,10 +68,13 @@ export const getNocks = ((nock: typeof Nock) => ({
       }]
     },
     responseCode = 200,
+    queryParams?: { page_size?: number; continuation_token?: string; name?: string },
   ) => {
-    return nock(basePath)
-      .get("/stores")
-      .reply(responseCode, response);
+    const mock = nock(basePath).get("/stores");
+    if (queryParams) {
+      mock.query(queryParams);
+    }
+    return mock.reply(responseCode, response);
   },
   createStore: (
     basePath = defaultConfiguration.getBasePath(),

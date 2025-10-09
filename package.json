@@ -23,7 +23,7 @@
   },
   "dependencies": {
     "@opentelemetry/api": "^1.9.0",
-    "axios": "^1.11.0",
+    "axios": "^1.12.2",
     "jose": "^5.10.0",
     "tiny-async-pool": "^2.1.0"
   },
@@ -42,7 +42,6 @@
   "files": [
     "CHANGELOG.md",
     "LICENSE",
-    "NOTICE.txt",
     "README.md",
     "dist"
   ],

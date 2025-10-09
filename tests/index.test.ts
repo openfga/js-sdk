@@ -230,7 +230,9 @@ describe("OpenFGA SDK", function () {
     });
 
     it("should retry a failed attempt to request to exchange the credentials", async () => {
-      const scope1 = nocks.tokenExchange(OPENFGA_API_TOKEN_ISSUER, "test-token", 300, 500);
+      const scope1 = nocks.tokenExchange(OPENFGA_API_TOKEN_ISSUER, "test-token", 300, 500, {
+        "Retry-After": "1" // Add Retry-After header
+      });
       const scope2 = nocks.tokenExchange(OPENFGA_API_TOKEN_ISSUER);
       nocks.readAuthorizationModels(baseConfig.storeId!);
 
@@ -494,9 +496,9 @@ describe("OpenFGA SDK", function () {
 
       it("should return allowed", async () => {
         const result = await fgaApi.check(
-          baseConfig.storeId!,
-          { tuple_key: tupleKey },
-          { retryParams: GetDefaultRetryParams(2, 10) }
+    baseConfig.storeId!,
+    { tuple_key: tupleKey },
+    { retryParams: GetDefaultRetryParams(2, 10) }
         );
 
         expect(result.allowed).toBe(true);
@@ -536,6 +538,41 @@ describe("OpenFGA SDK", function () {
           fgaApi.check(baseConfig.storeId!, { tuple_key: tupleKey }, { retryParams: { maxRetry: 0 }})
         ).rejects.toThrow(FgaApiInternalError);
       });
+      it("should retry 500 error without Retry-After header using exponential backoff", async () => {
+        const updateBaseConfig = {
+          ...baseConfig,
+          retryParams: GetDefaultRetryParams(2, 10),
+        };
+        const fgaApiWithRetry = new OpenFgaApi({ ...updateBaseConfig });
+
+        nock(basePath)
+          .post(
+            `/stores/${storeId}/check`,
+            {
+              tuple_key: tupleKey,
+            },
+            expect.objectContaining({ Authorization: "Bearer test-token" })
+          )
+          .reply(500, {
+            code: "internal_error",
+            message: "nock error",
+          });
+
+        nock(basePath)
+          .post(
+            `/stores/${storeId}/check`,
+            {
+              tuple_key: tupleKey,
+            },
+            expect.objectContaining({ Authorization: "Bearer test-token" })
+          )
+          .reply(200, {
+            allowed: true,
+          });
+
+        const response = await fgaApiWithRetry.check(baseConfig.storeId!, { tuple_key: tupleKey });
+        expect(response.allowed).toBe(true);
+      });
 
       it("should not throw FgaApiInternalError with default retries", async () => {
         nock(basePath)
@@ -549,6 +586,8 @@ describe("OpenFGA SDK", function () {
           .reply(500, {
             code: "internal_error",
             message: "nock error",
+          }, {
+            "Retry-After": "1"
           });
 
         nock(basePath)
@@ -720,11 +759,11 @@ describe("OpenFGA SDK", function () {
 
         expect(scope.isDone()).toBe(false);
         const data = await fgaApi.write(
-          baseConfig.storeId!,
-          {
-            writes: { tuple_keys: [tuple] },
-            authorization_model_id: "01GXSA8YR785C4FYS3C0RTG7B1",
-          });
+    baseConfig.storeId!,
+    {
+      writes: { tuple_keys: [tuple] },
+      authorization_model_id: "01GXSA8YR785C4FYS3C0RTG7B1",
+    });
 
         expect(scope.isDone()).toBe(true);
         expect(data).toMatchObject({});
@@ -742,11 +781,11 @@ describe("OpenFGA SDK", function () {
 
         expect(scope.isDone()).toBe(false);
         const data = await fgaApi.write(
-          baseConfig.storeId!,
-          {
-            deletes: { tuple_keys: [tuple] },
-            authorization_model_id: "01GXSA8YR785C4FYS3C0RTG7B1",
-          });
+    baseConfig.storeId!,
+    {
+      deletes: { tuple_keys: [tuple] },
+      authorization_model_id: "01GXSA8YR785C4FYS3C0RTG7B1",
+    });
 
         expect(scope.isDone()).toBe(true);
         expect(data).toMatchObject({});
@@ -764,8 +803,8 @@ describe("OpenFGA SDK", function () {
 
         expect(scope.isDone()).toBe(false);
         const data = await fgaApi.expand(
-          baseConfig.storeId!,
-          { tuple_key: tuple, authorization_model_id: "01GXSA8YR785C4FYS3C0RTG7B1"});
+    baseConfig.storeId!,
+    { tuple_key: tuple, authorization_model_id: "01GXSA8YR785C4FYS3C0RTG7B1"});
 
         expect(scope.isDone()).toBe(true);
         expect(data).toMatchObject({});
@@ -798,14 +837,14 @@ describe("OpenFGA SDK", function () {
           ],
         };
         const scope = nocks.writeAuthorizationModel(
-          baseConfig.storeId!,
-          authorizationModel
+    baseConfig.storeId!,
+    authorizationModel
         );
 
         expect(scope.isDone()).toBe(false);
         const data = await fgaApi.writeAuthorizationModel(
-          baseConfig.storeId!,
-          authorizationModel
+    baseConfig.storeId!,
+    authorizationModel
         );
 
         expect(scope.isDone()).toBe(true);
@@ -870,25 +909,25 @@ describe("OpenFGA SDK", function () {
 
         expect(scope.isDone()).toBe(false);
         const response = await fgaApi.listObjects(
-          baseConfig.storeId!,
-          {
-            authorization_model_id: "01GAHCE4YVKPQEKZQHT2R89MQV",
-            user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
-            relation: "can_read",
-            type: "document",
-            contextual_tuples: {
-              tuple_keys:
-                [{
-                  user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
-                  relation: "editor",
-                  object: "folder:product"
-                }, {
-                  user: "folder:product",
-                  relation: "parent",
-                  object: "document:0192ab2a-d83f-756d-9397-c5ed9f3cb69a"
-                }]
-            }
-          });
+    baseConfig.storeId!,
+    {
+      authorization_model_id: "01GAHCE4YVKPQEKZQHT2R89MQV",
+      user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
+      relation: "can_read",
+      type: "document",
+      contextual_tuples: {
+        tuple_keys:
+    [{
+      user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
+      relation: "editor",
+      object: "folder:product"
+    }, {
+      user: "folder:product",
+      relation: "parent",
+      object: "document:0192ab2a-d83f-756d-9397-c5ed9f3cb69a"
+    }]
+      }
+    });
 
         expect(scope.isDone()).toBe(true);
         expect(response.objects).toHaveLength(mockedResponse.objects.length);

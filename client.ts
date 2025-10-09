@@ -127,7 +127,7 @@ export type ClientRequestOptsWithStoreId = ClientRequestOpts & StoreIdOpts;
 export type ClientRequestOptsWithAuthZModelId = ClientRequestOpts & StoreIdOpts & AuthorizationModelIdOpts;
 export type ClientRequestOptsWithConsistency = ClientRequestOpts & StoreIdOpts & AuthorizationModelIdOpts & ConsistencyOpts;
 
-export type PaginationOptions = { pageSize?: number, continuationToken?: string; };
+export type PaginationOptions = { pageSize?: number, continuationToken?: string, name?: string; };
 
 export type ClientCheckRequest = CheckRequestTupleKey &
     Pick<CheckRequest, "context"> &
@@ -311,6 +311,7 @@ export class OpenFgaClient extends BaseAPI {
    * @param {ClientRequestOpts & PaginationOptions} [options]
    * @param {number} [options.pageSize]
    * @param {string} [options.continuationToken]
+   * @param {string} [options.name] - Filter stores by name
    * @param {object} [options.headers] - Custom headers to send alongside the request
    * @param {object} [options.retryParams] - Override the retry parameters for this request
    * @param {number} [options.retryParams.maxRetry] - Override the max number of retries on each API request
@@ -318,7 +319,7 @@ export class OpenFgaClient extends BaseAPI {
    * @throws { FgaError }
    */
   async listStores(options: ClientRequestOptsWithAuthZModelId & PaginationOptions = {}): PromiseResult<ListStoresResponse> {
-    return this.api.listStores(options.pageSize, options.continuationToken, options);
+    return this.api.listStores(options.pageSize, options.continuationToken, options.name, options);
   }
 
   /**
