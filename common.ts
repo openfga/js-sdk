@@ -208,12 +208,16 @@ export async function attemptHttpRequest<B, R>(
         retries: iterationCount - 1,
       };
     } catch (err: any) {
-      // Check if this is a network error (no HTTP response received)
-      const isNetworkError = !isAxiosError(err) || !(err as any)?.response?.status;
+      // Non-Axios errors are not retryable here
+      if (!isAxiosError(err)) {
+        throw new FgaError(err);
+      }
 
+      // Axios network error: no HTTP response received
+      const isNetworkError = !(err as any)?.response?.status;
       if (isNetworkError) {
         // Network errors should be retried
-        if (iterationCount >= config.maxRetry) {
+        if (iterationCount > config.maxRetry) {
           throw new FgaError(err);
         }
 
@@ -221,10 +225,6 @@ export async function attemptHttpRequest<B, R>(
         const retryDelayMs = randomTime(iterationCount, config.minWaitInMs);
         await new Promise(r => setTimeout(r, retryDelayMs));
         continue;
-      }
-
-      if (!isAxiosError(err)) {
-        throw new FgaError(err);
       }
 
       const status = (err as any)?.response?.status;
@@ -235,7 +235,7 @@ export async function attemptHttpRequest<B, R>(
       } else if (status === 404) {
         throw new FgaApiNotFoundError(err);
       } else if (status === 429 || (status >= 500 && status !== 501)) {
-        if (iterationCount >= config.maxRetry) {
+        if (iterationCount > config.maxRetry) {
           // We have reached the max retry limit
           // Thus, we have no choice but to throw
           if (status === 429) {
