@@ -496,9 +496,9 @@ describe("OpenFGA SDK", function () {
 
       it("should return allowed", async () => {
         const result = await fgaApi.check(
-    baseConfig.storeId!,
-    { tuple_key: tupleKey },
-    { retryParams: GetDefaultRetryParams(2, 10) }
+          baseConfig.storeId!,
+          { tuple_key: tupleKey },
+          { retryParams: GetDefaultRetryParams(2, 10) }
         );
 
         expect(result.allowed).toBe(true);
@@ -573,7 +573,6 @@ describe("OpenFGA SDK", function () {
         const response = await fgaApiWithRetry.check(baseConfig.storeId!, { tuple_key: tupleKey });
         expect(response.allowed).toBe(true);
       });
-
       it("should not throw FgaApiInternalError with default retries", async () => {
         nock(basePath)
           .post(
@@ -679,7 +678,6 @@ describe("OpenFGA SDK", function () {
         ).rejects.toThrow(FgaApiAuthenticationError);
       });
     });
-
     describe("non-Axios errors should be thrown immediately without retry", () => {
       it("should throw FgaError immediately for non-Axios errors", async () => {
         const tupleKey = {
@@ -901,11 +899,11 @@ describe("OpenFGA SDK", function () {
 
         expect(scope.isDone()).toBe(false);
         const data = await fgaApi.write(
-    baseConfig.storeId!,
-    {
-      writes: { tuple_keys: [tuple] },
-      authorization_model_id: "01GXSA8YR785C4FYS3C0RTG7B1",
-    });
+          baseConfig.storeId!,
+          {
+            writes: { tuple_keys: [tuple] },
+            authorization_model_id: "01GXSA8YR785C4FYS3C0RTG7B1",
+          });
 
         expect(scope.isDone()).toBe(true);
         expect(data).toMatchObject({});
@@ -923,11 +921,11 @@ describe("OpenFGA SDK", function () {
 
         expect(scope.isDone()).toBe(false);
         const data = await fgaApi.write(
-    baseConfig.storeId!,
-    {
-      deletes: { tuple_keys: [tuple] },
-      authorization_model_id: "01GXSA8YR785C4FYS3C0RTG7B1",
-    });
+          baseConfig.storeId!,
+          {
+            deletes: { tuple_keys: [tuple] },
+            authorization_model_id: "01GXSA8YR785C4FYS3C0RTG7B1",
+          });
 
         expect(scope.isDone()).toBe(true);
         expect(data).toMatchObject({});
@@ -945,8 +943,8 @@ describe("OpenFGA SDK", function () {
 
         expect(scope.isDone()).toBe(false);
         const data = await fgaApi.expand(
-    baseConfig.storeId!,
-    { tuple_key: tuple, authorization_model_id: "01GXSA8YR785C4FYS3C0RTG7B1"});
+          baseConfig.storeId!,
+          { tuple_key: tuple, authorization_model_id: "01GXSA8YR785C4FYS3C0RTG7B1"});
 
         expect(scope.isDone()).toBe(true);
         expect(data).toMatchObject({});
@@ -979,14 +977,14 @@ describe("OpenFGA SDK", function () {
           ],
         };
         const scope = nocks.writeAuthorizationModel(
-    baseConfig.storeId!,
-    authorizationModel
+          baseConfig.storeId!,
+          authorizationModel
         );
 
         expect(scope.isDone()).toBe(false);
         const data = await fgaApi.writeAuthorizationModel(
-    baseConfig.storeId!,
-    authorizationModel
+          baseConfig.storeId!,
+          authorizationModel
         );
 
         expect(scope.isDone()).toBe(true);
@@ -1051,25 +1049,25 @@ describe("OpenFGA SDK", function () {
 
         expect(scope.isDone()).toBe(false);
         const response = await fgaApi.listObjects(
-    baseConfig.storeId!,
-    {
-      authorization_model_id: "01GAHCE4YVKPQEKZQHT2R89MQV",
-      user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
-      relation: "can_read",
-      type: "document",
-      contextual_tuples: {
-        tuple_keys:
-    [{
-      user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
-      relation: "editor",
-      object: "folder:product"
-    }, {
-      user: "folder:product",
-      relation: "parent",
-      object: "document:0192ab2a-d83f-756d-9397-c5ed9f3cb69a"
-    }]
-      }
-    });
+          baseConfig.storeId!,
+          {
+            authorization_model_id: "01GAHCE4YVKPQEKZQHT2R89MQV",
+            user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
+            relation: "can_read",
+            type: "document",
+            contextual_tuples: {
+              tuple_keys:
+                [{
+                  user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
+                  relation: "editor",
+                  object: "folder:product"
+                }, {
+                  user: "folder:product",
+                  relation: "parent",
+                  object: "document:0192ab2a-d83f-756d-9397-c5ed9f3cb69a"
+                }]
+            }
+          });
 
         expect(scope.isDone()).toBe(true);
         expect(response.objects).toHaveLength(mockedResponse.objects.length);

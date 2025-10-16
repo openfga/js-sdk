@@ -30,26 +30,26 @@ import { MetricRecorder } from "./telemetry/metrics";
 import { TelemetryHistograms } from "./telemetry/histograms";
 
 /**
-*
-* @export
-*/
+ *
+ * @export
+ */
 export const DUMMY_BASE_URL = "https://example.com";
 
 /**
-*
-* @export
-* @interface RequestArgs
-*/
+ *
+ * @export
+ * @interface RequestArgs
+ */
 export interface RequestArgs {
-url: string;
-options: any;
+  url: string;
+  options: any;
 }
 
 
 /**
-*
-* @export
-*/
+ *
+ * @export
+ */
 export const setBearerAuthToObject = async function (object: any, credentials: Credentials) {
   const accessTokenHeader = await credentials.getAccessTokenHeader();
   if (accessTokenHeader && !object[accessTokenHeader.name]) {
@@ -58,9 +58,9 @@ export const setBearerAuthToObject = async function (object: any, credentials: C
 };
 
 /**
-*
-* @export
-*/
+ *
+ * @export
+ */
 export const setSearchParams = function (url: URL, ...objects: any[]) {
   const searchParams = new URLSearchParams(url.search);
   for (const object of objects) {
@@ -79,25 +79,25 @@ export const setSearchParams = function (url: URL, ...objects: any[]) {
 };
 
 /**
-* Check if the given MIME is a JSON MIME.
-* JSON MIME examples:
-*   application/json
-*   application/json; charset=UTF8
-*   APPLICATION/JSON
-*   application/vnd.company+json
-* @param mime - MIME (Multipurpose Internet Mail Extensions)
-* @return True if the given MIME is JSON, false otherwise.
-*/
+ * Check if the given MIME is a JSON MIME.
+ * JSON MIME examples:
+ *   application/json
+ *   application/json; charset=UTF8
+ *   APPLICATION/JSON
+ *   application/vnd.company+json
+ * @param mime - MIME (Multipurpose Internet Mail Extensions)
+ * @return True if the given MIME is JSON, false otherwise.
+ */
 const isJsonMime = (mime: string): boolean => {
-// eslint-disable-next-line no-control-regex
+  // eslint-disable-next-line no-control-regex
   const jsonMime = new RegExp("^(application/json|[^;/ \t]+/[^;/ \t]+[+]json)[ \t]*(;.*)?$", "i");
   return mime !== null && (jsonMime.test(mime) || mime.toLowerCase() === "application/json-patch+json");
 };
 
 /**
-*
-* @export
-*/
+ *
+ * @export
+ */
 export const serializeDataIfNeeded = function (value: any, requestOptions: any) {
   const nonString = typeof value !== "string";
   const needsSerialization = nonString
@@ -109,9 +109,9 @@ export const serializeDataIfNeeded = function (value: any, requestOptions: any) 
 };
 
 /**
-*
-* @export
-*/
+ *
+ * @export
+ */
 export const toPathString = function (url: URL) {
   return url.pathname + url.search + url.hash;
 };
@@ -119,20 +119,20 @@ export const toPathString = function (url: URL) {
 type ObjectOrVoid = object | void;
 
 interface StringIndexable {
-[key: string]: any;
+  [key: string]: any;
 }
 
 export type CallResult<T extends ObjectOrVoid> = T & {
-    $response: AxiosResponse<T>
-        };
+  $response: AxiosResponse<T>
+};
 
 export type PromiseResult<T extends ObjectOrVoid> = Promise<CallResult<T>>;
 
 /**
-        * Returns true if this error is returned from axios
-        * source: https://github.com/axios/axios/blob/21a5ad34c4a5956d81d338059ac0dd34a19ed094/lib/helpers/isAxiosError.js#L12
-        * @param err
-        */
+ * Returns true if this error is returned from axios
+ * source: https://github.com/axios/axios/blob/21a5ad34c4a5956d81d338059ac0dd34a19ed094/lib/helpers/isAxiosError.js#L12
+ * @param err
+ */
 function isAxiosError(err: any): boolean {
   return err && typeof err === "object" && err.isAxiosError === true;
 }
@@ -140,10 +140,14 @@ function randomTime(loopCount: number, minWaitInMs: number): number {
   const min = Math.ceil(2 ** loopCount * minWaitInMs);
   const max = Math.ceil(2 ** (loopCount + 1) * minWaitInMs);
   const calculatedTime = Math.floor(Math.random() * (max - min) + min);
-  return Math.min(calculatedTime, 120 * 1000);
+  return Math.min(calculatedTime, 120 * 1000); // 120 seconds is the maximum time we will wait for a retry
 }
+
 function isValidRetryDelay(delayMs: number): boolean {
-  return delayMs > 0 && delayMs <= 1800 * 1000;
+  // Retry-After enforces >= 1 second, max is 30 minutes (1800 seconds)
+  const MIN_RETRY_DELAY_MS = 1_000; // 1 second
+  const MAX_RETRY_DELAY_MS = 1_800_000; // 30 minutes
+  return delayMs >= MIN_RETRY_DELAY_MS && delayMs <= MAX_RETRY_DELAY_MS;
 }
 
 function parseRetryAfterHeader(headers: Record<string, string | string[] | undefined>): number | undefined {
@@ -184,18 +188,56 @@ function parseRetryAfterHeader(headers: Record<string, string | string[] | undef
   return undefined;
 }
 
+interface WrappedAxiosResponse<R> {
+  response?: AxiosResponse<R>;
+  retries: number;
+}
 
-        interface WrappedAxiosResponse<R> {
-            response?: AxiosResponse<R>;
-                retries: number;
-                }
+function checkIfRetryableError(
+  err: any,
+  iterationCount: number,
+  maxRetry: number
+): { retryable: boolean; error?: Error } {
+  if (!isAxiosError(err)) {
+    return { retryable: false, error: new FgaError(err) };
+  }
+
+  const status = (err as any)?.response?.status;
+  const isNetworkError = !status;
+
+  if (isNetworkError) {
+    if (iterationCount > maxRetry) {
+      return { retryable: false, error: new FgaError(err) };
+    }
+    return { retryable: true };
+  }
+
+  if (status === 400 || status === 422) {
+    return { retryable: false, error: new FgaApiValidationError(err) };
+  } else if (status === 401 || status === 403) {
+    return { retryable: false, error: new FgaApiAuthenticationError(err) };
+  } else if (status === 404) {
+    return { retryable: false, error: new FgaApiNotFoundError(err) };
+  } else if (status === 429 || (status >= 500 && status !== 501)) {
+    if (iterationCount > maxRetry) {
+      if (status === 429) {
+        return { retryable: false, error: new FgaApiRateLimitExceededError(err) };
+      } else {
+        return { retryable: false, error: new FgaApiInternalError(err) };
+      }
+    }
+    return { retryable: true };
+  } else {
+    return { retryable: false, error: new FgaApiError(err) };
+  }
+}
 
 export async function attemptHttpRequest<B, R>(
   request: AxiosRequestConfig<B>,
   config: {
-                    maxRetry: number;
-                    minWaitInMs: number;
-                    },
+    maxRetry: number;
+    minWaitInMs: number;
+  },
   axiosInstance: AxiosInstance,
 ): Promise<WrappedAxiosResponse<R> | undefined> {
   let iterationCount = 0;
@@ -208,68 +250,39 @@ export async function attemptHttpRequest<B, R>(
         retries: iterationCount - 1,
       };
     } catch (err: any) {
-      // Non-Axios errors are not retryable here
-      if (!isAxiosError(err)) {
-        throw new FgaError(err);
-      }
+      const { retryable, error } = checkIfRetryableError(err, iterationCount, config.maxRetry);
 
-      // Axios network error: no HTTP response received
-      const isNetworkError = !(err as any)?.response?.status;
-      if (isNetworkError) {
-        // Network errors should be retried
-        if (iterationCount > config.maxRetry) {
-          throw new FgaError(err);
-        }
-
-        // Use exponential backoff for network errors
-        const retryDelayMs = randomTime(iterationCount, config.minWaitInMs);
-        await new Promise(r => setTimeout(r, retryDelayMs));
-        continue;
+      if (!retryable) {
+        throw error;
       }
 
       const status = (err as any)?.response?.status;
-      if (status === 400 || status === 422) {
-        throw new FgaApiValidationError(err);
-      } else if (status === 401 || status === 403) {
-        throw new FgaApiAuthenticationError(err);
-      } else if (status === 404) {
-        throw new FgaApiNotFoundError(err);
+      let retryDelayMs: number | undefined;
+
+      if (!status) {
+        // Network error: exponential backoff
+        retryDelayMs = randomTime(iterationCount, config.minWaitInMs);
       } else if (status === 429 || (status >= 500 && status !== 501)) {
-        if (iterationCount > config.maxRetry) {
-          // We have reached the max retry limit
-          // Thus, we have no choice but to throw
-          if (status === 429) {
-            throw new FgaApiRateLimitExceededError(err);
-          } else {
-            throw new FgaApiInternalError(err);
-          }
-        }
-
-        let retryDelayMs: number | undefined;
-
-        // Check for Retry-After header
         if (err.response?.headers) {
           retryDelayMs = parseRetryAfterHeader(err.response.headers);
         }
-
-        // If Retry-After header isn't valid or not present, use exponential backoff
         if (retryDelayMs === undefined) {
           retryDelayMs = randomTime(iterationCount, config.minWaitInMs);
         }
-
-        if (retryDelayMs !== undefined) {
-          await new Promise(r => setTimeout(r, retryDelayMs));
-        }
       } else {
-        throw new FgaApiError(err);
+        retryDelayMs = randomTime(iterationCount, config.minWaitInMs);
+      }
+
+      if (!retryDelayMs) {
+        await new Promise(r => setTimeout(r, retryDelayMs));
       }
     }
-  } while(iterationCount < config.maxRetry + 1);
+  } while (iterationCount < config.maxRetry + 1);
 }
 
 /**
-                        * creates an axios request function
-                        */
+ * creates an axios request function
+ */
 export const createRequestFunction = function (axiosArgs: RequestArgs, axiosInstance: AxiosInstance, configuration: Configuration, credentials: Credentials, methodAttributes: Record<string, string | number> = {}) {
   configuration.isValid();
 
