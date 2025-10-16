@@ -41,8 +41,8 @@ export const DUMMY_BASE_URL = "https://example.com";
  * @interface RequestArgs
  */
 export interface RequestArgs {
-  url: string;
-  options: any;
+   url: string;
+   options: any;
 }
 
 
@@ -266,7 +266,7 @@ export async function attemptHttpRequest<B, R>(
         if (err.response?.headers) {
           retryDelayMs = parseRetryAfterHeader(err.response.headers);
         }
-        if (retryDelayMs === undefined) {
+        if (!retryDelayMs) {
           retryDelayMs = randomTime(iterationCount, config.minWaitInMs);
         }
       } else {
