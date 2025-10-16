@@ -3,7 +3,14 @@
 
 ## [Unreleased](https://github.com/openfga/js-sdk/compare/v0.9.0...HEAD)
 
+### Bug Fixes
+
+- fix(telemetry): support TypeScript exactOptionalPropertyTypes compiler option
+
+
 ## v0.9.0
+
+
 
 ### [v0.9.0](https://github.com/openfga/js-sdk/compare/v0.8.1...v0.9.0) (2025-06-04)
 
