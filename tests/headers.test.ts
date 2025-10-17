@@ -43,7 +43,7 @@ describe("Header Functionality Tests", () => {
         }
       });
 
-      const scope = nock(testConfig.apiUrl!)
+      const scope = nock('https://api.fga.example')
         .post(`/stores/${testConfig.storeId}/check`)
         .reply(function() {
           // Verify all default headers are present
@@ -73,7 +73,7 @@ describe("Header Functionality Tests", () => {
       });
 
       // Test check endpoint
-      const checkScope = nock(testConfig.apiUrl!)
+      const checkScope = nock('https://api.fga.example')
         .post(`/stores/${testConfig.storeId}/check`)
         .reply(function() {
           expect(this.req.headers["x-persistent-header"]).toBe("should-appear-everywhere");
@@ -81,7 +81,7 @@ describe("Header Functionality Tests", () => {
         });
 
       // Test read endpoint
-      const readScope = nock(testConfig.apiUrl!)
+      const readScope = nock('https://api.fga.example')
         .post(`/stores/${testConfig.storeId}/read`)
         .reply(function() {
           expect(this.req.headers["x-persistent-header"]).toBe("should-appear-everywhere");
@@ -105,7 +105,7 @@ describe("Header Functionality Tests", () => {
     it("should send per-request headers when specified", async () => {
       const fgaClient = new OpenFgaClient(testConfig);
 
-      const scope = nock(testConfig.apiUrl!)
+      const scope = nock('https://api.fga.example')
         .post(`/stores/${testConfig.storeId}/check`)
         .reply(function() {
           expect(this.req.headers["x-request-header"]).toBe("request-value");
@@ -131,7 +131,7 @@ describe("Header Functionality Tests", () => {
       const fgaClient = new OpenFgaClient(testConfig);
 
       // First request with headers
-      const firstScope = nock(testConfig.apiUrl!)
+      const firstScope = nock('https://api.fga.example')
         .post(`/stores/${testConfig.storeId}/check`)
         .reply(function() {
           expect(this.req.headers["x-first-request"]).toBe("first-value");
@@ -140,7 +140,7 @@ describe("Header Functionality Tests", () => {
         });
 
       // Second request with different headers
-      const secondScope = nock(testConfig.apiUrl!)
+      const secondScope = nock('https://api.fga.example')
         .post(`/stores/${testConfig.storeId}/check`)
         .reply(function() {
           expect(this.req.headers["x-second-request"]).toBe("second-value");
@@ -185,7 +185,7 @@ describe("Header Functionality Tests", () => {
         }
       });
 
-      const scope = nock(testConfig.apiUrl!)
+      const scope = nock('https://api.fga.example')
         .post(`/stores/${testConfig.storeId}/check`)
         .reply(function() {
           // Verify default headers are present
@@ -225,7 +225,7 @@ describe("Header Functionality Tests", () => {
         }
       });
 
-      const scope = nock(testConfig.apiUrl!)
+      const scope = nock('https://api.fga.example')
         .post(`/stores/${testConfig.storeId}/check`)
         .reply(function() {
           const headers = this.req.headers;
@@ -274,7 +274,7 @@ describe("Header Functionality Tests", () => {
         }
       });
 
-      const scope = nock(testConfig.apiUrl!)
+      const scope = nock('https://api.fga.example')
         .post(`/stores/${testConfig.storeId}/check`)
         .reply(function() {
           // Per-request headers should override default headers
@@ -312,7 +312,7 @@ describe("Header Functionality Tests", () => {
         }
       });
 
-      const scope = nock(testConfig.apiUrl!)
+      const scope = nock('https://api.fga.example')
         .post(`/stores/${testConfig.storeId}/check`)
         .reply(function() {
           // Non-overridden defaults should remain
@@ -348,7 +348,7 @@ describe("Header Functionality Tests", () => {
         }
       });
 
-      const scope = nock(testConfig.apiUrl!)
+      const scope = nock('https://api.fga.example')
         .post(`/stores/${testConfig.storeId}/check`)
         .reply(function() {
           // HTTP headers are case-insensitive, so request header should override default
@@ -389,7 +389,7 @@ describe("Header Functionality Tests", () => {
         }
       });
 
-      const scope = nock(testConfig.apiUrl!)
+      const scope = nock('https://api.fga.example')
         .post(`/stores/${testConfig.storeId}/check`)
         .reply(function() {
           const headers = this.req.headers;
@@ -417,7 +417,7 @@ describe("Header Functionality Tests", () => {
       
       const fgaClient = new OpenFgaClient(testConfig);
 
-      const scope = nock(testConfig.apiUrl!)
+      const scope = nock('https://api.fga.example')
         .post(`/stores/${testConfig.storeId}/check`)
         .reply(function() {
           // Per-request headers override SDK headers (including Content-Type)
@@ -454,7 +454,7 @@ describe("Header Functionality Tests", () => {
         }
       });
 
-      const scope = nock(testConfig.apiUrl!)
+      const scope = nock('https://api.fga.example')
         .post(`/stores/${testConfig.storeId}/check`)
         .reply(function() {
           const headers = this.req.headers;
@@ -493,7 +493,7 @@ describe("Header Functionality Tests", () => {
         }
       });
 
-      const scope = nock(testConfig.apiUrl!)
+      const scope = nock('https://api.fga.example')
         .post(`/stores/${testConfig.storeId}/check`)
         .reply(function() {
           const headers = this.req.headers;
@@ -529,7 +529,7 @@ describe("Header Functionality Tests", () => {
         }
       });
 
-      const scope = nock(testConfig.apiUrl!)
+      const scope = nock('https://api.fga.example')
         .post(`/stores/${testConfig.storeId}/check`)
         .reply(function() {
           // Should still have SDK headers
@@ -554,7 +554,7 @@ describe("Header Functionality Tests", () => {
         // No baseOptions specified
       });
 
-      const scope = nock(testConfig.apiUrl!)
+      const scope = nock('https://api.fga.example')
         .post(`/stores/${testConfig.storeId}/check`)
         .reply(function() {
           // Should still have SDK headers
@@ -583,7 +583,7 @@ describe("Header Functionality Tests", () => {
         }
       });
 
-      const scope = nock(testConfig.apiUrl!)
+      const scope = nock('https://api.fga.example')
         .post(`/stores/${testConfig.storeId}/check`)
         .reply(function() {
           // Default headers should still be present
@@ -616,7 +616,7 @@ describe("Header Functionality Tests", () => {
         }
       });
 
-      const scope = nock(testConfig.apiUrl!)
+      const scope = nock('https://api.fga.example')
         .post(`/stores/${testConfig.storeId}/check`)
         .reply(function() {
           const headers = this.req.headers;
@@ -659,7 +659,7 @@ describe("Header Functionality Tests", () => {
         }
       });
 
-      const scope = nock(testConfig.apiUrl!)
+      const scope = nock('https://api.fga.example')
         .post(`/stores/${testConfig.storeId}/check`)
         .reply(function() {
           const headers = this.req.headers;
@@ -701,21 +701,21 @@ describe("Header Functionality Tests", () => {
       });
 
       // Test multiple endpoints
-      const checkScope = nock(testConfig.apiUrl!)
+      const checkScope = nock('https://api.fga.example')
         .post(`/stores/${testConfig.storeId}/check`)
         .reply(function() {
           expect(this.req.headers["x-consistent-header"]).toBe("always-present");
           return [200, { allowed: true }];
         });
 
-      const readScope = nock(testConfig.apiUrl!)
+      const readScope = nock('https://api.fga.example')
         .post(`/stores/${testConfig.storeId}/read`)
         .reply(function() {
           expect(this.req.headers["x-consistent-header"]).toBe("always-present");
           return [200, { tuples: [] }];
         });
 
-      const writeScope = nock(testConfig.apiUrl!)
+      const writeScope = nock('https://api.fga.example')
         .post(`/stores/${testConfig.storeId}/write`)
         .reply(function() {
           expect(this.req.headers["x-consistent-header"]).toBe("always-present");
