@@ -96,6 +96,7 @@ export class Credentials {
       const apiTokenIssuer = authConfig.config?.apiTokenIssuer;
       let issuerToValidate: string;
       
+      
       if (apiTokenIssuer?.startsWith("http://") || apiTokenIssuer?.startsWith("https://")) {
         // Already a full URL, use as-is
         issuerToValidate = apiTokenIssuer;
