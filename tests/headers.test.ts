@@ -24,6 +24,8 @@ describe("Header Functionality Tests", () => {
     credentials: { method: CredentialsMethod.None }
   };
 
+  
+
   afterEach(() => {
     nock.cleanAll();
   });
