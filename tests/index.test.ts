@@ -23,7 +23,8 @@ import {
   FgaApiInternalError,
   FgaApiNotFoundError,
   FgaApiRateLimitExceededError,
-  FgaApiValidationError, FgaError,
+  FgaApiValidationError,
+  FgaError,
   OpenFgaApi,
   TelemetryAttribute,
 } from "../index";
