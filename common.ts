@@ -34,6 +34,11 @@ import { TelemetryHistograms } from "./telemetry/histograms";
  * @export
  */
 export const DUMMY_BASE_URL = "https://example.com";
+// Retry-After header validation: minimum 1 second, maximum 30 minutes (1800 seconds)
+const MIN_RETRY_DELAY_MS = 1_000; // 1 second
+const MAX_RETRY_DELAY_MS = 1_800_000; // 30 minutes
+// Exponential backoff cap: maximum 120 seconds (2 minutes)
+const MAX_EXPONENTIAL_BACKOFF_MS = 120_000; // 120 seconds
 
 /**
  *
@@ -136,50 +141,58 @@ export type PromiseResult<T extends ObjectOrVoid> = Promise<CallResult<T>>;
 function isAxiosError(err: any): boolean {
   return err && typeof err === "object" && err.isAxiosError === true;
 }
-function randomTime(loopCount: number, minWaitInMs: number): number {
-  const min = Math.ceil(2 ** loopCount * minWaitInMs);
-  const max = Math.ceil(2 ** (loopCount + 1) * minWaitInMs);
-  const calculatedTime = Math.floor(Math.random() * (max - min) + min);
-  return Math.min(calculatedTime, 120 * 1000); // 120 seconds is the maximum time we will wait for a retry
+function calculateExponentialBackoffWithJitter(retryAttempt: number, minWaitInMs: number): number {
+  const minDelayMs = Math.ceil(2 ** retryAttempt * minWaitInMs);
+  const maxDelayMs = Math.ceil(2 ** (retryAttempt + 1) * minWaitInMs);
+  const randomDelayMs = Math.floor(Math.random() * (maxDelayMs - minDelayMs) + minDelayMs);
+  return Math.min(randomDelayMs, MAX_EXPONENTIAL_BACKOFF_MS);
 }
 
+/**
+ * Validates if a retry delay is within acceptable bounds
+ * @param delayMs - Delay in milliseconds
+ * @returns True if delay is between MIN_RETRY_DELAY_MS and MAX_RETRY_DELAY_MS
+ */
 function isValidRetryDelay(delayMs: number): boolean {
-  // Retry-After enforces >= 1 second, max is 30 minutes (1800 seconds)
-  const MIN_RETRY_DELAY_MS = 1_000; // 1 second
-  const MAX_RETRY_DELAY_MS = 1_800_000; // 30 minutes
   return delayMs >= MIN_RETRY_DELAY_MS && delayMs <= MAX_RETRY_DELAY_MS;
 }
 
+/**
+ * Parses the Retry-After header and returns delay in milliseconds
+ * @param headers - HTTP response headers
+ * @returns Delay in milliseconds if valid, undefined otherwise
+ */
 function parseRetryAfterHeader(headers: Record<string, string | string[] | undefined>): number | undefined {
-  const retryAfter = headers["retry-after"] || headers["Retry-After"];
+  const retryAfterHeader = headers["retry-after"] || headers["Retry-After"];
 
-  if (!retryAfter) {
+  if (!retryAfterHeader) {
     return undefined;
   }
 
-  const retryAfterValue = Array.isArray(retryAfter) ? retryAfter[0] : retryAfter;
+  const retryAfterHeaderValue = Array.isArray(retryAfterHeader) ? retryAfterHeader[0] : retryAfterHeader;
 
-  if (!retryAfterValue) {
+  if (!retryAfterHeaderValue) {
     return undefined;
   }
 
   // Try to parse as integer (seconds)
-  const secondsValue = parseInt(retryAfterValue, 10);
-  if (!isNaN(secondsValue)) {
-    const msValue = secondsValue * 1000;
-    if (isValidRetryDelay(msValue)) {
-      return msValue;
+  const retryAfterSeconds = parseInt(retryAfterHeaderValue, 10);
+  if (!isNaN(retryAfterSeconds)) {
+    const retryAfterMs = retryAfterSeconds * 1000;
+    if (isValidRetryDelay(retryAfterMs)) {
+      return retryAfterMs;
     }
     return undefined;
   }
 
+  // Try to parse as HTTP date
   try {
-    const dateValue = new Date(retryAfterValue);
-    const now = new Date();
-    const delayMs = dateValue.getTime() - now.getTime();
+    const retryAfterDate = new Date(retryAfterHeaderValue);
+    const currentDate = new Date();
+    const retryDelayMs = retryAfterDate.getTime() - currentDate.getTime();
 
-    if (isValidRetryDelay(delayMs)) {
-      return delayMs;
+    if (isValidRetryDelay(retryDelayMs)) {
+      return retryDelayMs;
     }
   } catch (e) {
     // Invalid date format
@@ -261,16 +274,26 @@ export async function attemptHttpRequest<B, R>(
 
       if (!status) {
         // Network error: exponential backoff
-        retryDelayMs = randomTime(iterationCount, config.minWaitInMs);
-      }
-      if ((status && (status === 429 || (status >= 500 && status !== 501)))
+        retryDelayMs = calculateExponentialBackoffWithJitter(iterationCount, config.minWaitInMs);
+      } else if ((status === 429 || (status >= 500 && status !== 501))
         && err.response?.headers) {
+        // Try to get Retry-After header for rate limit and server errors
         const parsedDelay = parseRetryAfterHeader(err.response.headers);
-        if (typeof parsedDelay === "number") {
-          retryDelayMs = Math.min(parsedDelay, config.maxWaitInMs);
+        if (parsedDelay !== undefined) {
+          retryDelayMs = parsedDelay;
         }
       }
-      if (retryDelayMs) {
+
+      // Fallback to exponential backoff if retryDelayMs is still undefined
+      if (retryDelayMs === undefined) {
+        retryDelayMs = calculateExponentialBackoffWithJitter(iterationCount, config.minWaitInMs);
+      }
+
+      // Cap the delay by MAX_RETRY_DELAY_MS
+      retryDelayMs = Math.min(retryDelayMs, MAX_RETRY_DELAY_MS);
+
+      // Only wait if retryDelayMs is a positive number
+      if (retryDelayMs && retryDelayMs > 0) {
         await new Promise(r => setTimeout(r, retryDelayMs));
       }
     }

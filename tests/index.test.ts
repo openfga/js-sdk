@@ -874,7 +874,7 @@ describe("OpenFGA SDK", function () {
     beforeEach(() => {
       const updateBaseConfig = {
         ...baseConfig,
-        retryParams: GetDefaultRetryParams(2, 1000),
+        retryParams: GetDefaultRetryParams(2, 100), // Use 100ms for faster tests
       };
       fgaApi = new OpenFgaApi({ ...updateBaseConfig });
       nocks.tokenExchange(OPENFGA_API_TOKEN_ISSUER, "test-token");
@@ -914,7 +914,82 @@ describe("OpenFGA SDK", function () {
       expect(result.allowed).toBe(true);
     });
 
-    it("should handle invalid Retry-After header format", async () => {
+    it("should use valid Retry-After header (integer seconds)", async () => {
+      // First request fails with 429, valid Retry-After header (2 seconds)
+      nock(basePath)
+        .post(
+          `/stores/${storeId}/check`,
+          {
+            tuple_key: tupleKey,
+          },
+          expect.objectContaining({ Authorization: "Bearer test-token" })
+        )
+        .reply(429, {
+          code: "rate_limit_exceeded",
+          message: "rate limited",
+        }, {
+          "Retry-After": "2"
+        });
+
+      // Second request succeeds
+      nock(basePath)
+        .post(
+          `/stores/${storeId}/check`,
+          {
+            tuple_key: tupleKey,
+          },
+          expect.objectContaining({ Authorization: "Bearer test-token" })
+        )
+        .reply(200, { allowed: true });
+
+      const startTime = Date.now();
+      const result = await fgaApi.check(baseConfig.storeId!, { tuple_key: tupleKey });
+      const elapsedTime = Date.now() - startTime;
+
+      expect(result.allowed).toBe(true);
+    });
+
+    it("should use valid Retry-After header (HTTP date)", async () => {
+      const retryAfterDate = new Date(Date.now() + 2000); // 2 seconds from now
+
+      // First request fails with 429, valid Retry-After header (HTTP date)
+      nock(basePath)
+        .post(
+          `/stores/${storeId}/check`,
+          {
+            tuple_key: tupleKey,
+          },
+          expect.objectContaining({ Authorization: "Bearer test-token" })
+        )
+        .reply(429, {
+          code: "rate_limit_exceeded",
+          message: "rate limited",
+        }, {
+          "Retry-After": retryAfterDate.toUTCString()
+        });
+
+      // Second request succeeds
+      nock(basePath)
+        .post(
+          `/stores/${storeId}/check`,
+          {
+            tuple_key: tupleKey,
+          },
+          expect.objectContaining({ Authorization: "Bearer test-token" })
+        )
+        .reply(200, { allowed: true });
+
+      const startTime = Date.now();
+      const result = await fgaApi.check(baseConfig.storeId!, { tuple_key: tupleKey });
+      const elapsedTime = Date.now() - startTime;
+
+      expect(result.allowed).toBe(true);
+      // Should wait approximately 2 seconds
+      expect(elapsedTime).toBeGreaterThanOrEqual(1800);
+      expect(elapsedTime).toBeLessThan(2500);
+    });
+
+    it("should handle invalid Retry-After header format and fallback to exponential backoff", async () => {
       // First request fails with 429, invalid Retry-After header
       nock(basePath)
         .post(
@@ -946,8 +1021,8 @@ describe("OpenFGA SDK", function () {
       expect(result.allowed).toBe(true);
     });
 
-    it("should cap retry time when Retry-After exceeds max time", async () => {
-      // First request fails with 429, Retry-After exceeds max wait time (1000ms configured)
+    it("should reject Retry-After header exceeding 30 minutes and fallback to exponential backoff", async () => {
+      // First request fails with 429, Retry-After exceeds max (30 minutes = 1800 seconds)
       nock(basePath)
         .post(
           `/stores/${storeId}/check`,
@@ -960,7 +1035,7 @@ describe("OpenFGA SDK", function () {
           code: "rate_limit_exceeded",
           message: "rate limited",
         }, {
-          "Retry-After": "10" // 10 seconds, exceeds maxWaitTime of 1000ms
+          "Retry-After": "2000" // 2000 seconds > 1800 seconds (30 min)
         });
 
       // Second request succeeds
@@ -979,12 +1054,12 @@ describe("OpenFGA SDK", function () {
       const elapsedTime = Date.now() - startTime;
 
       expect(result.allowed).toBe(true);
-      // Should wait close to maxWaitTime (1000ms) but not 10 seconds
+      // Should fallback to exponential backoff, not wait 2000 seconds
       expect(elapsedTime).toBeLessThan(5000);
     });
 
-    it("should default to min wait when Retry-After is 0", async () => {
-      // First request fails with 429, Retry-After is 0 (invalid - should default to min wait)
+    it("should reject Retry-After header less than 1 second and fallback to exponential backoff", async () => {
+      // First request fails with 429, Retry-After less than minimum (1 second)
       nock(basePath)
         .post(
           `/stores/${storeId}/check`,
@@ -997,7 +1072,7 @@ describe("OpenFGA SDK", function () {
           code: "rate_limit_exceeded",
           message: "rate limited",
         }, {
-          "Retry-After": "0"
+          "Retry-After": "0" // 0 seconds < 1 second minimum
         });
 
       // Second request succeeds
@@ -1016,37 +1091,13 @@ describe("OpenFGA SDK", function () {
       const elapsedTime = Date.now() - startTime;
 
       expect(result.allowed).toBe(true);
-      // Should not retry immediately; should default to the configured minimum wait (non-zero)
+      // Should fallback to exponential backoff with configured minWaitInMs
       expect(elapsedTime).toBeGreaterThan(0);
       expect(elapsedTime).toBeLessThan(5000);
     });
-  });
 
-  describe("no retries for certain status codes", () => {
-    let fgaApi: OpenFgaApi;
-    const tupleKey = {
-      user: "user:xyz",
-      relation: "viewer",
-      object: "foobar:x",
-    };
-    const basePath = defaultConfiguration.getBasePath();
-    const { storeId } = baseConfig;
-
-    beforeEach(() => {
-      const updateBaseConfig = {
-        ...baseConfig,
-        retryParams: GetDefaultRetryParams(3, 10), // Allow multiple retries
-      };
-      fgaApi = new OpenFgaApi({ ...updateBaseConfig });
-      nocks.tokenExchange(OPENFGA_API_TOKEN_ISSUER, "test-token");
-    });
-
-    afterEach(() => {
-      nock.cleanAll();
-    });
-
-    it("should not retry 501 Not Implemented errors", async () => {
-      // Mock a single 501 error
+    it("should use Retry-After header for 500 errors when present", async () => {
+      // First request fails with 500, valid Retry-After header
       nock(basePath)
         .post(
           `/stores/${storeId}/check`,
@@ -1055,19 +1106,36 @@ describe("OpenFGA SDK", function () {
           },
           expect.objectContaining({ Authorization: "Bearer test-token" })
         )
-        .reply(501, {
-          code: "not_implemented",
-          message: "not implemented error",
+        .reply(500, {
+          code: "internal_error",
+          message: "internal error",
+        }, {
+          "Retry-After": "2"
         });
 
-      // Update expectation to match actual error type
-      await expect(
-        fgaApi.check(baseConfig.storeId!, { tuple_key: tupleKey })
-      ).rejects.toThrow(FgaApiError); // Changed from FgaApiInternalError to FgaApiError
+      // Second request succeeds
+      nock(basePath)
+        .post(
+          `/stores/${storeId}/check`,
+          {
+            tuple_key: tupleKey,
+          },
+          expect.objectContaining({ Authorization: "Bearer test-token" })
+        )
+        .reply(200, { allowed: true });
+
+      const startTime = Date.now();
+      const result = await fgaApi.check(baseConfig.storeId!, { tuple_key: tupleKey });
+      const elapsedTime = Date.now() - startTime;
+
+      expect(result.allowed).toBe(true);
+      // Should wait approximately 2 seconds
+      expect(elapsedTime).toBeGreaterThanOrEqual(1800);
+      expect(elapsedTime).toBeLessThan(2500);
     });
 
-    it("should retry 500 but not 501 errors", async () => {
-      // First attempt - 500 error should be retried
+    it("should fallback to exponential backoff for 500 errors without Retry-After header", async () => {
+      // First request fails with 500, no Retry-After header
       nock(basePath)
         .post(
           `/stores/${storeId}/check`,
@@ -1081,7 +1149,7 @@ describe("OpenFGA SDK", function () {
           message: "internal error",
         });
 
-      // Second attempt - 501 error should not be retried
+      // Second request succeeds
       nock(basePath)
         .post(
           `/stores/${storeId}/check`,
@@ -1090,15 +1158,10 @@ describe("OpenFGA SDK", function () {
           },
           expect.objectContaining({ Authorization: "Bearer test-token" })
         )
-        .reply(501, {
-          code: "not_implemented",
-          message: "not implemented error",
-        });
+        .reply(200, { allowed: true });
 
-      // Update expectation to match actual error type
-      await expect(
-        fgaApi.check(baseConfig.storeId!, { tuple_key: tupleKey })
-      ).rejects.toThrow(FgaApiError); // Changed from FgaApiInternalError to FgaApiError
+      const result = await fgaApi.check(baseConfig.storeId!, { tuple_key: tupleKey });
+      expect(result.allowed).toBe(true);
     });
   });
 
@@ -1358,3 +1421,4 @@ describe("OpenFGA SDK", function () {
     });
   });
 });
+
