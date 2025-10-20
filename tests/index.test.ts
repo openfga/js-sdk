@@ -1519,4 +1519,3 @@ describe("OpenFGA SDK", function () {
     });
   });
 });
-
