@@ -265,9 +265,14 @@ export async function attemptHttpRequest<B, R>(
       }
       if ((status && (status === 429 || (status >= 500 && status !== 501)))
         && err.response?.headers) {
-        retryDelayMs = parseRetryAfterHeader(err.response.headers);
-      } if (!retryDelayMs) {
-        await new Promise(r => setTimeout(r, retryDelayMs)); }
+        const parsedDelay = parseRetryAfterHeader(err.response.headers);
+        if (typeof parsedDelay === "number") {
+          retryDelayMs = Math.min(parsedDelay, config.maxWaitInMs);
+        }
+      }
+      if (retryDelayMs) {
+        await new Promise(r => setTimeout(r, retryDelayMs));
+      }
     }
   } while (iterationCount < config.maxRetry + 1);
 }
