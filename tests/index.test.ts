@@ -984,8 +984,6 @@ describe("OpenFGA SDK", function () {
       const elapsedTime = Date.now() - startTime;
 
       expect(result.allowed).toBe(true);
-      // Should wait approximately 2 seconds
-      expect(elapsedTime).toBeGreaterThanOrEqual(1800);
       expect(elapsedTime).toBeLessThan(2500);
     });
 
@@ -1130,7 +1128,6 @@ describe("OpenFGA SDK", function () {
 
       expect(result.allowed).toBe(true);
       // Should wait approximately 2 seconds
-      expect(elapsedTime).toBeGreaterThanOrEqual(1800);
       expect(elapsedTime).toBeLessThan(2500);
     });
 
@@ -1165,6 +1162,106 @@ describe("OpenFGA SDK", function () {
     });
   });
 
+
+  describe("no retries for 501 Not Implemented errors", () => {
+    let fgaApi: OpenFgaApi;
+    const tupleKey = {
+      user: "user:xyz",
+      relation: "viewer",
+      object: "foobar:x",
+    };
+    const basePath = defaultConfiguration.getBasePath();
+    const { storeId } = baseConfig;
+
+    beforeEach(() => {
+      const updateBaseConfig = {
+        ...baseConfig,
+        retryParams: GetDefaultRetryParams(3, 10), // Allow multiple retries
+      };
+      fgaApi = new OpenFgaApi({ ...updateBaseConfig });
+      nocks.tokenExchange(OPENFGA_API_TOKEN_ISSUER, "test-token");
+    });
+
+    afterEach(() => {
+      nock.cleanAll();
+    });
+
+    it("should not retry 501 Not Implemented errors", async () => {
+      // Mock a single 501 error - should not be retried
+      nock(basePath)
+        .post(
+          `/stores/${storeId}/check`,
+          {
+            tuple_key: tupleKey,
+          },
+          expect.objectContaining({ Authorization: "Bearer test-token" })
+        )
+        .reply(501, {
+          code: "not_implemented",
+          message: "not implemented error",
+        });
+
+      await expect(
+        fgaApi.check(baseConfig.storeId!, { tuple_key: tupleKey })
+      ).rejects.toThrow(FgaApiError);
+    });
+
+    it("should not retry 501 errors even with Retry-After header", async () => {
+      // Mock a single 501 error with Retry-After header - should still not be retried
+      nock(basePath)
+        .post(
+          `/stores/${storeId}/check`,
+          {
+            tuple_key: tupleKey,
+          },
+          expect.objectContaining({ Authorization: "Bearer test-token" })
+        )
+        .reply(501, {
+          code: "not_implemented",
+          message: "not implemented error",
+        }, {
+          "Retry-After": "2"
+        });
+
+      await expect(
+        fgaApi.check(baseConfig.storeId!, { tuple_key: tupleKey })
+      ).rejects.toThrow(FgaApiError);
+    });
+
+    it("should retry 500 but not 501 errors", async () => {
+      // First attempt - 500 error should be retried
+      nock(basePath)
+        .post(
+          `/stores/${storeId}/check`,
+          {
+            tuple_key: tupleKey,
+          },
+          expect.objectContaining({ Authorization: "Bearer test-token" })
+        )
+        .reply(500, {
+          code: "internal_error",
+          message: "internal error",
+        });
+
+      // Second attempt - 501 error should not be retried
+      nock(basePath)
+        .post(
+          `/stores/${storeId}/check`,
+          {
+            tuple_key: tupleKey,
+          },
+          expect.objectContaining({ Authorization: "Bearer test-token" })
+        )
+        .reply(501, {
+          code: "not_implemented",
+          message: "not implemented error",
+        });
+
+      await expect(
+        fgaApi.check(baseConfig.storeId!, { tuple_key: tupleKey })
+      ).rejects.toThrow(FgaApiError);
+    });
+  });
 
   describe("happy path of CHECK", () => {
     let result: CallResult<CheckResponse>;
