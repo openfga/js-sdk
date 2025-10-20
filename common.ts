@@ -262,20 +262,12 @@ export async function attemptHttpRequest<B, R>(
       if (!status) {
         // Network error: exponential backoff
         retryDelayMs = randomTime(iterationCount, config.minWaitInMs);
-      } else if (status === 429 || (status >= 500 && status !== 501)) {
-        if (err.response?.headers) {
-          retryDelayMs = parseRetryAfterHeader(err.response.headers);
-        }
-        if (!retryDelayMs) {
-          retryDelayMs = randomTime(iterationCount, config.minWaitInMs);
-        }
-      } else {
-        retryDelayMs = randomTime(iterationCount, config.minWaitInMs);
       }
-
-      if (!retryDelayMs) {
-        await new Promise(r => setTimeout(r, retryDelayMs));
-      }
+      if ((status && (status === 429 || (status >= 500 && status !== 501)))
+        && err.response?.headers) {
+        retryDelayMs = parseRetryAfterHeader(err.response.headers);
+      } if (!retryDelayMs) {
+        await new Promise(r => setTimeout(r, retryDelayMs)); }
     }
   } while (iterationCount < config.maxRetry + 1);
 }

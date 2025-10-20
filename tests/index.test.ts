@@ -983,8 +983,8 @@ describe("OpenFGA SDK", function () {
       expect(elapsedTime).toBeLessThan(5000);
     });
 
-    it("should retry immediately when Retry-After is 0", async () => {
-      // First request fails with 429, Retry-After is 0
+    it("should default to min wait when Retry-After is 0", async () => {
+      // First request fails with 429, Retry-After is 0 (invalid - should default to min wait)
       nock(basePath)
         .post(
           `/stores/${storeId}/check`,
@@ -1011,8 +1011,14 @@ describe("OpenFGA SDK", function () {
         )
         .reply(200, { allowed: true });
 
+      const startTime = Date.now();
       const result = await fgaApi.check(baseConfig.storeId!, { tuple_key: tupleKey });
+      const elapsedTime = Date.now() - startTime;
+
       expect(result.allowed).toBe(true);
+      // Should not retry immediately; should default to the configured minimum wait (non-zero)
+      expect(elapsedTime).toBeGreaterThan(0);
+      expect(elapsedTime).toBeLessThan(5000);
     });
   });
 
