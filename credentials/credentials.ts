@@ -73,6 +73,17 @@ export class Credentials {
   }
 
   /**
+   * Normalize API token issuer URL by ensuring it has a scheme
+   * @private
+   */
+  private normalizeApiTokenIssuer(apiTokenIssuer: string): string {
+    if (apiTokenIssuer.startsWith("http://") || apiTokenIssuer.startsWith("https://")) {
+      return apiTokenIssuer;
+    }
+    return `https://${apiTokenIssuer}`;
+  }
+
+  /**
    *
    * @throws {FgaValidationError}
    */
@@ -92,10 +103,9 @@ export class Credentials {
       assertParamExists("Credentials", "config.apiAudience", authConfig.config?.apiAudience);
       assertParamExists("Credentials", "config.clientSecret or config.clientAssertionSigningKey", (authConfig.config as ClientSecretConfig).clientSecret || (authConfig.config as PrivateKeyJWTConfig).clientAssertionSigningKey);
 
-      //Fixed validation: Handle both full URLs and domain-only issuers
+      // Fixed validation: Handle both full URLs and domain-only issuers
       const apiTokenIssuer = authConfig.config?.apiTokenIssuer;
       let issuerToValidate: string;
-      
       
       if (apiTokenIssuer?.startsWith("http://") || apiTokenIssuer?.startsWith("https://")) {
         // Already a full URL, use as-is
@@ -160,12 +170,8 @@ export class Credentials {
       config: ClientCredentialsConfig;
     })?.config;
     
-    // Normalize the token URL - FIXED VERSION
-    const issuerWithScheme =
-      clientCredentials.apiTokenIssuer.startsWith("http://") ||
-      clientCredentials.apiTokenIssuer.startsWith("https://")
-        ? clientCredentials.apiTokenIssuer
-        : `https://${clientCredentials.apiTokenIssuer}`;
+    // Normalize the token URL - using reusable function
+    const issuerWithScheme = this.normalizeApiTokenIssuer(clientCredentials.apiTokenIssuer);
     
     let tokenUrl: string;
     try {
@@ -213,7 +219,7 @@ export class Credentials {
         attributes = TelemetryAttributes.fromRequest({
           userAgent: this.baseOptions?.headers["User-Agent"],
           fgaMethod: "TokenExchange",
-          url: tokenUrl, // FIXED: Use tokenUrl instead of undefined 'url'
+          url: tokenUrl, 
           resendCount: wrappedResponse?.retries,
           httpMethod: "POST",
           credentials: clientCredentials,
@@ -254,10 +260,8 @@ export class Credentials {
       const alg = (config as PrivateKeyJWTConfig).clientAssertionSigningAlgorithm || "RS256";
       const privateKey = await jose.importPKCS8((config as PrivateKeyJWTConfig).clientAssertionSigningKey, alg);
       
-      //Fixed audience: Handle both full URLs and domain-only issuers
-      const audienceIssuer = config.apiTokenIssuer.startsWith("http://") || config.apiTokenIssuer.startsWith("https://")
-        ? config.apiTokenIssuer
-        : `https://${config.apiTokenIssuer}`;
+      
+      const audienceIssuer = this.normalizeApiTokenIssuer(config.apiTokenIssuer);
         
       const assertion = await new jose.SignJWT({})
         .setProtectedHeader({ alg })
