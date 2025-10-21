@@ -272,30 +272,16 @@ export async function attemptHttpRequest<B, R>(
       const status = (err as any)?.response?.status;
       let retryDelayMs: number | undefined;
 
-      if (!status) {
-        // Network error: exponential backoff
-        retryDelayMs = calculateExponentialBackoffWithJitter(iterationCount, config.minWaitInMs);
-      } else if ((status === 429 || (status >= 500 && status !== 501))
-        && err.response?.headers) {
-        // Try to get Retry-After header for rate limit and server errors
-        const parsedDelay = parseRetryAfterHeader(err.response.headers);
-        if (parsedDelay !== undefined) {
-          retryDelayMs = parsedDelay;
-        }
+      if ((status &&
+          (status === 429 || (status >= 500 && status !== 501))) &&
+        err.response?.headers) {
+        retryDelayMs = parseRetryAfterHeader(err.response.headers);
       }
-
-      // Fallback to exponential backoff if retryDelayMs is still undefined
-      if (retryDelayMs === undefined) {
+      if (!retryDelayMs) {
         retryDelayMs = calculateExponentialBackoffWithJitter(iterationCount, config.minWaitInMs);
       }
 
-      // Cap the delay by MAX_RETRY_DELAY_MS
-      retryDelayMs = Math.min(retryDelayMs, MAX_RETRY_DELAY_MS);
-
-      // Only wait if retryDelayMs is a positive number
-      if (retryDelayMs && retryDelayMs > 0) {
-        await new Promise(r => setTimeout(r, retryDelayMs));
-      }
+      await new Promise(r => setTimeout(r, Math.min(retryDelayMs, MAX_RETRY_DELAY_MS)));
     }
   } while (iterationCount < config.maxRetry + 1);
 }
