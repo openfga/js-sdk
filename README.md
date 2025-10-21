@@ -144,10 +144,6 @@ const fgaClient = new OpenFgaClient({
 });
 ```
 
-### OIDC Token Endpoint Configuration
-
-The SDK supports custom OIDC token endpoints for compatibility with various OIDC providers.
-
 #### Default Behavior
 - When `apiTokenIssuer` is just a domain (e.g., `"auth.example.com"`), the SDK appends `/oauth/token`
 - Example: `auth.example.com` → `https://auth.example.com/oauth/token`
@@ -175,12 +171,6 @@ Auth0:
 ```
 apiTokenIssuer: 'https://your-domain.auth0.com/oauth/token'
 ```
-
-This ensures compatibility with OIDC providers that use non-standard token endpoint paths.
-
-```
-## 3. Create the OIDC Test File
-
 Create `tests/credentials-oidc.test.ts`:
 
 ```typescript
