@@ -145,7 +145,10 @@ async function main () {
         object: "document:7772ab2a-d83f-756d-9397-c5ed9f3cb69a"
       }
     ]
-  }, { authorizationModelId });
+  }, {
+    authorizationModelId,
+    conflict: { onDuplicateWrites: 'ignore' }
+  });
   console.log("Done Writing Tuples");
 
   // Set the model ID

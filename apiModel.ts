@@ -1920,7 +1920,23 @@ export interface WriteRequestDeletes {
      * @memberof WriteRequestDeletes
      */
     tuple_keys: Array<TupleKeyWithoutCondition>;
+    /**
+     * On \'error\', the API returns an error when deleting a tuple that does not exist. On \'ignore\', deletes of non-existent tuples are treated as no-ops.
+     * @type {string}
+     * @memberof WriteRequestDeletes
+     */
+    on_missing?: WriteRequestDeletesOnMissingEnum;
 }
+
+/**
+    * @export
+    * @enum {string}
+    */
+export enum WriteRequestDeletesOnMissingEnum {
+    Error = 'error',
+    Ignore = 'ignore'
+}
+
 /**
  * 
  * @export
@@ -1933,5 +1949,21 @@ export interface WriteRequestWrites {
      * @memberof WriteRequestWrites
      */
     tuple_keys: Array<TupleKey>;
+    /**
+     * On \'error\' ( or unspecified ), the API returns an error if an identical tuple already exists. On \'ignore\', identical writes are treated as no-ops (matching on user, relation, object, and RelationshipCondition).
+     * @type {string}
+     * @memberof WriteRequestWrites
+     */
+    on_duplicate?: WriteRequestWritesOnDuplicateEnum;
 }
+
+/**
+    * @export
+    * @enum {string}
+    */
+export enum WriteRequestWritesOnDuplicateEnum {
+    Error = 'error',
+    Ignore = 'ignore'
+}
+
 
