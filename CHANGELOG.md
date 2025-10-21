@@ -1,15 +1,11 @@
 # Changelog
 
 
-## [Unreleased](https://github.com/openfga/js-sdk/compare/v0.9.0...HEAD)
+## [Unreleased](https://github.com/openfga/sdk-generator#238)
 
 ### Added
 - Support for custom OIDC token endpoint paths (#141, #238)
 - Compatibility with Zitadel, Entra ID, and other OIDC providers using non-standard token paths
-
-### Fixed
-- OIDC token URL construction to handle custom paths consistently with other SDKs
-- Telemetry configuration issues in credentials flow
 
 ## v0.9.0
 
