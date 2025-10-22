@@ -209,32 +209,26 @@ export interface ClientWriteConflictOptions {
   onMissingDeletes?: typeof OnMissingDeletes[keyof typeof OnMissingDeletes];
 }
 
+export interface ClientWriteTransactionOptions {
+  disable?: boolean;
+  maxPerChunk?: number;
+  maxParallelRequests?: number;
+}
+
 export interface ClientWriteRequestOpts {
-  transaction?: {
-    disable?: boolean;
-    maxPerChunk?: number;
-    maxParallelRequests?: number;
-  }
+  transaction?: ClientWriteTransactionOptions;
   conflict?: ClientWriteConflictOptions;
 }
 
 export interface ClientWriteTuplesRequestOpts {
-  transaction?: {
-    disable?: boolean;
-    maxPerChunk?: number;
-    maxParallelRequests?: number;
-  };
+  transaction?: ClientWriteTransactionOptions;
   conflict?: {
     onDuplicateWrites?: typeof OnDuplicateWrites[keyof typeof OnDuplicateWrites];
   };
 }
 
 export interface ClientDeleteTuplesRequestOpts {
-  transaction?: {
-    disable?: boolean;
-    maxPerChunk?: number;
-    maxParallelRequests?: number;
-  };
+  transaction?: ClientWriteTransactionOptions;
   conflict?: {
     onMissingDeletes?: typeof OnMissingDeletes[keyof typeof OnMissingDeletes];
   };
