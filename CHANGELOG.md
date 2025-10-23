@@ -1,7 +1,11 @@
 # Changelog
 
 
-## [Unreleased](https://github.com/openfga/js-sdk/compare/v0.9.0...HEAD)
+## [Unreleased](https://github.com/openfga/sdk-generator#238)
+
+### Added
+- Support for custom OIDC token endpoint paths (#141, #238)
+- Compatibility with Zitadel, Entra ID, and other OIDC providers using non-standard token paths
 
 - feat: add support for handling Retry-After header (#267)
 
