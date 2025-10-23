@@ -541,13 +541,13 @@ export class OpenFgaClient extends BaseAPI {
       if (writes?.length) {
         apiBody.writes = {
           tuple_keys: writes,
-          on_duplicate: conflict?.onDuplicateWrites
+          on_duplicate: conflict?.onDuplicateWrites ?? OnDuplicateWrites.Error
         };
       }
       if (deletes?.length) {
         apiBody.deletes = {
           tuple_keys: deletes,
-          on_missing: conflict?.onMissingDeletes
+          on_missing: conflict?.onMissingDeletes ?? OnMissingDeletes.Error
         };
       }
       await this.api.write(this.getStoreId(options)!, apiBody, options);
