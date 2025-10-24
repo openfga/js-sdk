@@ -133,7 +133,7 @@ function calculateExponentialBackoffWithJitter(retryAttempt: number, minWaitInMs
 /**
  * Validates if a retry delay is within acceptable bounds
  * @param delayMs - Delay in milliseconds
- * @returns True if delay is between {@link SdkConstants.DefaultMinWaitInMs} and {@link SdkConstants.RetryHeaderMaxAllowableDurationInSec}
+ * @returns True if delay is between {@link SdkConstants.DefaultMinWaitInMs}ms and {@link SdkConstants.RetryHeaderMaxAllowableDurationInSec}s
  */
 function isValidRetryDelay(delayMs: number): boolean {
   return delayMs >= SdkConstants.DefaultMinWaitInMs && delayMs <= SdkConstants.RetryHeaderMaxAllowableDurationInSec * 1000;
