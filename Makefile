@@ -10,7 +10,7 @@ help:
 	@echo "  make lint-fix        - Run linter with auto-fix"
 	@echo "  make audit           - Audit dependencies for vulnerabilities"
 	@echo "  make clean           - Clean build artifacts"
-	@echo "  make all             - Install, build, lint, and test"
+	@echo "  make all             - Install, build, lint, check and test"
 
 # Install dependencies
 install:
@@ -28,6 +28,10 @@ test:
 lint:
 	npm run lint
 
+# Check lint, test and audit
+check:
+	npm run lint && npm test && npm audit	
+
 # Run linter with auto-fix
 lint-fix:
 	npm run lint:fix
@@ -40,7 +44,7 @@ audit:
 clean:
 	rm -rf dist/
 
-# Run all checks (install, build, lint, test)
-all: install build lint audit clean test
+# Run all checks (install, build, lint, check and test)
+all: install build lint check clean test
 	@echo "All checks passed!"
  
