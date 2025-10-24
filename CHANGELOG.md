@@ -3,6 +3,8 @@
 
 ## [Unreleased](https://github.com/openfga/js-sdk/compare/v0.9.0...HEAD)
 
+- feat: add support for handling Retry-After header (#267)
+
 ## v0.9.0
 
 ### [v0.9.0](https://github.com/openfga/js-sdk/compare/v0.8.1...v0.9.0) (2025-06-04)
