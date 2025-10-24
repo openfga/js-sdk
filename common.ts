@@ -275,8 +275,8 @@ export const createRequestFunction = function (axiosArgs: RequestArgs, axiosInst
   configuration.isValid();
 
   const retryParams = axiosArgs.options?.retryParams ? axiosArgs.options?.retryParams : configuration.retryParams;
-  const maxRetry: number = retryParams ? retryParams.maxRetry : 0;
-  const minWaitInMs: number = retryParams ? retryParams.minWaitInMs : 0;
+  const maxRetry: number = retryParams?.maxRetry ?? 0;
+  const minWaitInMs: number = retryParams?.minWaitInMs ?? 0;
 
   const start = performance.now();
 

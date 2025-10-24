@@ -4,7 +4,6 @@
 .github/ISSUE_TEMPLATE/config.yaml
 .github/ISSUE_TEMPLATE/feature_request.yaml
 .gitignore
-.gitignore
 .npmrc
 CONTRIBUTING.md
 LICENSE
