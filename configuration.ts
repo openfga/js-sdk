@@ -180,7 +180,7 @@ export class Configuration {
       );
     }
 
-    if (this.retryParams?.maxRetry && this.retryParams.maxRetry > 15) {
+    if (this.retryParams?.maxRetry && this.retryParams.maxRetry > SdkConstants.RetryMaxAllowedNumber) {
       throw new FgaValidationError("Configuration.retryParams.maxRetry exceeds maximum allowed limit of 15");
     }
 

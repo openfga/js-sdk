@@ -145,7 +145,13 @@ function isValidRetryDelay(delayMs: number): boolean {
  * @returns Delay in milliseconds if valid, undefined otherwise
  */
 function parseRetryAfterHeader(headers: Record<string, string | string[] | undefined>): number | undefined {
-  const retryAfterHeader = headers["retry-after"] || headers["Retry-After"];
+  // Find the retry-after header regardless of case
+  const retryAfterHeaderNameLower = SdkConstants.RetryAfterHeaderName.toLowerCase();
+  const retryAfterKey = Object.keys(headers).find(key =>
+    key.toLowerCase() === retryAfterHeaderNameLower
+  );
+
+  const retryAfterHeader = retryAfterKey ? headers[retryAfterKey] : undefined;
 
   if (!retryAfterHeader) {
     return undefined;
