@@ -1,1 +1,4 @@
 .npmignore
+configuration.ts
+common.ts
+base.ts
