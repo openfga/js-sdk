@@ -29,8 +29,7 @@ lint:
 	npm run lint
 
 # Check lint, test and audit
-check:
-	npm run lint && npm test && npm audit	
+check: lint audit test
 
 # Run linter with auto-fix
 lint-fix:
