@@ -24,5 +24,6 @@ export * from "./telemetry/counters";
 export * from "./telemetry/histograms";
 export * from "./telemetry/metrics";
 export * from "./errors";
+export { parseNDJSONStream, parseNDJSONReadableStream, isNodeEnvironment } from "./streaming";
 
 
