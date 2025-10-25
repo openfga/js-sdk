@@ -46,8 +46,8 @@ const MAX_EXPONENTIAL_BACKOFF_MS = 120_000; // 120 seconds
  * @interface RequestArgs
  */
 export interface RequestArgs {
-   url: string;
-   options: any;
+  url: string;
+  options: any;
 }
 
 
@@ -141,11 +141,15 @@ export type PromiseResult<T extends ObjectOrVoid> = Promise<CallResult<T>>;
 function isAxiosError(err: any): boolean {
   return err && typeof err === "object" && err.isAxiosError === true;
 }
-function calculateExponentialBackoffWithJitter(retryAttempt: number, minWaitInMs: number): number {
-  const minDelayMs = Math.ceil(2 ** retryAttempt * minWaitInMs);
-  const maxDelayMs = Math.ceil(2 ** (retryAttempt + 1) * minWaitInMs);
-  const randomDelayMs = Math.floor(Math.random() * (maxDelayMs - minDelayMs) + minDelayMs);
-  return Math.min(randomDelayMs, MAX_EXPONENTIAL_BACKOFF_MS);
+
+function randomTime(loopCount: number, minWaitInMs: number): number {
+  const min = Math.ceil(2 ** loopCount * minWaitInMs);
+  const max = Math.ceil(2 ** (loopCount + 1) * minWaitInMs);
+  return Math.floor(Math.random() * (max - min) + min); //The maximum is exclusive and the minimum is inclusive
+}
+
+export function calculateExponentialBackoffWithJitter(retryAttempt: number, minWaitInMs: number): number {
+  return Math.min(randomTime(retryAttempt, minWaitInMs), MAX_EXPONENTIAL_BACKOFF_MS);
 }
 
 /**
@@ -273,7 +277,7 @@ export async function attemptHttpRequest<B, R>(
       let retryDelayMs: number | undefined;
 
       if ((status &&
-          (status === 429 || (status >= 500 && status !== 501))) &&
+        (status === 429 || (status >= 500 && status !== 501))) &&
         err.response?.headers) {
         retryDelayMs = parseRetryAfterHeader(err.response.headers);
       }
@@ -287,30 +291,103 @@ export async function attemptHttpRequest<B, R>(
 }
 
 /**
+ * creates an axios streaming request function that returns the raw response stream
+ * for incremental parsing (used by streamedListObjects)
+ */
+export const createStreamingRequestFunction = function (axiosArgs: RequestArgs, axiosInstance: AxiosInstance, configuration: Configuration, credentials: Credentials, methodAttributes: Record<string, string | number> = {}) {
+  configuration.isValid();
+
+  const retryParams = axiosArgs.options?.retryParams ? axiosArgs.options?.retryParams : configuration.retryParams;
+  const maxRetry: number = retryParams ? retryParams.maxRetry : 0;
+  const minWaitInMs: number = retryParams ? retryParams.minWaitInMs : 0;
+
+  const start = performance.now();
+
+  return async (axios: AxiosInstance = axiosInstance): Promise<any> => {
+    await setBearerAuthToObject(axiosArgs.options.headers, credentials!);
+
+    const url = configuration.getBasePath() + axiosArgs.url;
+
+    const axiosRequestArgs = { ...axiosArgs.options, responseType: "stream", url: url };
+    const wrappedResponse = await attemptHttpRequest(axiosRequestArgs, {
+      maxRetry,
+      minWaitInMs,
+    }, axios);
+    const response = wrappedResponse?.response;
+
+    const result: any = response?.data; // raw stream
+
+    let attributes: StringIndexable = {};
+
+    attributes = TelemetryAttributes.fromRequest({
+      userAgent: configuration.baseOptions?.headers["User-Agent"],
+      httpMethod: axiosArgs.options?.method,
+      url,
+      resendCount: wrappedResponse?.retries,
+      start: start,
+      credentials: credentials,
+      attributes: methodAttributes,
+    });
+
+    attributes = TelemetryAttributes.fromResponse({
+      response,
+      attributes,
+    });
+
+    const serverRequestDuration = attributes[TelemetryAttribute.HttpServerRequestDuration];
+    if (configuration.telemetry?.metrics?.histogramQueryDuration && typeof serverRequestDuration !== "undefined") {
+      configuration.telemetry.recorder.histogram(
+        TelemetryHistograms.queryDuration,
+        parseInt(attributes[TelemetryAttribute.HttpServerRequestDuration] as string, 10),
+        TelemetryAttributes.prepare(
+          attributes,
+          configuration.telemetry.metrics.histogramQueryDuration.attributes
+        )
+      );
+    }
+
+    if (configuration.telemetry?.metrics?.histogramRequestDuration) {
+      configuration.telemetry.recorder.histogram(
+        TelemetryHistograms.requestDuration,
+        attributes[TelemetryAttribute.HttpClientRequestDuration],
+        TelemetryAttributes.prepare(
+          attributes,
+          configuration.telemetry.metrics.histogramRequestDuration.attributes
+        )
+      );
+    }
+
+    return result;
+  };
+};
+
+/**
  * creates an axios request function
  */
 export const createRequestFunction = function (axiosArgs: RequestArgs, axiosInstance: AxiosInstance, configuration: Configuration, credentials: Credentials, methodAttributes: Record<string, string | number> = {}) {
   configuration.isValid();
 
   const retryParams = axiosArgs.options?.retryParams ? axiosArgs.options?.retryParams : configuration.retryParams;
-  const maxRetry:number = retryParams ? retryParams.maxRetry : 0;
-  const minWaitInMs:number = retryParams ? retryParams.minWaitInMs : 0;
+  const maxRetry: number = retryParams ? retryParams.maxRetry : 0;
+  const minWaitInMs: number = retryParams ? retryParams.minWaitInMs : 0;
 
   const start = performance.now();
 
-  return async (axios: AxiosInstance = axiosInstance) : PromiseResult<any> => {
+  return async (axios: AxiosInstance = axiosInstance): PromiseResult<any> => {
     await setBearerAuthToObject(axiosArgs.options.headers, credentials!);
 
     const url = configuration.getBasePath() + axiosArgs.url;
 
-    const axiosRequestArgs = {...axiosArgs.options, url: url};
+    const axiosRequestArgs = { ...axiosArgs.options, url: url };
     const wrappedResponse = await attemptHttpRequest(axiosRequestArgs, {
       maxRetry,
       minWaitInMs,
     }, axios);
     const response = wrappedResponse?.response;
+
+    // Regular requests: spread the data into a result object
     const data = typeof response?.data === "undefined" ? {} : response?.data;
-    const result: CallResult<any> = { ...data };
+    const result: any = { ...data };
     setNotEnumerableProperty(result, "$response", response);
 
     let attributes: StringIndexable = {};

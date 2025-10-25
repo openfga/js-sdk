@@ -299,7 +299,7 @@ describe("OpenFGA Client", () => {
         const continuationToken = "eyJwayI6IkxBVEVTVF9OU0NPTkZJR19hdXRoMHN0b3JlIiwic2siOiIxem1qbXF3MWZLZExTcUoyN01MdTdqTjh0cWgifQ==";
         const startTime = "2022-01-01T00:00:00Z";
 
-        const scope = nocks.readChanges(baseConfig.storeId!, "", pageSize, continuationToken,"");
+        const scope = nocks.readChanges(baseConfig.storeId!, "", pageSize, continuationToken, "");
 
         expect(scope.isDone()).toBe(false);
         const response = await fgaClient.readChanges(undefined, { pageSize, continuationToken });
@@ -319,7 +319,7 @@ describe("OpenFGA Client", () => {
         const scope = nocks.read(baseConfig.storeId!, tuple, undefined, ConsistencyPreference.HigherConsistency);
 
         expect(scope.isDone()).toBe(false);
-        const data = await fgaClient.read(tuple, { consistency: ConsistencyPreference.HigherConsistency});
+        const data = await fgaClient.read(tuple, { consistency: ConsistencyPreference.HigherConsistency });
 
         expect(scope.isDone()).toBe(true);
         expect(data).toMatchObject({});
@@ -772,7 +772,7 @@ describe("OpenFGA Client", () => {
         } finally {
           expect(scope.isDone()).toBe(true);
         }
-      }); 
+      });
     });
 
     describe("Expand", () => {
@@ -820,6 +820,33 @@ describe("OpenFGA Client", () => {
         expect(scope.isDone()).toBe(true);
         expect(response.objects).toHaveLength(mockedResponse.objects.length);
         expect(response.objects).toEqual(expect.arrayContaining(mockedResponse.objects));
+      });
+    });
+
+    describe("StreamedListObjects", () => {
+      it("should stream objects and return them via async generator", async () => {
+        const mockObjects = [
+          "document:0192ab2a-d83f-756d-9397-c5ed9f3cb69a",
+          "document:0192ab2a-d83f-756d-9397-c5ed9f3cb69b",
+          "document:0192ab2a-d83f-756d-9397-c5ed9f3cb69c"
+        ];
+        const scope = nocks.streamedListObjects(baseConfig.storeId!, mockObjects);
+
+        expect(scope.isDone()).toBe(false);
+        const results: string[] = [];
+        for await (const response of fgaClient.streamedListObjects({
+          user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
+          relation: "can_read",
+          type: "document",
+        }, {
+          authorizationModelId: "01GAHCE4YVKPQEKZQHT2R89MQV",
+        })) {
+          results.push(response.object);
+        }
+
+        expect(scope.isDone()).toBe(true);
+        expect(results).toHaveLength(mockObjects.length);
+        expect(results).toEqual(expect.arrayContaining(mockObjects));
       });
     });
 
@@ -961,7 +988,7 @@ describe("OpenFGA Client", () => {
           object: "workspace:1",
         }];
 
-        const scope0 = nocks.check(baseConfig.storeId!, tuples[0], defaultConfiguration.getBasePath(), {} as any,401);
+        const scope0 = nocks.check(baseConfig.storeId!, tuples[0], defaultConfiguration.getBasePath(), {} as any, 401);
         const scope1 = nock(defaultConfiguration.getBasePath())
           .get(`/stores/${defaultConfiguration.storeId!}/authorization-models`)
           .query({ page_size: 1 })

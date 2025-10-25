@@ -12,6 +12,7 @@
 
 
 import type * as Nock from "nock";
+import { Readable } from "node:stream";
 
 import {
   AuthorizationModel,
@@ -48,7 +49,7 @@ export const getNocks = ((nock: typeof Nock) => ({
     statusCode = 200,
     headers = {},
   ) => {
-    return nock(`https://${apiTokenIssuer}`, { reqheaders: { "Content-Type": "application/x-www-form-urlencoded"} })
+    return nock(`https://${apiTokenIssuer}`, { reqheaders: { "Content-Type": "application/x-www-form-urlencoded" } })
       .post("/oauth/token")
       .reply(statusCode, {
         access_token: accessToken,
@@ -155,8 +156,8 @@ export const getNocks = ((nock: typeof Nock) => ({
       .query({
         page_size: pageSize,
         continuation_token: contToken,
-        ...(type ? { type } : { }),
-        ...(startTime ? {start_time: startTime } :{})
+        ...(type ? { type } : {}),
+        ...(startTime ? { start_time: startTime } : {})
       })
       .reply(200, {
         changes: [{
@@ -175,10 +176,10 @@ export const getNocks = ((nock: typeof Nock) => ({
     storeId: string,
     tuple: TupleKey,
     basePath = defaultConfiguration.getBasePath(),
-    consistency: ConsistencyPreference|undefined = undefined,
+    consistency: ConsistencyPreference | undefined = undefined,
   ) => {
     return nock(basePath)
-      .post(`/stores/${storeId}/read`, (body: ReadRequest) => 
+      .post(`/stores/${storeId}/read`, (body: ReadRequest) =>
         body.consistency === consistency
       )
       .reply(200, { tuples: [], continuation_token: "" } as ReadResponse);
@@ -208,7 +209,7 @@ export const getNocks = ((nock: typeof Nock) => ({
     basePath = defaultConfiguration.getBasePath(),
     response: { allowed: boolean } | { code: string, message: string } = { allowed: true },
     statusCode = 200,
-    consistency: ConsistencyPreference|undefined = undefined,
+    consistency: ConsistencyPreference | undefined = undefined,
   ) => {
     return nock(basePath)
       .post(`/stores/${storeId}/check`, (body: CheckRequest) =>
@@ -223,7 +224,7 @@ export const getNocks = ((nock: typeof Nock) => ({
     storeId: string,
     responseBody: BatchCheckResponse,
     basePath = defaultConfiguration.getBasePath(),
-    consistency: ConsistencyPreference|undefined | undefined,
+    consistency: ConsistencyPreference | undefined | undefined,
     authorizationModelId = "auth-model-id",
   ) => {
     return nock(basePath)
@@ -237,10 +238,10 @@ export const getNocks = ((nock: typeof Nock) => ({
     storeId: string,
     tuple: TupleKey,
     basePath = defaultConfiguration.getBasePath(),
-    consistency: ConsistencyPreference|undefined = undefined,
+    consistency: ConsistencyPreference | undefined = undefined,
   ) => {
     return nock(basePath)
-      .post(`/stores/${storeId}/expand`, (body: ExpandRequest) => 
+      .post(`/stores/${storeId}/expand`, (body: ExpandRequest) =>
         body.consistency === consistency
       )
       .reply(200, { tree: {} } as ExpandResponse);
@@ -249,7 +250,7 @@ export const getNocks = ((nock: typeof Nock) => ({
     storeId: string,
     responseBody: ListObjectsResponse,
     basePath = defaultConfiguration.getBasePath(),
-    consistency: ConsistencyPreference|undefined = undefined,
+    consistency: ConsistencyPreference | undefined = undefined,
   ) => {
     return nock(basePath)
       .post(`/stores/${storeId}/list-objects`, (body: ListUsersRequest) =>
@@ -257,14 +258,30 @@ export const getNocks = ((nock: typeof Nock) => ({
       )
       .reply(200, responseBody);
   },
+  streamedListObjects: (
+    storeId: string,
+    objects: string[],
+    basePath = defaultConfiguration.getBasePath(),
+  ) => {
+    // Create NDJSON response (newline-delimited JSON) as a stream
+    const ndjsonResponse = objects
+      .map(obj => JSON.stringify({ result: { object: obj } }))
+      .join("\n") + "\n";
+
+    return nock(basePath)
+      .post(`/stores/${storeId}/streamed-list-objects`)
+      .reply(200, () => Readable.from([ndjsonResponse]), {
+        "Content-Type": "application/x-ndjson"
+      });
+  },
   listUsers: (
     storeId: string,
     responseBody: ListUsersResponse,
     basePath = defaultConfiguration.getBasePath(),
-    consistency: ConsistencyPreference|undefined = undefined
+    consistency: ConsistencyPreference | undefined = undefined
   ) => {
     return nock(basePath)
-      .post(`/stores/${storeId}/list-users`, (body: ListUsersRequest) => 
+      .post(`/stores/${storeId}/list-users`, (body: ListUsersRequest) =>
         body.consistency === consistency
       )
       .reply(200, responseBody);

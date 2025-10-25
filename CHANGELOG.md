@@ -4,6 +4,14 @@
 ## [Unreleased](https://github.com/openfga/js-sdk/compare/v0.9.0...HEAD)
 
 - feat: add support for handling Retry-After header (#267)
+- feat: streamedListObjects (streaming ListObjects)
+  - Supports both Node.js (axios streaming) and browser (Fetch API)
+  - Enables retrieving >1000 objects beyond standard listObjects limit
+  - Node path uses API layer; telemetry preserved; returns raw stream
+  - Browser path uses retries (exponential backoff with jitter) and SDK error mapping
+  - Resilient NDJSON parsing (async-iterable and Buffer/string compatibility)
+  - Adds example for usage: `example/streamed-list-objects`
+  - Adds example for local usage: `example/streamed-list-objects-local`
 
 ## v0.9.0
 
