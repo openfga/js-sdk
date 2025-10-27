@@ -34,6 +34,11 @@ import { TelemetryHistograms } from "./telemetry/histograms";
  * @export
  */
 export const DUMMY_BASE_URL = "https://example.com";
+// Retry-After header validation: minimum 1 second, maximum 30 minutes (1800 seconds)
+const MIN_RETRY_DELAY_MS = 1_000; // 1 second
+const MAX_RETRY_DELAY_MS = 1_800_000; // 30 minutes
+// Exponential backoff cap: maximum 120 seconds (2 minutes)
+const MAX_EXPONENTIAL_BACKOFF_MS = 120_000; // 120 seconds
 
 /**
  *
@@ -41,8 +46,8 @@ export const DUMMY_BASE_URL = "https://example.com";
  * @interface RequestArgs
  */
 export interface RequestArgs {
-    url: string;
-    options: any;
+   url: string;
+   options: any;
 }
 
 
@@ -79,15 +84,15 @@ export const setSearchParams = function (url: URL, ...objects: any[]) {
 };
 
 /**
-* Check if the given MIME is a JSON MIME.
-* JSON MIME examples:
-*   application/json
-*   application/json; charset=UTF8
-*   APPLICATION/JSON
-*   application/vnd.company+json
-* @param mime - MIME (Multipurpose Internet Mail Extensions)
-* @return True if the given MIME is JSON, false otherwise.
-*/
+ * Check if the given MIME is a JSON MIME.
+ * JSON MIME examples:
+ *   application/json
+ *   application/json; charset=UTF8
+ *   APPLICATION/JSON
+ *   application/vnd.company+json
+ * @param mime - MIME (Multipurpose Internet Mail Extensions)
+ * @return True if the given MIME is JSON, false otherwise.
+ */
 const isJsonMime = (mime: string): boolean => {
   // eslint-disable-next-line no-control-regex
   const jsonMime = new RegExp("^(application/json|[^;/ \t]+/[^;/ \t]+[+]json)[ \t]*(;.*)?$", "i");
@@ -123,7 +128,7 @@ interface StringIndexable {
 }
 
 export type CallResult<T extends ObjectOrVoid> = T & {
-    $response: AxiosResponse<T>
+  $response: AxiosResponse<T>
 };
 
 export type PromiseResult<T extends ObjectOrVoid> = Promise<CallResult<T>>;
@@ -136,10 +141,64 @@ export type PromiseResult<T extends ObjectOrVoid> = Promise<CallResult<T>>;
 function isAxiosError(err: any): boolean {
   return err && typeof err === "object" && err.isAxiosError === true;
 }
-function randomTime(loopCount: number, minWaitInMs: number): number {
-  const min = Math.ceil(2 ** loopCount * minWaitInMs);
-  const max = Math.ceil(2 ** (loopCount + 1) * minWaitInMs);
-  return Math.floor(Math.random() * (max - min) + min); //The maximum is exclusive and the minimum is inclusive
+function calculateExponentialBackoffWithJitter(retryAttempt: number, minWaitInMs: number): number {
+  const minDelayMs = Math.ceil(2 ** retryAttempt * minWaitInMs);
+  const maxDelayMs = Math.ceil(2 ** (retryAttempt + 1) * minWaitInMs);
+  const randomDelayMs = Math.floor(Math.random() * (maxDelayMs - minDelayMs) + minDelayMs);
+  return Math.min(randomDelayMs, MAX_EXPONENTIAL_BACKOFF_MS);
+}
+
+/**
+ * Validates if a retry delay is within acceptable bounds
+ * @param delayMs - Delay in milliseconds
+ * @returns True if delay is between MIN_RETRY_DELAY_MS and MAX_RETRY_DELAY_MS
+ */
+function isValidRetryDelay(delayMs: number): boolean {
+  return delayMs >= MIN_RETRY_DELAY_MS && delayMs <= MAX_RETRY_DELAY_MS;
+}
+
+/**
+ * Parses the Retry-After header and returns delay in milliseconds
+ * @param headers - HTTP response headers
+ * @returns Delay in milliseconds if valid, undefined otherwise
+ */
+function parseRetryAfterHeader(headers: Record<string, string | string[] | undefined>): number | undefined {
+  const retryAfterHeader = headers["retry-after"] || headers["Retry-After"];
+
+  if (!retryAfterHeader) {
+    return undefined;
+  }
+
+  const retryAfterHeaderValue = Array.isArray(retryAfterHeader) ? retryAfterHeader[0] : retryAfterHeader;
+
+  if (!retryAfterHeaderValue) {
+    return undefined;
+  }
+
+  // Try to parse as integer (seconds)
+  const retryAfterSeconds = parseInt(retryAfterHeaderValue, 10);
+  if (!isNaN(retryAfterSeconds)) {
+    const retryAfterMs = retryAfterSeconds * 1000;
+    if (isValidRetryDelay(retryAfterMs)) {
+      return retryAfterMs;
+    }
+    return undefined;
+  }
+
+  // Try to parse as HTTP date
+  try {
+    const retryAfterDate = new Date(retryAfterHeaderValue);
+    const currentDate = new Date();
+    const retryDelayMs = retryAfterDate.getTime() - currentDate.getTime();
+
+    if (isValidRetryDelay(retryDelayMs)) {
+      return retryDelayMs;
+    }
+  } catch (e) {
+    // Invalid date format
+  }
+
+  return undefined;
 }
 
 interface WrappedAxiosResponse<R> {
@@ -147,12 +206,51 @@ interface WrappedAxiosResponse<R> {
   retries: number;
 }
 
+function checkIfRetryableError(
+  err: any,
+  iterationCount: number,
+  maxRetry: number
+): { retryable: boolean; error?: Error } {
+  if (!isAxiosError(err)) {
+    return { retryable: false, error: new FgaError(err) };
+  }
+
+  const status = (err as any)?.response?.status;
+  const isNetworkError = !status;
+
+  if (isNetworkError) {
+    if (iterationCount > maxRetry) {
+      return { retryable: false, error: new FgaError(err) };
+    }
+    return { retryable: true };
+  }
+
+  if (status === 400 || status === 422) {
+    return { retryable: false, error: new FgaApiValidationError(err) };
+  } else if (status === 401 || status === 403) {
+    return { retryable: false, error: new FgaApiAuthenticationError(err) };
+  } else if (status === 404) {
+    return { retryable: false, error: new FgaApiNotFoundError(err) };
+  } else if (status === 429 || (status >= 500 && status !== 501)) {
+    if (iterationCount > maxRetry) {
+      if (status === 429) {
+        return { retryable: false, error: new FgaApiRateLimitExceededError(err) };
+      } else {
+        return { retryable: false, error: new FgaApiInternalError(err) };
+      }
+    }
+    return { retryable: true };
+  } else {
+    return { retryable: false, error: new FgaApiError(err) };
+  }
+}
+
 export async function attemptHttpRequest<B, R>(
   request: AxiosRequestConfig<B>,
   config: {
-        maxRetry: number;
-        minWaitInMs: number;
-    },
+    maxRetry: number;
+    minWaitInMs: number;
+  },
   axiosInstance: AxiosInstance,
 ): Promise<WrappedAxiosResponse<R> | undefined> {
   let iterationCount = 0;
@@ -165,32 +263,27 @@ export async function attemptHttpRequest<B, R>(
         retries: iterationCount - 1,
       };
     } catch (err: any) {
-      if (!isAxiosError(err)) {
-        throw new FgaError(err);
+      const { retryable, error } = checkIfRetryableError(err, iterationCount, config.maxRetry);
+
+      if (!retryable) {
+        throw error;
       }
+
       const status = (err as any)?.response?.status;
-      if (status === 400 || status === 422) {
-        throw new FgaApiValidationError(err);
-      } else if (status === 401 || status === 403) {
-        throw new FgaApiAuthenticationError(err);
-      } else if (status === 404) {
-        throw new FgaApiNotFoundError(err);
-      } else if (status === 429 || status >= 500) {
-        if (iterationCount >= config.maxRetry) {
-        // We have reached the max retry limit
-        // Thus, we have no choice but to throw
-          if (status === 429) {
-            throw new FgaApiRateLimitExceededError(err);
-          } else {
-            throw new FgaApiInternalError(err);
-          }
-        }
-        await new Promise(r => setTimeout(r, randomTime(iterationCount, config.minWaitInMs)));
-      } else {
-        throw new FgaApiError(err);
+      let retryDelayMs: number | undefined;
+
+      if ((status &&
+          (status === 429 || (status >= 500 && status !== 501))) &&
+        err.response?.headers) {
+        retryDelayMs = parseRetryAfterHeader(err.response.headers);
       }
+      if (!retryDelayMs) {
+        retryDelayMs = calculateExponentialBackoffWithJitter(iterationCount, config.minWaitInMs);
+      }
+
+      await new Promise(r => setTimeout(r, Math.min(retryDelayMs, MAX_RETRY_DELAY_MS)));
     }
-  } while(iterationCount < config.maxRetry + 1);
+  } while (iterationCount < config.maxRetry + 1);
 }
 
 /**
