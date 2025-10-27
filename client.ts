@@ -883,7 +883,7 @@ export class OpenFgaClient extends BaseAPI {
 
       const url = this.configuration.getBasePath() + `/stores/${storeId}/streamed-list-objects`;
 
-      const retryParams = options.retryParams || this.configuration.retryParams || { maxRetry: 3, minWaitInMs: 100 };
+      const retryParams = options.retryParams || this.configuration.retryParams || { maxRetry: DEFAULT_MAX_STREAM_RETRY, minWaitInMs: DEFAULT_MIN_STREAM_WAIT_MS };
 
       const response = await attemptFetchRequest(
         url,
