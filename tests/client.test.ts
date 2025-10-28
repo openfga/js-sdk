@@ -24,8 +24,8 @@ import {
   ConsistencyPreference,
   ErrorCode,
   BatchCheckRequest,
-  OnDuplicateWrites,
-  OnMissingDeletes,
+  OnDuplicateWrite,
+  OnMissingDelete,
 } from "../index";
 import { baseConfig, defaultConfiguration, getNocks } from "./helpers";
 
@@ -479,7 +479,7 @@ describe("OpenFGA Client", () => {
       });
 
       describe("with conflict options", () => {
-        it("should pass onDuplicateWrites option to API", async () => {
+        it("should pass onDuplicateWrite option to API", async () => {
           const tuple = {
             user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
             relation: "admin",
@@ -492,7 +492,7 @@ describe("OpenFGA Client", () => {
             writes: [tuple],
           }, {
             conflict: {
-              onDuplicateWrites: OnDuplicateWrites.Ignore,
+              onDuplicateWrite: OnDuplicateWrite.Ignore,
             }
           });
 
@@ -510,7 +510,7 @@ describe("OpenFGA Client", () => {
           mockWrite.mockRestore();
         });
 
-        it("should pass onMissingDeletes option to API", async () => {
+        it("should pass onMissingDelete option to API", async () => {
           const tuple = {
             user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
             relation: "admin",
@@ -523,7 +523,7 @@ describe("OpenFGA Client", () => {
             deletes: [tuple],
           }, {
             conflict: {
-              onMissingDeletes: OnMissingDeletes.Ignore,
+              onMissingDelete: OnMissingDelete.Ignore,
             }
           });
 
@@ -560,8 +560,8 @@ describe("OpenFGA Client", () => {
             deletes: [deleteTuple],
           }, {
             conflict: {
-              onDuplicateWrites: OnDuplicateWrites.Ignore,
-              onMissingDeletes: OnMissingDeletes.Error,
+              onDuplicateWrite: OnDuplicateWrite.Ignore,
+              onMissingDelete: OnMissingDelete.Error,
             }
           });
 
@@ -640,7 +640,7 @@ describe("OpenFGA Client", () => {
         expect(data).toMatchObject({});
       });
 
-      it("should pass onDuplicateWrites option to write method", async () => {
+      it("should pass onDuplicateWrite option to write method", async () => {
         const tuple = {
           user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
           relation: "admin",
@@ -651,7 +651,7 @@ describe("OpenFGA Client", () => {
 
         await fgaClient.writeTuples([tuple], {
           conflict: {
-            onDuplicateWrites: OnDuplicateWrites.Ignore,
+            onDuplicateWrite: OnDuplicateWrite.Ignore,
           }
         });
 
@@ -669,7 +669,7 @@ describe("OpenFGA Client", () => {
         mockWrite.mockRestore();
       });
 
-      it("should default to error conflict handling when onDuplicateWrites option is not specified", async () => {
+      it("should default to error conflict handling when onDuplicateWrite option is not specified", async () => {
         const tuple = {
           user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
           relation: "admin",
@@ -713,7 +713,7 @@ describe("OpenFGA Client", () => {
         expect(data).toMatchObject({});
       });
 
-      it("should pass onMissingDeletes option to write method", async () => {
+      it("should pass onMissingDelete option to write method", async () => {
         const tuple = {
           user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
           relation: "admin",
@@ -724,7 +724,7 @@ describe("OpenFGA Client", () => {
 
         await fgaClient.deleteTuples([tuple], {
           conflict: {
-            onMissingDeletes: OnMissingDeletes.Ignore,
+            onMissingDelete: OnMissingDelete.Ignore,
           }
         });
 
@@ -742,7 +742,7 @@ describe("OpenFGA Client", () => {
         mockWrite.mockRestore();
       });
 
-      it("should default to error conflict handling when onMissingDeletes option is not specified", async () => {
+      it("should default to error conflict handling when onMissingDelete option is not specified", async () => {
         const tuple = {
           user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
           relation: "admin",

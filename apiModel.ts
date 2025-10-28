@@ -1925,14 +1925,14 @@ export interface WriteRequestDeletes {
      * @type {string}
      * @memberof WriteRequestDeletes
      */
-    on_missing?: WriteRequestDeletesOnMissingEnum;
+    on_missing?: WriteRequestDeletesOnMissing;
 }
 
 /**
     * @export
     * @enum {string}
     */
-export enum WriteRequestDeletesOnMissingEnum {
+export enum WriteRequestDeletesOnMissing {
     Error = 'error',
     Ignore = 'ignore'
 }
@@ -1954,14 +1954,14 @@ export interface WriteRequestWrites {
      * @type {string}
      * @memberof WriteRequestWrites
      */
-    on_duplicate?: WriteRequestWritesOnDuplicateEnum;
+    on_duplicate?: WriteRequestWritesOnDuplicate;
 }
 
 /**
     * @export
     * @enum {string}
     */
-export enum WriteRequestWritesOnDuplicateEnum {
+export enum WriteRequestWritesOnDuplicate {
     Error = 'error',
     Ignore = 'ignore'
 }
