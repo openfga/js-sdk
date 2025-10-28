@@ -1,4 +1,4 @@
-import { CredentialsMethod, FgaApiValidationError, OpenFgaClient, TypeName, OnDuplicateWrites } from "@openfga/sdk";
+import { CredentialsMethod, FgaApiValidationError, OpenFgaClient, TypeName, OnDuplicateWrite } from "@openfga/sdk";
 import { randomUUID } from "crypto";
 
 async function main () {
@@ -147,7 +147,7 @@ async function main () {
     ]
   }, {
     authorizationModelId,
-    conflict: { onDuplicateWrites: OnDuplicateWrites.Ignore }
+    conflict: { onDuplicateWrite: OnDuplicateWrite.Ignore }
   });
   console.log("Done Writing Tuples");
 
