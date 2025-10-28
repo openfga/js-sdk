@@ -345,3 +345,74 @@ export const createRequestFunction = function (axiosArgs: RequestArgs, axiosInst
     return result;
   };
 };
+
+/**
+ * creates an axios streaming request function that returns the raw response stream
+ * for incremental parsing (used by streamedListObjects)
+ */
+export const createStreamingRequestFunction = function (axiosArgs: RequestArgs, axiosInstance: AxiosInstance, configuration: Configuration, credentials: Credentials, methodAttributes: Record<string, string | number> = {}) {
+  configuration.isValid();
+
+  const retryParams = axiosArgs.options?.retryParams ? axiosArgs.options?.retryParams : configuration.retryParams;
+  const maxRetry: number = retryParams ? retryParams.maxRetry : 0;
+  const minWaitInMs: number = retryParams ? retryParams.minWaitInMs : 0;
+
+  const start = performance.now();
+
+  return async (axios: AxiosInstance = axiosInstance): Promise<any> => {
+    await setBearerAuthToObject(axiosArgs.options.headers, credentials!);
+
+    const url = configuration.getBasePath() + axiosArgs.url;
+
+    const axiosRequestArgs = { ...axiosArgs.options, responseType: "stream", url: url };
+    const wrappedResponse = await attemptHttpRequest(axiosRequestArgs, {
+      maxRetry,
+      minWaitInMs,
+    }, axios);
+    const response = wrappedResponse?.response;
+
+    const result: any = response?.data; // raw stream
+
+    let attributes: StringIndexable = {};
+
+    attributes = TelemetryAttributes.fromRequest({
+      userAgent: configuration.baseOptions?.headers["User-Agent"],
+      httpMethod: axiosArgs.options?.method,
+      url,
+      resendCount: wrappedResponse?.retries,
+      start: start,
+      credentials: credentials,
+      attributes: methodAttributes,
+    });
+
+    attributes = TelemetryAttributes.fromResponse({
+      response,
+      attributes,
+    });
+
+    const serverRequestDuration = attributes[TelemetryAttribute.HttpServerRequestDuration];
+    if (configuration.telemetry?.metrics?.histogramQueryDuration && typeof serverRequestDuration !== "undefined") {
+      configuration.telemetry.recorder.histogram(
+        TelemetryHistograms.queryDuration,
+        parseInt(attributes[TelemetryAttribute.HttpServerRequestDuration] as string, 10),
+        TelemetryAttributes.prepare(
+          attributes,
+          configuration.telemetry.metrics.histogramQueryDuration.attributes
+        )
+      );
+    }
+
+    if (configuration.telemetry?.metrics?.histogramRequestDuration) {
+      configuration.telemetry.recorder.histogram(
+        TelemetryHistograms.requestDuration,
+        attributes[TelemetryAttribute.HttpClientRequestDuration],
+        TelemetryAttributes.prepare(
+          attributes,
+          configuration.telemetry.metrics.histogramRequestDuration.attributes
+        )
+      );
+    }
+
+    return result;
+  };
+};
