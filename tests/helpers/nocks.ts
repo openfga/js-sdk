@@ -1,5 +1,7 @@
 import type * as Nock from "nock";
 
+import { Readable } from "node:stream";
+
 import {
   AuthorizationModel,
   BatchCheckRequest,
@@ -243,6 +245,22 @@ export const getNocks = ((nock: typeof Nock) => ({
         body.consistency === consistency
       )
       .reply(200, responseBody);
+  },
+  streamedListObjects: (
+    storeId: string,
+    objects: string[],
+    basePath = defaultConfiguration.getBasePath(),
+  ) => {
+    // Create NDJSON response (newline-delimited JSON) as a stream
+    const ndjsonResponse = objects
+      .map(obj => JSON.stringify({ result: { object: obj } }))
+      .join("\n") + "\n";
+
+    return nock(basePath)
+      .post(`/stores/${storeId}/streamed-list-objects`)
+      .reply(200, () => Readable.from([ndjsonResponse]), {
+        "Content-Type": "application/x-ndjson"
+      });
   },
   listUsers: (
     storeId: string,

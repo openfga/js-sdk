@@ -860,6 +860,21 @@ export interface ListObjectsResponse {
      */
     objects: Array<string>;
 }
+
+/**
+ * The response for a StreamedListObjects RPC.
+ * @export
+ * @interface StreamedListObjectsResponse
+ */
+export interface StreamedListObjectsResponse {
+    /**
+     * 
+     * @type {string}
+     * @memberof StreamedListObjectsResponse
+     */
+    object: string;
+}
+
 /**
  * 
  * @export
