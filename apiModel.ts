@@ -1929,9 +1929,9 @@ export interface WriteRequestDeletes {
 }
 
 /**
-    * @export
-    * @enum {string}
-    */
+* @export
+* @enum {string}
+*/
 export enum WriteRequestDeletesOnMissing {
     Error = 'error',
     Ignore = 'ignore'
@@ -1958,9 +1958,9 @@ export interface WriteRequestWrites {
 }
 
 /**
-    * @export
-    * @enum {string}
-    */
+* @export
+* @enum {string}
+*/
 export enum WriteRequestWritesOnDuplicate {
     Error = 'error',
     Ignore = 'ignore'
