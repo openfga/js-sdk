@@ -4,13 +4,7 @@
 ## [Unreleased](https://github.com/openfga/js-sdk/compare/v0.9.0...HEAD)
 
 - feat: add support for handling Retry-After header (#267)
-- feat: streamedListObjects (streaming ListObjects) - Node.js only
-  - Enables retrieving >1000 objects beyond standard listObjects limit
-  - Uses axios streaming via API layer with preserved telemetry
-  - Resilient NDJSON parsing (supports async-iterable and event-based streams)
-  - Parses chunked data across multiple reads; handles Buffer/string inputs
-  - Adds example for usage: `example/streamed-list-objects`
-  - Adds example for local usage: `example/streamed-list-objects-local`
+- feat: add support for [StreamedListObjects](https://openfga.dev/api/service#/Relationship%20Queries/StreamedListObjects) with streaming semantics. See [documentation](https://github.com/openfga/js-sdk/blob/main/README.md#streamed-list-objects) for more.
 
 ## v0.9.0
 
