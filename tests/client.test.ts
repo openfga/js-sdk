@@ -941,7 +941,6 @@ describe("OpenFGA Client", () => {
               }
             });
 
-            // Should be called for the write
             expect(mockWrite).toHaveBeenCalledWith(
               baseConfig.storeId,
               expect.objectContaining({
@@ -974,7 +973,6 @@ describe("OpenFGA Client", () => {
               }
             });
 
-            // Should be called for the delete
             expect(mockWrite).toHaveBeenCalledWith(
               baseConfig.storeId,
               expect.objectContaining({
@@ -1014,10 +1012,8 @@ describe("OpenFGA Client", () => {
               }
             });
 
-            // Should be called twice - once for writes, once for deletes
             expect(mockWrite).toHaveBeenCalledTimes(2);
 
-            // Check that write call included conflict option
             expect(mockWrite).toHaveBeenCalledWith(
               baseConfig.storeId,
               expect.objectContaining({
@@ -1029,7 +1025,6 @@ describe("OpenFGA Client", () => {
               expect.any(Object)
             );
 
-            // Check that delete call included conflict option
             expect(mockWrite).toHaveBeenCalledWith(
               baseConfig.storeId,
               expect.objectContaining({
@@ -1072,10 +1067,8 @@ describe("OpenFGA Client", () => {
               }
             });
 
-            // Should be called twice (one per chunk)
             expect(mockWrite).toHaveBeenCalledTimes(2);
 
-            // Both calls should include the conflict option
             expect(mockWrite).toHaveBeenCalledWith(
               baseConfig.storeId,
               expect.objectContaining({
