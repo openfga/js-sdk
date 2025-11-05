@@ -548,7 +548,7 @@ export class OpenFgaClient extends BaseAPI {
     const writeResponses: ClientWriteSingleResponse[][] = [];
     if (writes?.length) {
       for await (const singleChunkResponse of asyncPool(maxParallelRequests, chunkArray(writes, maxPerChunk),
-        (chunk) => this.writeTuples(chunk,{ ...options, headers, transaction: undefined }).catch(err => {
+        (chunk) => this.writeTuples(chunk,{ ...options, headers, conflict, transaction: undefined }).catch(err => {
           if (err instanceof FgaApiAuthenticationError) {
             throw err;
           }
@@ -568,7 +568,7 @@ export class OpenFgaClient extends BaseAPI {
     const deleteResponses: ClientWriteSingleResponse[][] = [];
     if (deletes?.length) {
       for await (const singleChunkResponse of asyncPool(maxParallelRequests, chunkArray(deletes, maxPerChunk),
-        (chunk) => this.deleteTuples(chunk, { ...options, headers, transaction: undefined }).catch(err => {
+        (chunk) => this.deleteTuples(chunk, { ...options, headers, conflict, transaction: undefined }).catch(err => {
           if (err instanceof FgaApiAuthenticationError) {
             throw err;
           }
