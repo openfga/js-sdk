@@ -11,6 +11,8 @@ import {
   ConsistencyPreference,
   ErrorCode,
   BatchCheckRequest,
+  ClientWriteRequestOnDuplicateWrites,
+  ClientWriteRequestOnMissingDeletes,
 } from "../index";
 import { baseConfig, defaultConfiguration, getNocks } from "./helpers";
 
@@ -462,6 +464,625 @@ describe("OpenFGA Client", () => {
         expect(data.writes.length).toBe(1);
         expect(data.deletes.length).toBe(0);
       });
+
+      describe("with conflict options", () => {
+        it("should pass onDuplicateWrites Ignore option to API", async () => {
+          const tuple = {
+            user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
+            relation: "admin",
+            object: "workspace:1",
+          };
+
+          const mockWrite = jest.spyOn(fgaClient.api, "write").mockResolvedValue({} as any);
+
+          await fgaClient.write({
+            writes: [tuple],
+          }, {
+            conflict: {
+              onDuplicateWrites: ClientWriteRequestOnDuplicateWrites.Ignore,
+            }
+          });
+
+          expect(mockWrite).toHaveBeenCalledWith(
+            baseConfig.storeId,
+            expect.objectContaining({
+              writes: {
+                tuple_keys: [tuple],
+                on_duplicate: "ignore",
+              },
+            }),
+            expect.any(Object)
+          );
+
+          mockWrite.mockRestore();
+        });
+
+        it("should pass onDuplicateWrites Error option to API", async () => {
+          const tuple = {
+            user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
+            relation: "admin",
+            object: "workspace:1",
+          };
+
+          const mockWrite = jest.spyOn(fgaClient.api, "write").mockResolvedValue({} as any);
+
+          await fgaClient.write({
+            writes: [tuple],
+          }, {
+            conflict: {
+              onDuplicateWrites: ClientWriteRequestOnDuplicateWrites.Error,
+            }
+          });
+
+          expect(mockWrite).toHaveBeenCalledWith(
+            baseConfig.storeId,
+            expect.objectContaining({
+              writes: {
+                tuple_keys: [tuple],
+                on_duplicate: "error",
+              },
+            }),
+            expect.any(Object)
+          );
+
+          mockWrite.mockRestore();
+        });
+
+        it("should pass onMissingDeletes Ignore option to API", async () => {
+          const tuple = {
+            user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
+            relation: "admin",
+            object: "workspace:1",
+          };
+
+          const mockWrite = jest.spyOn(fgaClient.api, "write").mockResolvedValue({} as any);
+
+          await fgaClient.write({
+            deletes: [tuple],
+          }, {
+            conflict: {
+              onMissingDeletes: ClientWriteRequestOnMissingDeletes.Ignore,
+            }
+          });
+
+          expect(mockWrite).toHaveBeenCalledWith(
+            baseConfig.storeId,
+            expect.objectContaining({
+              deletes: {
+                tuple_keys: [tuple],
+                on_missing: "ignore",
+              },
+            }),
+            expect.any(Object)
+          );
+
+          mockWrite.mockRestore();
+        });
+
+        it("should pass onMissingDeletes Error option to API", async () => {
+          const tuple = {
+            user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
+            relation: "admin",
+            object: "workspace:1",
+          };
+
+          const mockWrite = jest.spyOn(fgaClient.api, "write").mockResolvedValue({} as any);
+
+          await fgaClient.write({
+            deletes: [tuple],
+          }, {
+            conflict: {
+              onMissingDeletes: ClientWriteRequestOnMissingDeletes.Error,
+            }
+          });
+
+          expect(mockWrite).toHaveBeenCalledWith(
+            baseConfig.storeId,
+            expect.objectContaining({
+              deletes: {
+                tuple_keys: [tuple],
+                on_missing: "error",
+              },
+            }),
+            expect.any(Object)
+          );
+
+          mockWrite.mockRestore();
+        });
+
+        it("should pass both conflict options to API", async () => {
+          const writeTuple = {
+            user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
+            relation: "admin",
+            object: "workspace:1",
+          };
+          const deleteTuple = {
+            user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
+            relation: "admin",
+            object: "workspace:2",
+          };
+
+          const mockWrite = jest.spyOn(fgaClient.api, "write").mockResolvedValue({} as any);
+
+          await fgaClient.write({
+            writes: [writeTuple],
+            deletes: [deleteTuple],
+          }, {
+            conflict: {
+              onDuplicateWrites: ClientWriteRequestOnDuplicateWrites.Ignore,
+              onMissingDeletes: ClientWriteRequestOnMissingDeletes.Error,
+            }
+          });
+
+          expect(mockWrite).toHaveBeenCalledWith(
+            baseConfig.storeId,
+            expect.objectContaining({
+              writes: {
+                tuple_keys: [writeTuple],
+                on_duplicate: "ignore",
+              },
+              deletes: {
+                tuple_keys: [deleteTuple],
+                on_missing: "error",
+              },
+            }),
+            expect.any(Object)
+          );
+
+          mockWrite.mockRestore();
+        });
+
+        it("should default to error conflict handling when conflict options are not specified", async () => {
+          const writeTuple = {
+            user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
+            relation: "admin",
+            object: "workspace:1",
+          };
+          const deleteTuple = {
+            user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
+            relation: "admin",
+            object: "workspace:2",
+          };
+
+          const mockWrite = jest.spyOn(fgaClient.api, "write").mockResolvedValue({} as any);
+
+          await fgaClient.write({
+            writes: [writeTuple],
+            deletes: [deleteTuple],
+          });
+
+          expect(mockWrite).toHaveBeenCalledWith(
+            baseConfig.storeId,
+            expect.objectContaining({
+              writes: {
+                tuple_keys: [writeTuple],
+                on_duplicate: "error",
+              },
+              deletes: {
+                tuple_keys: [deleteTuple],
+                on_missing: "error",
+              },
+            }),
+            expect.any(Object)
+          );
+
+          mockWrite.mockRestore();
+        });
+
+        describe("matrix tests for writes only", () => {
+          const writeTuple = {
+            user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
+            relation: "admin",
+            object: "workspace:1",
+          };
+
+          it("should handle writes only with onDuplicateWrites Error", async () => {
+            const mockWrite = jest.spyOn(fgaClient.api, "write").mockResolvedValue({} as any);
+
+            await fgaClient.write({
+              writes: [writeTuple],
+            }, {
+              conflict: {
+                onDuplicateWrites: ClientWriteRequestOnDuplicateWrites.Error,
+              }
+            });
+
+            expect(mockWrite).toHaveBeenCalledWith(
+              baseConfig.storeId,
+              expect.objectContaining({
+                writes: {
+                  tuple_keys: [writeTuple],
+                  on_duplicate: "error",
+                },
+              }),
+              expect.any(Object)
+            );
+
+            mockWrite.mockRestore();
+          });
+
+          it("should handle writes only with onDuplicateWrites Ignore", async () => {
+            const mockWrite = jest.spyOn(fgaClient.api, "write").mockResolvedValue({} as any);
+
+            await fgaClient.write({
+              writes: [writeTuple],
+            }, {
+              conflict: {
+                onDuplicateWrites: ClientWriteRequestOnDuplicateWrites.Ignore,
+              }
+            });
+
+            expect(mockWrite).toHaveBeenCalledWith(
+              baseConfig.storeId,
+              expect.objectContaining({
+                writes: {
+                  tuple_keys: [writeTuple],
+                  on_duplicate: "ignore",
+                },
+              }),
+              expect.any(Object)
+            );
+
+            mockWrite.mockRestore();
+          });
+        });
+
+        describe("matrix tests for deletes only", () => {
+          const deleteTuple = {
+            user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
+            relation: "admin",
+            object: "workspace:2",
+          };
+
+          it("should handle deletes only with onMissingDeletes Error", async () => {
+            const mockWrite = jest.spyOn(fgaClient.api, "write").mockResolvedValue({} as any);
+
+            await fgaClient.write({
+              deletes: [deleteTuple],
+            }, {
+              conflict: {
+                onMissingDeletes: ClientWriteRequestOnMissingDeletes.Error,
+              }
+            });
+
+            expect(mockWrite).toHaveBeenCalledWith(
+              baseConfig.storeId,
+              expect.objectContaining({
+                deletes: {
+                  tuple_keys: [deleteTuple],
+                  on_missing: "error",
+                },
+              }),
+              expect.any(Object)
+            );
+
+            mockWrite.mockRestore();
+          });
+
+          it("should handle deletes only with onMissingDeletes Ignore", async () => {
+            const mockWrite = jest.spyOn(fgaClient.api, "write").mockResolvedValue({} as any);
+
+            await fgaClient.write({
+              deletes: [deleteTuple],
+            }, {
+              conflict: {
+                onMissingDeletes: ClientWriteRequestOnMissingDeletes.Ignore,
+              }
+            });
+
+            expect(mockWrite).toHaveBeenCalledWith(
+              baseConfig.storeId,
+              expect.objectContaining({
+                deletes: {
+                  tuple_keys: [deleteTuple],
+                  on_missing: "ignore",
+                },
+              }),
+              expect.any(Object)
+            );
+
+            mockWrite.mockRestore();
+          });
+        });
+
+        describe("matrix tests for mixed writes and deletes", () => {
+          const writeTuple = {
+            user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
+            relation: "admin",
+            object: "workspace:1",
+          };
+          const deleteTuple = {
+            user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
+            relation: "admin",
+            object: "workspace:2",
+          };
+
+          it("should handle mixed writes and deletes with (Ignore, Ignore)", async () => {
+            const mockWrite = jest.spyOn(fgaClient.api, "write").mockResolvedValue({} as any);
+
+            await fgaClient.write({
+              writes: [writeTuple],
+              deletes: [deleteTuple],
+            }, {
+              conflict: {
+                onDuplicateWrites: ClientWriteRequestOnDuplicateWrites.Ignore,
+                onMissingDeletes: ClientWriteRequestOnMissingDeletes.Ignore,
+              }
+            });
+
+            expect(mockWrite).toHaveBeenCalledWith(
+              baseConfig.storeId,
+              expect.objectContaining({
+                writes: {
+                  tuple_keys: [writeTuple],
+                  on_duplicate: "ignore",
+                },
+                deletes: {
+                  tuple_keys: [deleteTuple],
+                  on_missing: "ignore",
+                },
+              }),
+              expect.any(Object)
+            );
+
+            mockWrite.mockRestore();
+          });
+
+          it("should handle mixed writes and deletes with (Ignore, Error)", async () => {
+            const mockWrite = jest.spyOn(fgaClient.api, "write").mockResolvedValue({} as any);
+
+            await fgaClient.write({
+              writes: [writeTuple],
+              deletes: [deleteTuple],
+            }, {
+              conflict: {
+                onDuplicateWrites: ClientWriteRequestOnDuplicateWrites.Ignore,
+                onMissingDeletes: ClientWriteRequestOnMissingDeletes.Error,
+              }
+            });
+
+            expect(mockWrite).toHaveBeenCalledWith(
+              baseConfig.storeId,
+              expect.objectContaining({
+                writes: {
+                  tuple_keys: [writeTuple],
+                  on_duplicate: "ignore",
+                },
+                deletes: {
+                  tuple_keys: [deleteTuple],
+                  on_missing: "error",
+                },
+              }),
+              expect.any(Object)
+            );
+
+            mockWrite.mockRestore();
+          });
+
+          it("should handle mixed writes and deletes with (Error, Ignore)", async () => {
+            const mockWrite = jest.spyOn(fgaClient.api, "write").mockResolvedValue({} as any);
+
+            await fgaClient.write({
+              writes: [writeTuple],
+              deletes: [deleteTuple],
+            }, {
+              conflict: {
+                onDuplicateWrites: ClientWriteRequestOnDuplicateWrites.Error,
+                onMissingDeletes: ClientWriteRequestOnMissingDeletes.Ignore,
+              }
+            });
+
+            expect(mockWrite).toHaveBeenCalledWith(
+              baseConfig.storeId,
+              expect.objectContaining({
+                writes: {
+                  tuple_keys: [writeTuple],
+                  on_duplicate: "error",
+                },
+                deletes: {
+                  tuple_keys: [deleteTuple],
+                  on_missing: "ignore",
+                },
+              }),
+              expect.any(Object)
+            );
+
+            mockWrite.mockRestore();
+          });
+
+          it("should handle mixed writes and deletes with (Error, Error)", async () => {
+            const mockWrite = jest.spyOn(fgaClient.api, "write").mockResolvedValue({} as any);
+
+            await fgaClient.write({
+              writes: [writeTuple],
+              deletes: [deleteTuple],
+            }, {
+              conflict: {
+                onDuplicateWrites: ClientWriteRequestOnDuplicateWrites.Error,
+                onMissingDeletes: ClientWriteRequestOnMissingDeletes.Error,
+              }
+            });
+
+            expect(mockWrite).toHaveBeenCalledWith(
+              baseConfig.storeId,
+              expect.objectContaining({
+                writes: {
+                  tuple_keys: [writeTuple],
+                  on_duplicate: "error",
+                },
+                deletes: {
+                  tuple_keys: [deleteTuple],
+                  on_missing: "error",
+                },
+              }),
+              expect.any(Object)
+            );
+
+            mockWrite.mockRestore();
+          });
+        });
+
+        describe("with transaction.disable and conflict options", () => {
+          it("should pass conflict options when transaction is disabled for writes", async () => {
+            const tuple = {
+              user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
+              relation: "admin",
+              object: "workspace:1",
+            };
+
+            const mockWrite = jest.spyOn(fgaClient.api, "write").mockResolvedValue({} as any);
+
+            await fgaClient.write({
+              writes: [tuple],
+            }, {
+              transaction: { disable: true },
+              conflict: {
+                onDuplicateWrites: ClientWriteRequestOnDuplicateWrites.Ignore,
+              }
+            });
+
+            expect(mockWrite).toHaveBeenCalledWith(
+              baseConfig.storeId,
+              expect.objectContaining({
+                writes: {
+                  tuple_keys: [tuple],
+                  on_duplicate: "ignore",
+                },
+              }),
+              expect.any(Object)
+            );
+
+            mockWrite.mockRestore();
+          });
+
+          it("should pass conflict options when transaction is disabled for deletes", async () => {
+            const tuple = {
+              user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
+              relation: "admin",
+              object: "workspace:1",
+            };
+
+            const mockWrite = jest.spyOn(fgaClient.api, "write").mockResolvedValue({} as any);
+
+            await fgaClient.write({
+              deletes: [tuple],
+            }, {
+              transaction: { disable: true },
+              conflict: {
+                onMissingDeletes: ClientWriteRequestOnMissingDeletes.Ignore,
+              }
+            });
+
+            expect(mockWrite).toHaveBeenCalledWith(
+              baseConfig.storeId,
+              expect.objectContaining({
+                deletes: {
+                  tuple_keys: [tuple],
+                  on_missing: "ignore",
+                },
+              }),
+              expect.any(Object)
+            );
+
+            mockWrite.mockRestore();
+          });
+
+          it("should pass both conflict options when transaction is disabled with mixed writes and deletes", async () => {
+            const writeTuple = {
+              user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
+              relation: "admin",
+              object: "workspace:1",
+            };
+            const deleteTuple = {
+              user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
+              relation: "admin",
+              object: "workspace:2",
+            };
+
+            const mockWrite = jest.spyOn(fgaClient.api, "write").mockResolvedValue({} as any);
+
+            await fgaClient.write({
+              writes: [writeTuple],
+              deletes: [deleteTuple],
+            }, {
+              transaction: { disable: true },
+              conflict: {
+                onDuplicateWrites: ClientWriteRequestOnDuplicateWrites.Ignore,
+                onMissingDeletes: ClientWriteRequestOnMissingDeletes.Error,
+              }
+            });
+
+            expect(mockWrite).toHaveBeenCalledTimes(2);
+
+            expect(mockWrite).toHaveBeenCalledWith(
+              baseConfig.storeId,
+              expect.objectContaining({
+                writes: {
+                  tuple_keys: [writeTuple],
+                  on_duplicate: "ignore",
+                },
+              }),
+              expect.any(Object)
+            );
+
+            expect(mockWrite).toHaveBeenCalledWith(
+              baseConfig.storeId,
+              expect.objectContaining({
+                deletes: {
+                  tuple_keys: [deleteTuple],
+                  on_missing: "error",
+                },
+              }),
+              expect.any(Object)
+            );
+
+            mockWrite.mockRestore();
+          });
+
+          it("should handle multiple chunks with conflict options in non-transaction mode", async () => {
+            const tuples = [
+              {
+                user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
+                relation: "admin",
+                object: "workspace:1",
+              },
+              {
+                user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
+                relation: "admin",
+                object: "workspace:2",
+              }
+            ];
+
+            const mockWrite = jest.spyOn(fgaClient.api, "write").mockResolvedValue({} as any);
+
+            await fgaClient.write({
+              writes: tuples,
+            }, {
+              transaction: {
+                disable: true,
+                maxPerChunk: 1, // Force 2 separate calls
+              },
+              conflict: {
+                onDuplicateWrites: ClientWriteRequestOnDuplicateWrites.Ignore,
+              }
+            });
+
+            expect(mockWrite).toHaveBeenCalledTimes(2);
+
+            expect(mockWrite).toHaveBeenCalledWith(
+              baseConfig.storeId,
+              expect.objectContaining({
+                writes: expect.objectContaining({
+                  on_duplicate: "ignore",
+                }),
+              }),
+              expect.any(Object)
+            );
+
+            mockWrite.mockRestore();
+          });
+        });
+      });
     });
 
     describe("WriteTuples", () => {
@@ -481,6 +1102,89 @@ describe("OpenFGA Client", () => {
         expect(scope.isDone()).toBe(true);
         expect(data).toMatchObject({});
       });
+
+      it("should pass onDuplicateWrites Ignore option to write method", async () => {
+        const tuple = {
+          user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
+          relation: "admin",
+          object: "workspace:1",
+        };
+
+        const mockWrite = jest.spyOn(fgaClient.api, "write").mockResolvedValue({} as any);
+
+        await fgaClient.writeTuples([tuple], {
+          conflict: {
+            onDuplicateWrites: ClientWriteRequestOnDuplicateWrites.Ignore,
+          }
+        });
+
+        expect(mockWrite).toHaveBeenCalledWith(
+          baseConfig.storeId,
+          expect.objectContaining({
+            writes: {
+              tuple_keys: [tuple],
+              on_duplicate: "ignore",
+            },
+          }),
+          expect.any(Object)
+        );
+
+        mockWrite.mockRestore();
+      });
+
+      it("should pass onDuplicateWrites Error option to write method", async () => {
+        const tuple = {
+          user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
+          relation: "admin",
+          object: "workspace:1",
+        };
+
+        const mockWrite = jest.spyOn(fgaClient.api, "write").mockResolvedValue({} as any);
+
+        await fgaClient.writeTuples([tuple], {
+          conflict: {
+            onDuplicateWrites: ClientWriteRequestOnDuplicateWrites.Error,
+          }
+        });
+
+        expect(mockWrite).toHaveBeenCalledWith(
+          baseConfig.storeId,
+          expect.objectContaining({
+            writes: {
+              tuple_keys: [tuple],
+              on_duplicate: "error",
+            },
+          }),
+          expect.any(Object)
+        );
+
+        mockWrite.mockRestore();
+      });
+
+      it("should default to error conflict handling when onDuplicateWrites option is not specified", async () => {
+        const tuple = {
+          user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
+          relation: "admin",
+          object: "workspace:1",
+        };
+
+        const mockWrite = jest.spyOn(fgaClient.api, "write").mockResolvedValue({} as any);
+
+        await fgaClient.writeTuples([tuple]);
+
+        expect(mockWrite).toHaveBeenCalledWith(
+          baseConfig.storeId,
+          expect.objectContaining({
+            writes: {
+              tuple_keys: [tuple],
+              on_duplicate: "error",
+            },
+          }),
+          expect.any(Object)
+        );
+
+        mockWrite.mockRestore();
+      });
     });
 
     describe("DeleteTuples", () => {
@@ -499,6 +1203,89 @@ describe("OpenFGA Client", () => {
 
         expect(scope.isDone()).toBe(true);
         expect(data).toMatchObject({});
+      });
+
+      it("should pass onMissingDeletes Ignore option to write method", async () => {
+        const tuple = {
+          user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
+          relation: "admin",
+          object: "workspace:1",
+        };
+
+        const mockWrite = jest.spyOn(fgaClient.api, "write").mockResolvedValue({} as any);
+
+        await fgaClient.deleteTuples([tuple], {
+          conflict: {
+            onMissingDeletes: ClientWriteRequestOnMissingDeletes.Ignore,
+          }
+        });
+
+        expect(mockWrite).toHaveBeenCalledWith(
+          baseConfig.storeId,
+          expect.objectContaining({
+            deletes: {
+              tuple_keys: [tuple],
+              on_missing: "ignore",
+            },
+          }),
+          expect.any(Object)
+        );
+
+        mockWrite.mockRestore();
+      });
+
+      it("should pass onMissingDeletes Error option to write method", async () => {
+        const tuple = {
+          user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
+          relation: "admin",
+          object: "workspace:1",
+        };
+
+        const mockWrite = jest.spyOn(fgaClient.api, "write").mockResolvedValue({} as any);
+
+        await fgaClient.deleteTuples([tuple], {
+          conflict: {
+            onMissingDeletes: ClientWriteRequestOnMissingDeletes.Error,
+          }
+        });
+
+        expect(mockWrite).toHaveBeenCalledWith(
+          baseConfig.storeId,
+          expect.objectContaining({
+            deletes: {
+              tuple_keys: [tuple],
+              on_missing: "error",
+            },
+          }),
+          expect.any(Object)
+        );
+
+        mockWrite.mockRestore();
+      });
+
+      it("should default to error conflict handling when onMissingDeletes option is not specified", async () => {
+        const tuple = {
+          user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
+          relation: "admin",
+          object: "workspace:1",
+        };
+
+        const mockWrite = jest.spyOn(fgaClient.api, "write").mockResolvedValue({} as any);
+
+        await fgaClient.deleteTuples([tuple]);
+
+        expect(mockWrite).toHaveBeenCalledWith(
+          baseConfig.storeId,
+          expect.objectContaining({
+            deletes: {
+              tuple_keys: [tuple],
+              on_missing: "error",
+            },
+          }),
+          expect.any(Object)
+        );
+
+        mockWrite.mockRestore();
       });
     });
 
