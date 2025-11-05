@@ -177,15 +177,15 @@ export interface ClientBatchCheckResponse {
   result: ClientBatchCheckSingleResponse[];
 }
 
-export const OnDuplicateWrite = WriteRequestWritesOnDuplicate;
-export const OnMissingDelete = WriteRequestDeletesOnMissing;
+export const ClientWriteRequestOnDuplicateWrites = WriteRequestWritesOnDuplicate;
+export const ClientWriteRequestOnMissingDeletes = WriteRequestDeletesOnMissing;
 
-export type OnDuplicateWrite = WriteRequestWritesOnDuplicate;
-export type OnMissingDelete = WriteRequestDeletesOnMissing;
+export type ClientWriteRequestOnDuplicateWrites = WriteRequestWritesOnDuplicate;
+export type ClientWriteRequestOnMissingDeletes = WriteRequestDeletesOnMissing;
 
 export interface ClientWriteConflictOptions {
-  onDuplicateWrite?: OnDuplicateWrite;
-  onMissingDelete?: OnMissingDelete;
+  onDuplicateWrites?: ClientWriteRequestOnDuplicateWrites;
+  onMissingDeletes?: ClientWriteRequestOnMissingDeletes;
 }
 
 export interface ClientWriteTransactionOptions {
@@ -202,14 +202,14 @@ export interface ClientWriteRequestOpts {
 export interface ClientWriteTuplesRequestOpts {
   transaction?: ClientWriteTransactionOptions;
   conflict?: {
-    onDuplicateWrite?: OnDuplicateWrite;
+    onDuplicateWrites?: ClientWriteRequestOnDuplicateWrites;
   };
 }
 
 export interface ClientDeleteTuplesRequestOpts {
   transaction?: ClientWriteTransactionOptions;
   conflict?: {
-    onMissingDelete?: OnMissingDelete;
+    onMissingDeletes?: ClientWriteRequestOnMissingDeletes;
   };
 }
 
@@ -493,8 +493,8 @@ export class OpenFgaClient extends BaseAPI {
    * @param {ClientRequestOptsWithAuthZModelId & ClientWriteRequestOpts} [options]
    * @param {string} [options.authorizationModelId] - Overrides the authorization model id in the configuration
    * @param {object} [options.conflict] - Conflict handling options
-   * @param {OnDuplicateWrite} [options.conflict.onDuplicateWrite] - Controls behavior when writing duplicate tuples. Defaults to `OnDuplicateWrite.Error`
-   * @param {OnMissingDelete} [options.conflict.onMissingDelete] - Controls behavior when deleting non-existent tuples. Defaults to `OnMissingDelete.Error`
+   * @param {ClientWriteRequestOnDuplicateWrites} [options.conflict.onDuplicateWrites] - Controls behavior when writing duplicate tuples. Defaults to `ClientWriteRequestOnDuplicateWrites.Error`
+   * @param {ClientWriteRequestOnMissingDeletes} [options.conflict.onMissingDeletes] - Controls behavior when deleting non-existent tuples. Defaults to `ClientWriteRequestOnMissingDeletes.Error`
    * @param {object} [options.transaction]
    * @param {boolean} [options.transaction.disable] - Disables running the write in a transaction mode. Defaults to `false`
    * @param {number} [options.transaction.maxPerChunk] - Max number of items to send in a single transaction chunk. Defaults to `1`
@@ -520,13 +520,13 @@ export class OpenFgaClient extends BaseAPI {
       if (writes?.length) {
         apiBody.writes = {
           tuple_keys: writes,
-          on_duplicate: conflict?.onDuplicateWrite ?? OnDuplicateWrite.Error
+          on_duplicate: conflict?.onDuplicateWrites ?? ClientWriteRequestOnDuplicateWrites.Error
         };
       }
       if (deletes?.length) {
         apiBody.deletes = {
           tuple_keys: deletes,
-          on_missing: conflict?.onMissingDelete ?? OnMissingDelete.Error
+          on_missing: conflict?.onMissingDeletes ?? ClientWriteRequestOnMissingDeletes.Error
         };
       }
       await this.api.write(this.getStoreId(options)!, apiBody, options);
@@ -594,7 +594,7 @@ export class OpenFgaClient extends BaseAPI {
    * @param {ClientRequestOptsWithAuthZModelId & ClientWriteTuplesRequestOpts} [options]
    * @param {string} [options.authorizationModelId] - Overrides the authorization model id in the configuration
    * @param {object} [options.conflict] - Conflict handling options
-   * @param {OnDuplicateWrite} [options.conflict.onDuplicateWrite] - Controls behavior when writing duplicate tuples. Defaults to `OnDuplicateWrite.Error`
+   * @param {ClientWriteRequestOnDuplicateWrites} [options.conflict.onDuplicateWrites] - Controls behavior when writing duplicate tuples. Defaults to `ClientWriteRequestOnDuplicateWrites.Error`
    * @param {object} [options.transaction]
    * @param {boolean} [options.transaction.disable] - Disables running the write in a transaction mode. Defaults to `false`
    * @param {number} [options.transaction.maxPerChunk] - Max number of items to send in a single transaction chunk. Defaults to `1`
@@ -616,7 +616,7 @@ export class OpenFgaClient extends BaseAPI {
    * @param {ClientRequestOptsWithAuthZModelId & ClientDeleteTuplesRequestOpts} [options]
    * @param {string} [options.authorizationModelId] - Overrides the authorization model id in the configuration
    * @param {object} [options.conflict] - Conflict handling options
-   * @param {OnMissingDelete} [options.conflict.onMissingDelete] - Controls behavior when deleting non-existent tuples. Defaults to `OnMissingDelete.Error`
+   * @param {ClientWriteRequestOnMissingDeletes} [options.conflict.onMissingDeletes] - Controls behavior when deleting non-existent tuples. Defaults to `ClientWriteRequestOnMissingDeletes.Error`
    * @param {object} [options.transaction]
    * @param {boolean} [options.transaction.disable] - Disables running the write in a transaction mode. Defaults to `false`
    * @param {number} [options.transaction.maxPerChunk] - Max number of items to send in a single transaction chunk. Defaults to `1`

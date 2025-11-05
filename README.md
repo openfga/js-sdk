@@ -472,9 +472,9 @@ The SDK supports conflict options for write operations, allowing you to control 
 const options = {
   conflict: {
     // Control what happens when writing a tuple that already exists
-    onDuplicateWrite: OnDuplicateWrite.Ignore, // or OnDuplicateWrite.Error (the current default behavior)
+    onDuplicateWrites: ClientWriteRequestOnDuplicateWrites.Ignore, // or ClientWriteRequestOnDuplicateWrites.Error (the current default behavior)
     // Control what happens when deleting a tuple that doesn't exist
-    onMissingDelete: OnMissingDelete.Ignore, // or OnMissingDelete.Error (the current default behavior)
+    onMissingDeletes: ClientWriteRequestOnMissingDeletes.Ignore, // or ClientWriteRequestOnMissingDeletes.Error (the current default behavior)
   }
 };
 
@@ -504,7 +504,7 @@ const tuples = [{
 
 const options = {
   conflict: {
-    onDuplicateWrite: OnDuplicateWrite.Ignore,
+    onDuplicateWrites: ClientWriteRequestOnDuplicateWrites.Ignore,
   }
 };
 
@@ -521,7 +521,7 @@ const tuples = [{
 
 const options = {
   conflict: {
-    onMissingDelete: OnMissingDelete.Ignore,
+    onMissingDeletes: OnMissingDelete.Ignore,
   }
 };
 
@@ -530,13 +530,13 @@ const response = await fgaClient.deleteTuples(tuples, options);
 
 ##### Conflict Options Behavior
 
-- **`onDuplicateWrite`**:
-  - `OnDuplicateWrite.Error` (default): Returns an error if an identical tuple already exists (matching on user, relation, object, and condition)
-  - `OnDuplicateWrite.Ignore`: Treats duplicate writes as no-ops, allowing idempotent write operations
+- **`onDuplicateWrites`**:
+  - `ClientWriteRequestOnDuplicateWrites.Error` (default): Returns an error if an identical tuple already exists (matching on user, relation, object, and condition)
+  - `ClientWriteRequestOnDuplicateWrites.Ignore`: Treats duplicate writes as no-ops, allowing idempotent write operations
 
-- **`onMissingDelete`**:
-  - `OnMissingDelete.Error` (default): Returns an error when attempting to delete a tuple that doesn't exist
-  - `OnMissingDelete.Ignore`: Treats deletes of non-existent tuples as no-ops, allowing idempotent delete operations
+- **`onMissingDeletes`**:
+  - `ClientWriteRequestOnMissingDeletes.Error` (default): Returns an error when attempting to delete a tuple that doesn't exist
+  - `ClientWriteRequestOnMissingDeletes.Ignore`: Treats deletes of non-existent tuples as no-ops, allowing idempotent delete operations
 
 > **Important**: If a Write request contains both idempotent (ignore) and non-idempotent (error) operations, the most restrictive action (error) will take precedence. If a condition fails for a sub-request with an error flag, the entire transaction will be rolled back.
 

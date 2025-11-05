@@ -11,8 +11,8 @@ import {
   ConsistencyPreference,
   ErrorCode,
   BatchCheckRequest,
-  OnDuplicateWrite,
-  OnMissingDelete,
+  ClientWriteRequestOnDuplicateWrites,
+  ClientWriteRequestOnMissingDeletes,
 } from "../index";
 import { baseConfig, defaultConfiguration, getNocks } from "./helpers";
 
@@ -466,7 +466,7 @@ describe("OpenFGA Client", () => {
       });
 
       describe("with conflict options", () => {
-        it("should pass onDuplicateWrite Ignore option to API", async () => {
+        it("should pass onDuplicateWrites Ignore option to API", async () => {
           const tuple = {
             user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
             relation: "admin",
@@ -479,7 +479,7 @@ describe("OpenFGA Client", () => {
             writes: [tuple],
           }, {
             conflict: {
-              onDuplicateWrite: OnDuplicateWrite.Ignore,
+              onDuplicateWrites: ClientWriteRequestOnDuplicateWrites.Ignore,
             }
           });
 
@@ -497,7 +497,7 @@ describe("OpenFGA Client", () => {
           mockWrite.mockRestore();
         });
 
-        it("should pass onDuplicateWrite Error option to API", async () => {
+        it("should pass onDuplicateWrites Error option to API", async () => {
           const tuple = {
             user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
             relation: "admin",
@@ -510,7 +510,7 @@ describe("OpenFGA Client", () => {
             writes: [tuple],
           }, {
             conflict: {
-              onDuplicateWrite: OnDuplicateWrite.Error,
+              onDuplicateWrites: ClientWriteRequestOnDuplicateWrites.Error,
             }
           });
 
@@ -528,7 +528,7 @@ describe("OpenFGA Client", () => {
           mockWrite.mockRestore();
         });
 
-        it("should pass onMissingDelete Ignore option to API", async () => {
+        it("should pass onMissingDeletes Ignore option to API", async () => {
           const tuple = {
             user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
             relation: "admin",
@@ -541,7 +541,7 @@ describe("OpenFGA Client", () => {
             deletes: [tuple],
           }, {
             conflict: {
-              onMissingDelete: OnMissingDelete.Ignore,
+              onMissingDeletes: ClientWriteRequestOnMissingDeletes.Ignore,
             }
           });
 
@@ -559,7 +559,7 @@ describe("OpenFGA Client", () => {
           mockWrite.mockRestore();
         });
 
-        it("should pass onMissingDelete Error option to API", async () => {
+        it("should pass onMissingDeletes Error option to API", async () => {
           const tuple = {
             user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
             relation: "admin",
@@ -572,7 +572,7 @@ describe("OpenFGA Client", () => {
             deletes: [tuple],
           }, {
             conflict: {
-              onMissingDelete: OnMissingDelete.Error,
+              onMissingDeletes: ClientWriteRequestOnMissingDeletes.Error,
             }
           });
 
@@ -609,8 +609,8 @@ describe("OpenFGA Client", () => {
             deletes: [deleteTuple],
           }, {
             conflict: {
-              onDuplicateWrite: OnDuplicateWrite.Ignore,
-              onMissingDelete: OnMissingDelete.Error,
+              onDuplicateWrites: ClientWriteRequestOnDuplicateWrites.Ignore,
+              onMissingDeletes: ClientWriteRequestOnMissingDeletes.Error,
             }
           });
 
@@ -676,14 +676,14 @@ describe("OpenFGA Client", () => {
             object: "workspace:1",
           };
 
-          it("should handle writes only with onDuplicateWrite Error", async () => {
+          it("should handle writes only with onDuplicateWrites Error", async () => {
             const mockWrite = jest.spyOn(fgaClient.api, "write").mockResolvedValue({} as any);
 
             await fgaClient.write({
               writes: [writeTuple],
             }, {
               conflict: {
-                onDuplicateWrite: OnDuplicateWrite.Error,
+                onDuplicateWrites: ClientWriteRequestOnDuplicateWrites.Error,
               }
             });
 
@@ -701,14 +701,14 @@ describe("OpenFGA Client", () => {
             mockWrite.mockRestore();
           });
 
-          it("should handle writes only with onDuplicateWrite Ignore", async () => {
+          it("should handle writes only with onDuplicateWrites Ignore", async () => {
             const mockWrite = jest.spyOn(fgaClient.api, "write").mockResolvedValue({} as any);
 
             await fgaClient.write({
               writes: [writeTuple],
             }, {
               conflict: {
-                onDuplicateWrite: OnDuplicateWrite.Ignore,
+                onDuplicateWrites: ClientWriteRequestOnDuplicateWrites.Ignore,
               }
             });
 
@@ -734,14 +734,14 @@ describe("OpenFGA Client", () => {
             object: "workspace:2",
           };
 
-          it("should handle deletes only with onMissingDelete Error", async () => {
+          it("should handle deletes only with onMissingDeletes Error", async () => {
             const mockWrite = jest.spyOn(fgaClient.api, "write").mockResolvedValue({} as any);
 
             await fgaClient.write({
               deletes: [deleteTuple],
             }, {
               conflict: {
-                onMissingDelete: OnMissingDelete.Error,
+                onMissingDeletes: ClientWriteRequestOnMissingDeletes.Error,
               }
             });
 
@@ -759,14 +759,14 @@ describe("OpenFGA Client", () => {
             mockWrite.mockRestore();
           });
 
-          it("should handle deletes only with onMissingDelete Ignore", async () => {
+          it("should handle deletes only with onMissingDeletes Ignore", async () => {
             const mockWrite = jest.spyOn(fgaClient.api, "write").mockResolvedValue({} as any);
 
             await fgaClient.write({
               deletes: [deleteTuple],
             }, {
               conflict: {
-                onMissingDelete: OnMissingDelete.Ignore,
+                onMissingDeletes: ClientWriteRequestOnMissingDeletes.Ignore,
               }
             });
 
@@ -805,8 +805,8 @@ describe("OpenFGA Client", () => {
               deletes: [deleteTuple],
             }, {
               conflict: {
-                onDuplicateWrite: OnDuplicateWrite.Ignore,
-                onMissingDelete: OnMissingDelete.Ignore,
+                onDuplicateWrites: ClientWriteRequestOnDuplicateWrites.Ignore,
+                onMissingDeletes: ClientWriteRequestOnMissingDeletes.Ignore,
               }
             });
 
@@ -836,8 +836,8 @@ describe("OpenFGA Client", () => {
               deletes: [deleteTuple],
             }, {
               conflict: {
-                onDuplicateWrite: OnDuplicateWrite.Ignore,
-                onMissingDelete: OnMissingDelete.Error,
+                onDuplicateWrites: ClientWriteRequestOnDuplicateWrites.Ignore,
+                onMissingDeletes: ClientWriteRequestOnMissingDeletes.Error,
               }
             });
 
@@ -867,8 +867,8 @@ describe("OpenFGA Client", () => {
               deletes: [deleteTuple],
             }, {
               conflict: {
-                onDuplicateWrite: OnDuplicateWrite.Error,
-                onMissingDelete: OnMissingDelete.Ignore,
+                onDuplicateWrites: ClientWriteRequestOnDuplicateWrites.Error,
+                onMissingDeletes: ClientWriteRequestOnMissingDeletes.Ignore,
               }
             });
 
@@ -898,8 +898,8 @@ describe("OpenFGA Client", () => {
               deletes: [deleteTuple],
             }, {
               conflict: {
-                onDuplicateWrite: OnDuplicateWrite.Error,
-                onMissingDelete: OnMissingDelete.Error,
+                onDuplicateWrites: ClientWriteRequestOnDuplicateWrites.Error,
+                onMissingDeletes: ClientWriteRequestOnMissingDeletes.Error,
               }
             });
 
@@ -942,7 +942,7 @@ describe("OpenFGA Client", () => {
         expect(data).toMatchObject({});
       });
 
-      it("should pass onDuplicateWrite Ignore option to write method", async () => {
+      it("should pass onDuplicateWrites Ignore option to write method", async () => {
         const tuple = {
           user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
           relation: "admin",
@@ -953,7 +953,7 @@ describe("OpenFGA Client", () => {
 
         await fgaClient.writeTuples([tuple], {
           conflict: {
-            onDuplicateWrite: OnDuplicateWrite.Ignore,
+            onDuplicateWrites: ClientWriteRequestOnDuplicateWrites.Ignore,
           }
         });
 
@@ -971,7 +971,7 @@ describe("OpenFGA Client", () => {
         mockWrite.mockRestore();
       });
 
-      it("should pass onDuplicateWrite Error option to write method", async () => {
+      it("should pass onDuplicateWrites Error option to write method", async () => {
         const tuple = {
           user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
           relation: "admin",
@@ -982,7 +982,7 @@ describe("OpenFGA Client", () => {
 
         await fgaClient.writeTuples([tuple], {
           conflict: {
-            onDuplicateWrite: OnDuplicateWrite.Error,
+            onDuplicateWrites: ClientWriteRequestOnDuplicateWrites.Error,
           }
         });
 
@@ -1000,7 +1000,7 @@ describe("OpenFGA Client", () => {
         mockWrite.mockRestore();
       });
 
-      it("should default to error conflict handling when onDuplicateWrite option is not specified", async () => {
+      it("should default to error conflict handling when onDuplicateWrites option is not specified", async () => {
         const tuple = {
           user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
           relation: "admin",
@@ -1044,7 +1044,7 @@ describe("OpenFGA Client", () => {
         expect(data).toMatchObject({});
       });
 
-      it("should pass onMissingDelete Ignore option to write method", async () => {
+      it("should pass onMissingDeletes Ignore option to write method", async () => {
         const tuple = {
           user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
           relation: "admin",
@@ -1055,7 +1055,7 @@ describe("OpenFGA Client", () => {
 
         await fgaClient.deleteTuples([tuple], {
           conflict: {
-            onMissingDelete: OnMissingDelete.Ignore,
+            onMissingDeletes: ClientWriteRequestOnMissingDeletes.Ignore,
           }
         });
 
@@ -1073,7 +1073,7 @@ describe("OpenFGA Client", () => {
         mockWrite.mockRestore();
       });
 
-      it("should pass onMissingDelete Error option to write method", async () => {
+      it("should pass onMissingDeletes Error option to write method", async () => {
         const tuple = {
           user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
           relation: "admin",
@@ -1084,7 +1084,7 @@ describe("OpenFGA Client", () => {
 
         await fgaClient.deleteTuples([tuple], {
           conflict: {
-            onMissingDelete: OnMissingDelete.Error,
+            onMissingDeletes: ClientWriteRequestOnMissingDeletes.Error,
           }
         });
 
@@ -1102,7 +1102,7 @@ describe("OpenFGA Client", () => {
         mockWrite.mockRestore();
       });
 
-      it("should default to error conflict handling when onMissingDelete option is not specified", async () => {
+      it("should default to error conflict handling when onMissingDeletes option is not specified", async () => {
         const tuple = {
           user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
           relation: "admin",
