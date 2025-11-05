@@ -107,7 +107,7 @@ jobs:
       - name: Set up node
         uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version: ${{ env.TARGET_NODE_VERSION }}
           registry-url: "https://registry.npmjs.org"
           scope: "@openfga"
           always-auth: false
