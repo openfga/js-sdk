@@ -461,6 +461,85 @@ response = {
 */
 ```
 
+#### Conflict Options for Write Operations
+
+The SDK supports conflict options for write operations, allowing you to control how the API handles duplicate writes and missing deletes.
+
+> **Note**: This requires OpenFGA [v1.10.0](https://github.com/openfga/openfga/releases/tag/v1.10.0) or later.
+
+##### Using Conflict Options with Write
+```javascript
+const options = {
+  conflict: {
+    // Control what happens when writing a tuple that already exists
+    onDuplicateWrites: ClientWriteRequestOnDuplicateWrites.Ignore, // or ClientWriteRequestOnDuplicateWrites.Error (the current default behavior)
+    // Control what happens when deleting a tuple that doesn't exist
+    onMissingDeletes: ClientWriteRequestOnMissingDeletes.Ignore, // or ClientWriteRequestOnMissingDeletes.Error (the current default behavior)
+  }
+};
+
+const body = {
+  writes: [{
+    user: 'user:anne',
+    relation: 'writer',
+    object: 'document:2021-budget',
+  }],
+  deletes: [{
+    user: 'user:bob',
+    relation: 'reader',
+    object: 'document:2021-budget',
+  }],
+};
+
+const response = await fgaClient.write(body, options);
+```
+
+##### Using Conflict Options with WriteTuples
+```javascript
+const tuples = [{
+  user: 'user:anne',
+  relation: 'writer',
+  object: 'document:2021-budget',
+}];
+
+const options = {
+  conflict: {
+    onDuplicateWrites: ClientWriteRequestOnDuplicateWrites.Ignore,
+  }
+};
+
+const response = await fgaClient.writeTuples(tuples, options);
+```
+
+##### Using Conflict Options with DeleteTuples
+```javascript
+const tuples = [{
+  user: 'user:bob',
+  relation: 'reader',
+  object: 'document:2021-budget',
+}];
+
+const options = {
+  conflict: {
+    onMissingDeletes: OnMissingDelete.Ignore,
+  }
+};
+
+const response = await fgaClient.deleteTuples(tuples, options);
+```
+
+##### Conflict Options Behavior
+
+- **`onDuplicateWrites`**:
+  - `ClientWriteRequestOnDuplicateWrites.Error` (default): Returns an error if an identical tuple already exists (matching on user, relation, object, and condition)
+  - `ClientWriteRequestOnDuplicateWrites.Ignore`: Treats duplicate writes as no-ops, allowing idempotent write operations
+
+- **`onMissingDeletes`**:
+  - `ClientWriteRequestOnMissingDeletes.Error` (default): Returns an error when attempting to delete a tuple that doesn't exist
+  - `ClientWriteRequestOnMissingDeletes.Ignore`: Treats deletes of non-existent tuples as no-ops, allowing idempotent delete operations
+
+> **Important**: If a Write request contains both idempotent (ignore) and non-idempotent (error) operations, the most restrictive action (error) will take precedence. If a condition fails for a sub-request with an error flag, the entire transaction will be rolled back.
+
 #### Relationship Queries
 
 ##### Check

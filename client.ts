@@ -37,6 +37,8 @@ import {
   WriteAuthorizationModelRequest,
   WriteAuthorizationModelResponse,
   WriteRequest,
+  WriteRequestWritesOnDuplicate,
+  WriteRequestDeletesOnMissing,
 } from "./apiModel";
 import { BaseAPI } from "./base";
 import { CallResult, PromiseResult } from "./common";
@@ -177,12 +179,40 @@ export interface ClientBatchCheckResponse {
   result: ClientBatchCheckSingleResponse[];
 }
 
+export const ClientWriteRequestOnDuplicateWrites = WriteRequestWritesOnDuplicate;
+export const ClientWriteRequestOnMissingDeletes = WriteRequestDeletesOnMissing;
+
+export type ClientWriteRequestOnDuplicateWrites = WriteRequestWritesOnDuplicate;
+export type ClientWriteRequestOnMissingDeletes = WriteRequestDeletesOnMissing;
+
+export interface ClientWriteConflictOptions {
+  onDuplicateWrites?: ClientWriteRequestOnDuplicateWrites;
+  onMissingDeletes?: ClientWriteRequestOnMissingDeletes;
+}
+
+export interface ClientWriteTransactionOptions {
+  disable?: boolean;
+  maxPerChunk?: number;
+  maxParallelRequests?: number;
+}
+
 export interface ClientWriteRequestOpts {
-  transaction?: {
-    disable?: boolean;
-    maxPerChunk?: number;
-    maxParallelRequests?: number;
-  }
+  transaction?: ClientWriteTransactionOptions;
+  conflict?: ClientWriteConflictOptions;
+}
+
+export interface ClientWriteTuplesRequestOpts {
+  transaction?: ClientWriteTransactionOptions;
+  conflict?: {
+    onDuplicateWrites?: ClientWriteRequestOnDuplicateWrites;
+  };
+}
+
+export interface ClientDeleteTuplesRequestOpts {
+  transaction?: ClientWriteTransactionOptions;
+  conflict?: {
+    onMissingDeletes?: ClientWriteRequestOnMissingDeletes;
+  };
 }
 
 export interface ClientWriteRequest {
@@ -464,6 +494,9 @@ export class OpenFgaClient extends BaseAPI {
    * @param {ClientWriteRequest} body
    * @param {ClientRequestOptsWithAuthZModelId & ClientWriteRequestOpts} [options]
    * @param {string} [options.authorizationModelId] - Overrides the authorization model id in the configuration
+   * @param {object} [options.conflict] - Conflict handling options
+   * @param {ClientWriteRequestOnDuplicateWrites} [options.conflict.onDuplicateWrites] - Controls behavior when writing duplicate tuples. Defaults to `ClientWriteRequestOnDuplicateWrites.Error`
+   * @param {ClientWriteRequestOnMissingDeletes} [options.conflict.onMissingDeletes] - Controls behavior when deleting non-existent tuples. Defaults to `ClientWriteRequestOnMissingDeletes.Error`
    * @param {object} [options.transaction]
    * @param {boolean} [options.transaction.disable] - Disables running the write in a transaction mode. Defaults to `false`
    * @param {number} [options.transaction.maxPerChunk] - Max number of items to send in a single transaction chunk. Defaults to `1`
@@ -474,7 +507,7 @@ export class OpenFgaClient extends BaseAPI {
    * @param {number} [options.retryParams.minWaitInMs] - Override the minimum wait before a retry is initiated
    */
   async write(body: ClientWriteRequest, options: ClientRequestOptsWithAuthZModelId & ClientWriteRequestOpts = {}): Promise<ClientWriteResponse> {
-    const { transaction = {}, headers = {} } = options;
+    const { transaction = {}, headers = {}, conflict } = options;
     const {
       maxPerChunk = 1, // 1 has to be the default otherwise the chunks will be sent in transactions
       maxParallelRequests = DEFAULT_MAX_METHOD_PARALLEL_REQS,
@@ -487,10 +520,16 @@ export class OpenFgaClient extends BaseAPI {
         authorization_model_id: authorizationModelId,
       };
       if (writes?.length) {
-        apiBody.writes = { tuple_keys: writes };
+        apiBody.writes = {
+          tuple_keys: writes,
+          on_duplicate: conflict?.onDuplicateWrites ?? ClientWriteRequestOnDuplicateWrites.Error
+        };
       }
       if (deletes?.length) {
-        apiBody.deletes = { tuple_keys: deletes };
+        apiBody.deletes = {
+          tuple_keys: deletes,
+          on_missing: conflict?.onMissingDeletes ?? ClientWriteRequestOnMissingDeletes.Error
+        };
       }
       await this.api.write(this.getStoreId(options)!, apiBody, options);
       return {
@@ -511,7 +550,7 @@ export class OpenFgaClient extends BaseAPI {
     const writeResponses: ClientWriteSingleResponse[][] = [];
     if (writes?.length) {
       for await (const singleChunkResponse of asyncPool(maxParallelRequests, chunkArray(writes, maxPerChunk),
-        (chunk) => this.writeTuples(chunk,{ ...options, headers, transaction: undefined }).catch(err => {
+        (chunk) => this.writeTuples(chunk,{ ...options, headers, conflict, transaction: undefined }).catch(err => {
           if (err instanceof FgaApiAuthenticationError) {
             throw err;
           }
@@ -531,7 +570,7 @@ export class OpenFgaClient extends BaseAPI {
     const deleteResponses: ClientWriteSingleResponse[][] = [];
     if (deletes?.length) {
       for await (const singleChunkResponse of asyncPool(maxParallelRequests, chunkArray(deletes, maxPerChunk),
-        (chunk) => this.deleteTuples(chunk, { ...options, headers, transaction: undefined }).catch(err => {
+        (chunk) => this.deleteTuples(chunk, { ...options, headers, conflict, transaction: undefined }).catch(err => {
           if (err instanceof FgaApiAuthenticationError) {
             throw err;
           }
@@ -554,8 +593,10 @@ export class OpenFgaClient extends BaseAPI {
   /**
    * WriteTuples - Utility method to write tuples, wraps Write
    * @param {TupleKey[]} tuples
-   * @param {ClientRequestOptsWithAuthZModelId & ClientWriteRequestOpts} [options]
+   * @param {ClientRequestOptsWithAuthZModelId & ClientWriteTuplesRequestOpts} [options]
    * @param {string} [options.authorizationModelId] - Overrides the authorization model id in the configuration
+   * @param {object} [options.conflict] - Conflict handling options
+   * @param {ClientWriteRequestOnDuplicateWrites} [options.conflict.onDuplicateWrites] - Controls behavior when writing duplicate tuples. Defaults to `ClientWriteRequestOnDuplicateWrites.Error`
    * @param {object} [options.transaction]
    * @param {boolean} [options.transaction.disable] - Disables running the write in a transaction mode. Defaults to `false`
    * @param {number} [options.transaction.maxPerChunk] - Max number of items to send in a single transaction chunk. Defaults to `1`
@@ -565,7 +606,7 @@ export class OpenFgaClient extends BaseAPI {
    * @param {number} [options.retryParams.maxRetry] - Override the max number of retries on each API request
    * @param {number} [options.retryParams.minWaitInMs] - Override the minimum wait before a retry is initiated
    */
-  async writeTuples(tuples: TupleKey[], options: ClientRequestOptsWithAuthZModelId & ClientWriteRequestOpts = {}): Promise<ClientWriteResponse> {
+  async writeTuples(tuples: TupleKey[], options: ClientRequestOptsWithAuthZModelId & ClientWriteTuplesRequestOpts = {}): Promise<ClientWriteResponse> {
     const { headers = {} } = options;
     setHeaderIfNotSet(headers, CLIENT_METHOD_HEADER, "WriteTuples");
     return this.write({ writes: tuples }, { ...options, headers });
@@ -574,8 +615,10 @@ export class OpenFgaClient extends BaseAPI {
   /**
    * DeleteTuples - Utility method to delete tuples, wraps Write
    * @param {TupleKeyWithoutCondition[]} tuples
-   * @param {ClientRequestOptsWithAuthZModelId & ClientWriteRequestOpts} [options]
+   * @param {ClientRequestOptsWithAuthZModelId & ClientDeleteTuplesRequestOpts} [options]
    * @param {string} [options.authorizationModelId] - Overrides the authorization model id in the configuration
+   * @param {object} [options.conflict] - Conflict handling options
+   * @param {ClientWriteRequestOnMissingDeletes} [options.conflict.onMissingDeletes] - Controls behavior when deleting non-existent tuples. Defaults to `ClientWriteRequestOnMissingDeletes.Error`
    * @param {object} [options.transaction]
    * @param {boolean} [options.transaction.disable] - Disables running the write in a transaction mode. Defaults to `false`
    * @param {number} [options.transaction.maxPerChunk] - Max number of items to send in a single transaction chunk. Defaults to `1`
@@ -585,7 +628,7 @@ export class OpenFgaClient extends BaseAPI {
    * @param {number} [options.retryParams.maxRetry] - Override the max number of retries on each API request
    * @param {number} [options.retryParams.minWaitInMs] - Override the minimum wait before a retry is initiated
    */
-  async deleteTuples(tuples: TupleKeyWithoutCondition[], options: ClientRequestOptsWithAuthZModelId & ClientWriteRequestOpts = {}): Promise<ClientWriteResponse> {
+  async deleteTuples(tuples: TupleKeyWithoutCondition[], options: ClientRequestOptsWithAuthZModelId & ClientDeleteTuplesRequestOpts = {}): Promise<ClientWriteResponse> {
     const { headers = {} } = options;
     setHeaderIfNotSet(headers, CLIENT_METHOD_HEADER, "DeleteTuples");
     return this.write({ deletes: tuples }, { ...options, headers });
