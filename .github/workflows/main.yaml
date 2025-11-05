@@ -10,7 +10,7 @@ permissions:
   contents: read
 
 env:
-  NODE_VERSION: '24.x'
+  TARGET_NODE_VERSION: '24.x'
 
 jobs:
   build:
@@ -51,7 +51,7 @@ jobs:
       - name: Set up node
         uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version: ${{ env.TARGET_NODE_VERSION }}
           cache: "npm"
 
       - name: Install dependencies
@@ -81,7 +81,7 @@ jobs:
       - name: Set up node
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version: ${{ env.TARGET_NODE_VERSION }}
           cache: "npm"
 
       - name: Install dependencies
