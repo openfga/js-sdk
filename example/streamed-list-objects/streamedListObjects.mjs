@@ -30,13 +30,12 @@ async function main() {
     const fga = new OpenFgaClient(new ClientConfiguration({ apiUrl, storeId, authorizationModelId }));
 
     console.log("Writing tuples");
-    await fga.write({
-        writes: [
-            { user: "user:anne", relation: "can_read", object: "document:1" },
-            { user: "user:anne", relation: "can_read", object: "document:2" },
-            { user: "user:anne", relation: "can_read", object: "document:3" }
-        ]
-    });
+    const writes = [];
+    for (let i = 1; i <= 2000; i++) {
+        writes.push({ user: "user:anne", relation: "can_read", object: `document:${i}` });
+    }
+    await fga.write({ writes });
+    console.log(`Wrote ${writes.length} tuples`);
 
     console.log("Streaming objects...");
     let count = 0;
@@ -44,10 +43,12 @@ async function main() {
         { user: "user:anne", relation: "can_read", type: "document" },
         { consistency: ConsistencyPreference.HigherConsistency }
     )) {
-        console.log(`- ${response.object}`)
         count++;
+        if (count <= 3 || count % 500 === 0) {
+            console.log(`- ${response.object}`);
+        }
     }
-    console.log(`\u2713 Streamed count: ${count}`);
+    console.log(`\u2713 Streamed ${count} objects`);
 
     console.log("Cleaning up...");
     await fga.deleteStore();
