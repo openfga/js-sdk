@@ -37,6 +37,8 @@ interface ClientAssertionRequest {
   audience: string;
 }
 
+export const DEFAULT_TOKEN_ENDPOINT_PATH = "oauth/token";
+
 export class Credentials {
   private accessToken?: string;
   private accessTokenExpiryDate?: Date;
@@ -93,9 +95,9 @@ export class Credentials {
       assertParamExists("Credentials", "config.apiAudience", authConfig.config?.apiAudience);
       assertParamExists("Credentials", "config.clientSecret or config.clientAssertionSigningKey", (authConfig.config as ClientSecretConfig).clientSecret || (authConfig.config as PrivateKeyJWTConfig).clientAssertionSigningKey);
 
-      if (!isWellFormedUriString(`https://${authConfig.config?.apiTokenIssuer}`)) {
+      if (!isWellFormedUriString(this.buildApiTokenUrl(authConfig.config?.apiTokenIssuer))) {
         throw new FgaValidationError(
-          `Configuration.apiTokenIssuer does not form a valid URI (https://${authConfig.config?.apiTokenIssuer})`);
+          `Configuration.apiTokenIssuer does not form a valid URI (${authConfig.config?.apiTokenIssuer})`);
       }
       break;
     }
@@ -139,12 +141,37 @@ export class Credentials {
   }
 
   /**
+   * Constructs the token endpoint URL from the provided API token issuer.
+   * Defaults to https:// scheme if none provided and appends the default
+   * token endpoint path when the issuer has no path or only a root path.
+   * 
+   * @param apiTokenIssuer
+   * @return string The constructed token endpoint URL, or empty string if invalid
+   */
+  private buildApiTokenUrl(apiTokenIssuer: string): string {
+    let url = URL.parse(apiTokenIssuer);
+    if (!url && !apiTokenIssuer.startsWith("https://") && !apiTokenIssuer.startsWith("http://")) {
+      url = URL.parse(`https://${apiTokenIssuer}`);
+    }
+
+    if (url) {
+      if (url.pathname === "" || url.pathname === "/") {
+        url.pathname = `/${DEFAULT_TOKEN_ENDPOINT_PATH}`;
+      }
+
+      return url.toString();
+    }
+
+    return "";
+  }
+
+  /**
    * Request new access token
    * @return string
    */
   private async refreshAccessToken() {
     const clientCredentials = (this.authConfig as { method: CredentialsMethod.ClientCredentials; config: ClientCredentialsConfig })?.config;
-    const url = `https://${clientCredentials.apiTokenIssuer}/oauth/token`;
+    const url = this.buildApiTokenUrl(clientCredentials.apiTokenIssuer);
     const credentialsPayload = await this.buildClientAuthenticationPayload();
 
     try {
