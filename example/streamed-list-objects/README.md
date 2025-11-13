@@ -43,22 +43,18 @@ type document
   relations
     define owner: [user]
     define viewer: [user]
-    define can_read: owner or viewer  ← COMPUTED RELATION
+    define can_read: owner or viewer
 ```
 
 **Why this matters:**
 - We write tuples to `owner` and `viewer` (base permissions)
 - We query `can_read` (computed from owner OR viewer)
-- This shows OpenFGA's power: derived permissions from base relations
-- Without OpenFGA, you'd need to duplicate data or run multiple queries
 
 **Example flow:**
 1. Write: `user:anne owner document:1-1000`
 2. Write: `user:anne viewer document:1001-2000`
 3. Query: `streamedListObjects(user:anne, relation:can_read, type:document)`
 4. Result: All 2000 documents (because `can_read = owner OR viewer`)
-
-This demonstrates why `streamedListObjects` is valuable - computed relations can return large result sets!
 
 ## Key Features Demonstrated
 
