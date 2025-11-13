@@ -25,3 +25,5 @@ credentials.json
 
 VERSION.txt
 git_push.sh
+
+example/**/package-lock.json
