@@ -19,7 +19,9 @@ async function main() {
 
         type document
         relations
-            define can_read: [user]
+            define owner: [user]
+            define viewer: [user]
+            define can_read: owner or viewer
         `;
 
     const model = transformer.transformDSLToJSONObject(dslString);
@@ -29,18 +31,26 @@ async function main() {
 
     const fga = new OpenFgaClient(new ClientConfiguration({ apiUrl, storeId, authorizationModelId }));
 
-    console.log("Writing tuples");
+    console.log("Writing tuples (1000 as owner, 1000 as viewer)");
     const writes = [];
-    for (let i = 1; i <= 2000; i++) {
-        writes.push({ user: "user:anne", relation: "can_read", object: `document:${i}` });
+
+    // Write 1000 documents where anne is the owner
+    for (let i = 1; i <= 1000; i++) {
+        writes.push({ user: "user:anne", relation: "owner", object: `document:${i}` });
     }
+
+    // Write 1000 documents where anne is a viewer
+    for (let i = 1001; i <= 2000; i++) {
+        writes.push({ user: "user:anne", relation: "viewer", object: `document:${i}` });
+    }
+
     await fga.write({ writes });
     console.log(`Wrote ${writes.length} tuples`);
 
-    console.log("Streaming objects...");
+    console.log("Streaming objects via computed 'can_read' relation...");
     let count = 0;
     for await (const response of fga.streamedListObjects(
-        { user: "user:anne", relation: "can_read", type: "document" },
+        { user: "user:anne", relation: "can_read", type: "document" },  // can_read is computed: owner OR viewer
         { consistency: ConsistencyPreference.HigherConsistency }
     )) {
         count++;
@@ -55,6 +65,10 @@ async function main() {
     console.log("Done");
 }
 
-main().catch(_err => {
+main().catch(err => {
+    console.error("Error:", err.message || err);
+    if (err.message && err.message.includes("ECONNREFUSED")) {
+        console.error("Is OpenFGA server running on", apiUrl, "?");
+    }
     process.exit(1);
 });
