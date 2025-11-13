@@ -78,9 +78,13 @@ async function main() {
 }
 
 main().catch(err => {
-    console.error("Error:", err.message || err);
-    if (err.message && err.message.includes("ECONNREFUSED")) {
+    // Avoid logging sensitive data; only display generic info
+    if (err && err.name === "FgaValidationError" && err.field) {
+        console.error(`Validation Error in field: ${err.field}. Please check your configuration for errors.`);
+    } else if (err.message && err.message.includes("ECONNREFUSED")) {
         console.error("Is OpenFGA server running on", apiUrl, "?");
+    } else {
+        console.error("An error occurred.", err && err.name ? `[${err.name}]` : "");
     }
     process.exit(1);
 });
