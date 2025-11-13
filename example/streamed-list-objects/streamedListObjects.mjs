@@ -79,8 +79,8 @@ async function main() {
 
 main().catch(err => {
     // Avoid logging sensitive data; only display generic info
-    if (err && err.name === "FgaValidationError" && err.field) {
-        console.error(`Validation Error in field: ${err.field}. Please check your configuration for errors.`);
+    if (err && err.name === "FgaValidationError") {
+        console.error("Validation error in configuration. Please check your configuration for errors.");
     } else if (err.message && err.message.includes("ECONNREFUSED")) {
         console.error("Is OpenFGA server running on", apiUrl, "?");
     } else {
