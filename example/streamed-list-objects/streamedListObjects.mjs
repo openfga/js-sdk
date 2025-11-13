@@ -32,20 +32,32 @@ async function main() {
     const fga = new OpenFgaClient(new ClientConfiguration({ apiUrl, storeId, authorizationModelId }));
 
     console.log("Writing tuples (1000 as owner, 1000 as viewer)");
-    const writes = [];
+
+    // Write in batches of 100 (OpenFGA limit)
+    const batchSize = 100;
+    let totalWritten = 0;
 
     // Write 1000 documents where anne is the owner
-    for (let i = 1; i <= 1000; i++) {
-        writes.push({ user: "user:anne", relation: "owner", object: `document:${i}` });
+    for (let batch = 0; batch < 10; batch++) {
+        const writes = [];
+        for (let i = 1; i <= batchSize; i++) {
+            writes.push({ user: "user:anne", relation: "owner", object: `document:${batch * batchSize + i}` });
+        }
+        await fga.write({ writes });
+        totalWritten += writes.length;
     }
 
     // Write 1000 documents where anne is a viewer
-    for (let i = 1001; i <= 2000; i++) {
-        writes.push({ user: "user:anne", relation: "viewer", object: `document:${i}` });
+    for (let batch = 0; batch < 10; batch++) {
+        const writes = [];
+        for (let i = 1; i <= batchSize; i++) {
+            writes.push({ user: "user:anne", relation: "viewer", object: `document:${1000 + batch * batchSize + i}` });
+        }
+        await fga.write({ writes });
+        totalWritten += writes.length;
     }
 
-    await fga.write({ writes });
-    console.log(`Wrote ${writes.length} tuples`);
+    console.log(`Wrote ${totalWritten} tuples`);
 
     console.log("Streaming objects via computed 'can_read' relation...");
     let count = 0;
