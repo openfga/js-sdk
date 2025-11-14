@@ -22,6 +22,7 @@ import { TelemetryAttributes } from "../telemetry/attributes";
 import { TelemetryCounters } from "../telemetry/counters";
 import { TelemetryConfiguration } from "../telemetry/configuration";
 import { randomUUID } from "crypto";
+import { URL } from "url";
 
 interface ClientSecretRequest {
   client_id: string;
@@ -95,9 +96,9 @@ export class Credentials {
       assertParamExists("Credentials", "config.apiAudience", authConfig.config?.apiAudience);
       assertParamExists("Credentials", "config.clientSecret or config.clientAssertionSigningKey", (authConfig.config as ClientSecretConfig).clientSecret || (authConfig.config as PrivateKeyJWTConfig).clientAssertionSigningKey);
 
-      if (!isWellFormedUriString(this.buildApiTokenUrl(authConfig.config?.apiTokenIssuer))) {
+      if (!isWellFormedUriString(this.normalizeApiTokenIssuer(authConfig.config?.apiTokenIssuer))) {
         throw new FgaValidationError(
-          `Configuration.apiTokenIssuer does not form a valid URI (${authConfig.config?.apiTokenIssuer})`);
+          `Configuration.apiTokenIssuer does not form a valid URI (${this.normalizeApiTokenIssuer(authConfig.config?.apiTokenIssuer)})`);
       }
       break;
     }
@@ -141,28 +142,39 @@ export class Credentials {
   }
 
   /**
+   * Normalize API token issuer URL by ensuring it has a scheme
+   * @private
+   * @param apiTokenIssuer
+   * @return string The normalized API token issuer URL
+   */
+  private normalizeApiTokenIssuer(apiTokenIssuer: string): string {
+    if (apiTokenIssuer.startsWith("http://") || apiTokenIssuer.startsWith("https://")) {
+      return apiTokenIssuer;
+    }
+    return `https://${apiTokenIssuer}`;
+  }
+
+  /**
    * Constructs the token endpoint URL from the provided API token issuer.
    * Defaults to https:// scheme if none provided and appends the default
    * token endpoint path when the issuer has no path or only a root path.
-   * 
+   * @private
    * @param apiTokenIssuer
-   * @return string The constructed token endpoint URL, or empty string if invalid
+   * @return string The constructed token endpoint URL if valid, otherwise throws an error
+   * @throws {FgaValidationError} If the API token issuer URL is invalid
    */
   private buildApiTokenUrl(apiTokenIssuer: string): string {
-    let url = URL.parse(apiTokenIssuer);
-    if (!url && !apiTokenIssuer.startsWith("https://") && !apiTokenIssuer.startsWith("http://")) {
-      url = URL.parse(`https://${apiTokenIssuer}`);
-    }
+    const normalizedApiTokenIssuer = this.normalizeApiTokenIssuer(apiTokenIssuer);
 
-    if (url) {
+    try {
+      const url = new URL(normalizedApiTokenIssuer);
       if (url.pathname === "" || url.pathname === "/") {
         url.pathname = `/${DEFAULT_TOKEN_ENDPOINT_PATH}`;
       }
-
       return url.toString();
+    } catch {
+      throw new FgaValidationError(`Invalid API token issuer URL: ${normalizedApiTokenIssuer}`);
     }
-
-    return "";
   }
 
   /**
@@ -243,13 +255,14 @@ export class Credentials {
     if ((config as PrivateKeyJWTConfig).clientAssertionSigningKey) {
       const alg = (config as PrivateKeyJWTConfig).clientAssertionSigningAlgorithm || "RS256";
       const privateKey = await jose.importPKCS8((config as PrivateKeyJWTConfig).clientAssertionSigningKey, alg);
+      const audienceIssuer = this.normalizeApiTokenIssuer(config.apiTokenIssuer);
       const assertion = await new jose.SignJWT({})
         .setProtectedHeader({ alg })
         .setIssuedAt()
         .setSubject(config.clientId)
         .setJti(randomUUID())
         .setIssuer(config.clientId)
-        .setAudience(`https://${config.apiTokenIssuer}/`)
+        .setAudience(`${audienceIssuer}/`)
         .setExpirationTime("2m")
         .sign(privateKey);
       return {
