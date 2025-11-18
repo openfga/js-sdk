@@ -61,7 +61,7 @@ describe("OpenFGA SDK", function () {
       ).not.toThrowError();
     });
 
-    it.each(["https://", "http://", ""])("should allow valid schemes as part of the apiTokenIssuer in configuration (%s)", (scheme) => {
+    it.each(["https://", "http://", ""])("should allow valid schemes or default when scheme is missing (%s)", (scheme) => {
       expect(
         () => new OpenFgaApi({
           ...baseConfig,

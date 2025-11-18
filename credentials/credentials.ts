@@ -90,16 +90,18 @@ export class Credentials {
       assertParamExists("Credentials", "config.headerName", authConfig.config?.headerName);
       assertParamExists("Credentials", "config.headerName", authConfig.config?.headerName);
       break;
-    case CredentialsMethod.ClientCredentials:
+    case CredentialsMethod.ClientCredentials: {
       assertParamExists("Credentials", "config.clientId", authConfig.config?.clientId);
       assertParamExists("Credentials", "config.apiTokenIssuer", authConfig.config?.apiTokenIssuer);
       assertParamExists("Credentials", "config.apiAudience", authConfig.config?.apiAudience);
       assertParamExists("Credentials", "config.clientSecret or config.clientAssertionSigningKey", (authConfig.config as ClientSecretConfig).clientSecret || (authConfig.config as PrivateKeyJWTConfig).clientAssertionSigningKey);
 
-      if (!isWellFormedUriString(this.normalizeApiTokenIssuer(authConfig.config?.apiTokenIssuer))) {
+      const normalizedApiTokenIssuer = this.normalizeApiTokenIssuer(authConfig.config?.apiTokenIssuer);
+      if (!isWellFormedUriString(normalizedApiTokenIssuer)) {
         throw new FgaValidationError(
-          `Configuration.apiTokenIssuer does not form a valid URI (${this.normalizeApiTokenIssuer(authConfig.config?.apiTokenIssuer)})`);
+          `Configuration.apiTokenIssuer does not form a valid URI (${normalizedApiTokenIssuer})`);
       }
+    }
       break;
     }
   }
@@ -171,7 +173,7 @@ export class Credentials {
       if (url.pathname === "" || url.pathname === "/") {
         url.pathname = `/${DEFAULT_TOKEN_ENDPOINT_PATH}`;
       }
-      return url.toString();
+      return url.toString(); // Query params are preserved in the URL
     } catch {
       throw new FgaValidationError(`Invalid API token issuer URL: ${normalizedApiTokenIssuer}`);
     }
@@ -262,7 +264,7 @@ export class Credentials {
         .setSubject(config.clientId)
         .setJti(randomUUID())
         .setIssuer(config.clientId)
-        .setAudience(`${audienceIssuer}/`)
+        .setAudience(`${audienceIssuer}/`) // Trailing slash is required by the OAuth 2.0 specification
         .setExpirationTime("2m")
         .sign(privateKey);
       return {

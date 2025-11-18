@@ -1,12 +1,15 @@
 import * as nock from "nock";
+import * as jose from "jose";
 import { Credentials, CredentialsMethod, DEFAULT_TOKEN_ENDPOINT_PATH } from "../credentials";
 import { AuthCredentialsConfig } from "../credentials/types";
 import { TelemetryConfiguration } from "../telemetry/configuration";
 import {
   OPENFGA_API_AUDIENCE,
+  OPENFGA_CLIENT_ASSERTION_SIGNING_KEY,
   OPENFGA_CLIENT_ID,
   OPENFGA_CLIENT_SECRET,
 } from "./helpers/default-config";
+import {FgaValidationError} from "../errors";
 
 nock.disableNetConnect();
 
@@ -104,6 +107,75 @@ describe("Credentials", () => {
             apiAudience: OPENFGA_API_AUDIENCE,
             clientId: OPENFGA_CLIENT_ID,
             clientSecret: OPENFGA_CLIENT_SECRET,
+          },
+        } as AuthCredentialsConfig,
+        undefined,
+        mockTelemetryConfig,
+      );
+
+      await credentials.getAccessTokenHeader();
+
+      expect(scope.isDone()).toBe(true);
+      nock.cleanAll();
+    });
+
+    it("should throw FgaValidationError for malformed apiTokenIssuer", () => {
+      expect(() => new Credentials(
+        {
+          method: CredentialsMethod.ClientCredentials,
+          config: {
+            apiTokenIssuer: "not a valid url::::",
+            apiAudience: OPENFGA_API_AUDIENCE,
+            clientId: OPENFGA_CLIENT_ID,
+            clientSecret: OPENFGA_CLIENT_SECRET,
+          },
+        } as AuthCredentialsConfig,
+        undefined,
+        mockTelemetryConfig,
+      )).toThrowError(FgaValidationError);
+    });
+
+    test.each([
+      {
+        description: "HTTPS scheme",
+        apiTokenIssuer: "https://issuer.fga.example/some_endpoint",
+        expectedBaseUrl: "https://issuer.fga.example",
+        expectedAudience: "https://issuer.fga.example/some_endpoint/",
+      },
+      {
+        description: "HTTP scheme",
+        apiTokenIssuer: "http://issuer.fga.example/some_endpoint",
+        expectedBaseUrl: "http://issuer.fga.example",
+        expectedAudience: "http://issuer.fga.example/some_endpoint/",
+      },
+      {
+        description: "No scheme",
+        apiTokenIssuer: "issuer.fga.example/some_endpoint",
+        expectedBaseUrl: "https://issuer.fga.example",
+        expectedAudience: "https://issuer.fga.example/some_endpoint/",
+      }
+    ])("should normalize audience from apiTokenIssuer when using PrivateKeyJWT client credentials ($description)", async ({ apiTokenIssuer, expectedBaseUrl, expectedAudience }) => {
+      const scope = nock(expectedBaseUrl)
+        .post("/some_endpoint", (body: string) => {
+          const params = new URLSearchParams(body);
+          const clientAssertion = params.get("client_assertion") as string;
+          const decoded = jose.decodeJwt(clientAssertion);
+          expect(decoded.aud).toBe(`${expectedAudience}`);
+          return true;
+        })
+        .reply(200, {
+          access_token: "test-token",
+          expires_in: 300,
+        });
+
+      const credentials = new Credentials(
+        {
+          method: CredentialsMethod.ClientCredentials,
+          config: {
+            apiTokenIssuer,
+            apiAudience: OPENFGA_API_AUDIENCE,
+            clientId: OPENFGA_CLIENT_ID,
+            clientAssertionSigningKey: OPENFGA_CLIENT_ASSERTION_SIGNING_KEY,
           },
         } as AuthCredentialsConfig,
         undefined,
