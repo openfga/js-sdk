@@ -3,6 +3,8 @@
 
 ## [Unreleased](https://github.com/openfga/js-sdk/compare/v0.9.1...HEAD)
 
+- feat: add support for [streamedListObjects](https://openfga.dev/api/service#/Relationship%20Queries/StreamedListObjects). See [documentation](#streamed-list-objects)
+
 ## v0.9.1
 
 ### [v0.9.1](https://github.com/openfga/js-sdk/compare/v0.9.0...v0.9.1) (2025-11-05)
