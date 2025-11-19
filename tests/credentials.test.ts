@@ -81,6 +81,12 @@ describe("Credentials", () => {
         expectedBaseUrl: "https://issuer.fga.example:8080",
         expectedPath: "/some_endpoint",
       },
+      {
+        description: "should use default path when multiple trailing slashes",
+        apiTokenIssuer: "https://issuer.fga.example///",
+        expectedBaseUrl: "https://issuer.fga.example",
+        expectedPath: `/${DEFAULT_TOKEN_ENDPOINT_PATH}`,
+      },
     ];
 
     test.each(testCases)("$description", async ({ apiTokenIssuer, expectedBaseUrl, expectedPath, queryParams }) => {
@@ -119,12 +125,25 @@ describe("Credentials", () => {
       nock.cleanAll();
     });
 
-    it("should throw FgaValidationError for malformed apiTokenIssuer", () => {
+    test.each([
+      {
+        description: "malformed url",
+        apiTokenIssuer: "not a valid url::::",
+      },
+      {
+        description: "empty string",
+        apiTokenIssuer: "",
+      },
+      {
+        description: "whitespace-only issuer",
+        apiTokenIssuer: "   ",
+      },
+    ])("should throw FgaValidationError when $description", ({ apiTokenIssuer }) => {
       expect(() => new Credentials(
         {
           method: CredentialsMethod.ClientCredentials,
           config: {
-            apiTokenIssuer: "not a valid url::::",
+            apiTokenIssuer,
             apiAudience: OPENFGA_API_AUDIENCE,
             clientId: OPENFGA_CLIENT_ID,
             clientSecret: OPENFGA_CLIENT_SECRET,
@@ -132,7 +151,7 @@ describe("Credentials", () => {
         } as AuthCredentialsConfig,
         undefined,
         mockTelemetryConfig,
-      )).toThrowError(FgaValidationError);
+      )).toThrow(FgaValidationError);
     });
 
     test.each([

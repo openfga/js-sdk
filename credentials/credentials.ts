@@ -38,6 +38,9 @@ interface ClientAssertionRequest {
   audience: string;
 }
 
+const HTTP_SCHEME = "http://";
+const HTTPS_SCHEME = "https://";
+
 export const DEFAULT_TOKEN_ENDPOINT_PATH = "oauth/token";
 
 export class Credentials {
@@ -150,16 +153,14 @@ export class Credentials {
    * @return string The normalized API token issuer URL
    */
   private normalizeApiTokenIssuer(apiTokenIssuer: string): string {
-    if (apiTokenIssuer.startsWith("http://") || apiTokenIssuer.startsWith("https://")) {
+    if (apiTokenIssuer.startsWith(HTTP_SCHEME) || apiTokenIssuer.startsWith(HTTPS_SCHEME)) {
       return apiTokenIssuer;
     }
-    return `https://${apiTokenIssuer}`;
+    return `${HTTPS_SCHEME}${apiTokenIssuer}`;
   }
 
   /**
    * Constructs the token endpoint URL from the provided API token issuer.
-   * Defaults to https:// scheme if none provided and appends the default
-   * token endpoint path when the issuer has no path or only a root path.
    * @private
    * @param apiTokenIssuer
    * @return string The constructed token endpoint URL if valid, otherwise throws an error
@@ -170,7 +171,7 @@ export class Credentials {
 
     try {
       const url = new URL(normalizedApiTokenIssuer);
-      if (url.pathname === "" || url.pathname === "/") {
+      if (!url.pathname || url.pathname.match(/^\/+$/)) {
         url.pathname = `/${DEFAULT_TOKEN_ENDPOINT_PATH}`;
       }
       return url.toString(); // Query params are preserved in the URL
