@@ -82,10 +82,22 @@ describe("Credentials", () => {
         expectedPath: "/some_endpoint",
       },
       {
-        description: "should use default path when multiple trailing slashes",
+        description: "should use default path when path has multiple trailing slashes",
         apiTokenIssuer: "https://issuer.fga.example///",
         expectedBaseUrl: "https://issuer.fga.example",
         expectedPath: `/${DEFAULT_TOKEN_ENDPOINT_PATH}`,
+      },
+      {
+        description: "should use default path when path only consists of slashes",
+        apiTokenIssuer: "https://issuer.fga.example//",
+        expectedBaseUrl: "https://issuer.fga.example",
+        expectedPath: `/${DEFAULT_TOKEN_ENDPOINT_PATH}`,
+      },
+      {
+        description: "should preserve custom path with consecutive/trailing slashes",
+        apiTokenIssuer: "https://issuer.fga.example/oauth//token///",
+        expectedBaseUrl: "https://issuer.fga.example",
+        expectedPath: "/oauth//token///",
       },
     ];
 
