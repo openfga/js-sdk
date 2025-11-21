@@ -17,15 +17,11 @@ describe("Credentials", () => {
   const mockTelemetryConfig: TelemetryConfiguration = new TelemetryConfiguration({});
 
   describe("Refreshing access token", () => {
-    interface TestCase {
-      description: string;
-      apiTokenIssuer: string;
-      expectedBaseUrl: string;
-      expectedPath: string;
-      queryParams?: Record<string, string>;
-    }
+    afterEach(() => {
+      nock.cleanAll();
+    });
 
-    const testCases: TestCase[] = [
+    test.each([
       {
         description: "should use default scheme and token endpoint path when apiTokenIssuer has no scheme and no path",
         apiTokenIssuer: "issuer.fga.example",
@@ -99,9 +95,7 @@ describe("Credentials", () => {
         expectedBaseUrl: "https://issuer.fga.example",
         expectedPath: "/oauth//token///",
       },
-    ];
-
-    test.each(testCases)("$description", async ({ apiTokenIssuer, expectedBaseUrl, expectedPath, queryParams }) => {
+    ])("$description", async ({ apiTokenIssuer, expectedBaseUrl, expectedPath, queryParams }) => {
       const scope = queryParams
         ? nock(expectedBaseUrl)
           .post(expectedPath)
@@ -134,7 +128,6 @@ describe("Credentials", () => {
       await credentials.getAccessTokenHeader();
 
       expect(scope.isDone()).toBe(true);
-      nock.cleanAll();
     });
 
     test.each([
@@ -216,8 +209,6 @@ describe("Credentials", () => {
       await credentials.getAccessTokenHeader();
 
       expect(scope.isDone()).toBe(true);
-      nock.cleanAll();
     });
   });
 });
-
