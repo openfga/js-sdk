@@ -1,4 +1,5 @@
 import * as nock from "nock";
+import { Readable } from "node:stream";
 
 import {
   ClientWriteStatus,
@@ -1594,6 +1595,139 @@ describe("OpenFGA Client", () => {
         expect(scope.isDone()).toBe(true);
         expect(response.objects).toHaveLength(mockedResponse.objects.length);
         expect(response.objects).toEqual(expect.arrayContaining(mockedResponse.objects));
+      });
+    });
+
+    describe("StreamedListObjects", () => {
+      it("should stream objects and yield them incrementally", async () => {
+        const objects = ["document:1", "document:2", "document:3"];
+        const scope = nocks.streamedListObjects(baseConfig.storeId!, objects);
+
+        expect(scope.isDone()).toBe(false);
+
+        const results: string[] = [];
+        for await (const response of fgaClient.streamedListObjects({
+          user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
+          relation: "can_read",
+          type: "document",
+        })) {
+          results.push(response.object);
+        }
+
+        expect(scope.isDone()).toBe(true);
+        expect(results).toHaveLength(3);
+        expect(results).toEqual(expect.arrayContaining(objects));
+      });
+
+      it("should handle custom headers", async () => {
+        const objects = ["document:1"];
+
+        const scope = nock(defaultConfiguration.getBasePath())
+          .post(`/stores/${baseConfig.storeId}/streamed-list-objects`)
+          .reply(function () {
+            // Verify custom headers were sent
+            expect(this.req.headers["x-custom-header"]).toBe("custom-value");
+            expect(this.req.headers["x-request-id"]).toBe("test-123");
+
+            // Return NDJSON stream
+            const ndjsonResponse = objects
+              .map(obj => JSON.stringify({ result: { object: obj } }))
+              .join("\n") + "\n";
+
+            return [200, Readable.from([ndjsonResponse]), {
+              "Content-Type": "application/x-ndjson"
+            }];
+          });
+
+        const results: string[] = [];
+        for await (const response of fgaClient.streamedListObjects({
+          user: "user:anne",
+          relation: "owner",
+          type: "document",
+        }, {
+          headers: {
+            "X-Custom-Header": "custom-value",
+            "X-Request-ID": "test-123"
+          }
+        })) {
+          results.push(response.object);
+        }
+
+        expect(scope.isDone()).toBe(true);
+        expect(results).toEqual(objects);
+      });
+
+      it("should handle errors from the stream", async () => {
+        const scope = nock(defaultConfiguration.getBasePath())
+          .post(`/stores/${baseConfig.storeId}/streamed-list-objects`)
+          .reply(500, { code: "internal_error", message: "Server error" });
+
+        await expect(async () => {
+          for await (const response of fgaClient.streamedListObjects({
+            user: "user:anne",
+            relation: "owner",
+            type: "document",
+          })) {
+            // Should not get here
+          }
+        }).rejects.toThrow();
+
+        expect(scope.isDone()).toBe(true);
+      });
+
+      it("should handle retry on 429 error", async () => {
+        const objects = ["document:1"];
+
+        // Create client with retry enabled
+        const fgaClientWithRetry = new OpenFgaClient({
+          ...baseConfig,
+          credentials: { method: CredentialsMethod.None },
+          retryParams: { maxRetry: 2, minWaitInMs: 10 }
+        });
+
+        // First attempt fails with 429 (called exactly once)
+        const scope1 = nock(defaultConfiguration.getBasePath())
+          .post(`/stores/${baseConfig.storeId}/streamed-list-objects`)
+          .times(1)
+          .reply(429, { code: "rate_limit_exceeded", message: "Rate limited" }, {
+            "Retry-After": "1"
+          });
+
+        // Second attempt succeeds (retry - called exactly once)
+        const scope2 = nocks.streamedListObjects(baseConfig.storeId!, objects);
+
+        const results: string[] = [];
+        for await (const response of fgaClientWithRetry.streamedListObjects({
+          user: "user:anne",
+          relation: "owner",
+          type: "document",
+        })) {
+          results.push(response.object);
+        }
+
+        // Verify both scopes were called (proves retry happened)
+        expect(scope1.isDone()).toBe(true);
+        expect(scope2.isDone()).toBe(true);
+        expect(results).toEqual(objects);
+      });
+
+      it("should support consistency preference", async () => {
+        const objects = ["document:1"];
+        const scope = nocks.streamedListObjects(baseConfig.storeId!, objects);
+
+        const results: string[] = [];
+        for await (const response of fgaClient.streamedListObjects({
+          user: "user:anne",
+          relation: "owner",
+          type: "document",
+        }, {
+          consistency: ConsistencyPreference.HigherConsistency
+        })) {
+          results.push(response.object);
+        }
+
+        expect(scope.isDone()).toBe(true);
+        expect(results).toEqual(objects);
       });
     });
 

@@ -21,6 +21,7 @@ import {
   GetStoreResponse,
   ListObjectsRequest,
   ListObjectsResponse,
+  StreamedListObjectsResponse,
   ListStoresResponse,
   ListUsersRequest,
   ListUsersResponse,
@@ -50,6 +51,7 @@ import {
 } from "./utils";
 import { isWellFormedUlidString } from "./validation";
 import SdkConstants from "./constants";
+import { parseNDJSONStream } from "./streaming";
 
 export type UserClientConfigurationParams = UserConfigurationParams & {
   storeId?: string;
@@ -845,6 +847,51 @@ export class OpenFgaClient extends BaseAPI {
       contextual_tuples: { tuple_keys: body.contextualTuples || [] },
       consistency: options.consistency
     }, options);
+  }
+
+  /**
+   * StreamedListObjects - Stream all objects of a particular type that the user has a certain relation to (evaluates)
+   * 
+   * Note: This method is Node.js only. Streams are supported via the axios API layer.
+   * The response will be streamed as newline-delimited JSON objects.
+   * 
+   * @param {ClientListObjectsRequest} body
+   * @param {ClientRequestOptsWithConsistency} [options]
+   * @param {string} [options.authorizationModelId] - Overrides the authorization model id in the configuration
+   * @param {object} [options.headers] - Custom headers to send alongside the request
+   * @param {ConsistencyPreference} [options.consistency] - The consistency preference to use
+   * @param {object} [options.retryParams] - Override the retry parameters for this request
+   * @param {number} [options.retryParams.maxRetry] - Override the max number of retries on each API request
+   * @param {number} [options.retryParams.minWaitInMs] - Override the minimum wait before a retry is initiated
+   * @returns {AsyncGenerator<StreamedListObjectsResponse>} An async generator that yields objects as they are received
+   */
+  async *streamedListObjects(body: ClientListObjectsRequest, options: ClientRequestOptsWithConsistency = {}): AsyncGenerator<StreamedListObjectsResponse> {
+    const stream = await this.api.streamedListObjects(this.getStoreId(options)!, {
+      authorization_model_id: this.getAuthorizationModelId(options),
+      user: body.user,
+      relation: body.relation,
+      type: body.type,
+      context: body.context,
+      contextual_tuples: { tuple_keys: body.contextualTuples || [] },
+      consistency: options.consistency
+    }, options);
+
+    // Unwrap axios CallResult to get the raw Node.js stream when needed
+    const source = stream?.$response?.data ?? stream;
+
+    // Parse the Node.js stream
+    try {
+      for await (const item of parseNDJSONStream(source as any)) {
+        if (item && item.result && item.result.object) {
+          yield { object: item.result.object } as StreamedListObjectsResponse;
+        }
+      }
+    } finally {
+      // Ensure underlying HTTP connection closes if consumer stops early
+      if (source && typeof source.destroy === "function") {
+        try { source.destroy(); } catch { }
+      }
+    }
   }
 
   /**
