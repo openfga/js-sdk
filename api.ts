@@ -147,16 +147,16 @@ export const OpenFgaApiAxiosParamCreator = function (configuration: Configuratio
         baseOptions = configuration.baseOptions;
       }
 
-      const localVarRequestOptions = { method: "POST", ...baseOptions, ...options};
+      const localVarRequestOptions = { method: "POST", ...baseOptions, ...options };
       const localVarHeaderParameter = {} as any;
       const localVarQueryParameter = {} as any;
 
 
-    
+
       localVarHeaderParameter["Content-Type"] = "application/json";
 
       setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
-      localVarRequestOptions.headers = {...localVarHeaderParameter, ...options.headers};
+      localVarRequestOptions.headers = { ...localVarHeaderParameter, ...options.headers };
       localVarRequestOptions.data = serializeDataIfNeeded(body, localVarRequestOptions);
 
       return {
@@ -186,16 +186,16 @@ export const OpenFgaApiAxiosParamCreator = function (configuration: Configuratio
         baseOptions = configuration.baseOptions;
       }
 
-      const localVarRequestOptions = { method: "POST", ...baseOptions, ...options};
+      const localVarRequestOptions = { method: "POST", ...baseOptions, ...options };
       const localVarHeaderParameter = {} as any;
       const localVarQueryParameter = {} as any;
 
 
-    
+
       localVarHeaderParameter["Content-Type"] = "application/json";
 
       setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
-      localVarRequestOptions.headers = {...localVarHeaderParameter, ...options.headers};
+      localVarRequestOptions.headers = { ...localVarHeaderParameter, ...options.headers };
       localVarRequestOptions.data = serializeDataIfNeeded(body, localVarRequestOptions);
 
       return {
@@ -214,24 +214,24 @@ export const OpenFgaApiAxiosParamCreator = function (configuration: Configuratio
       // verify required parameter 'body' is not null or undefined
       assertParamExists("createStore", "body", body);
       const localVarPath = "/stores"
-            ;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+        ;
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
       const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
       let baseOptions;
       if (configuration) {
         baseOptions = configuration.baseOptions;
       }
 
-      const localVarRequestOptions = { method: "POST", ...baseOptions, ...options};
+      const localVarRequestOptions = { method: "POST", ...baseOptions, ...options };
       const localVarHeaderParameter = {} as any;
       const localVarQueryParameter = {} as any;
 
 
-    
+
       localVarHeaderParameter["Content-Type"] = "application/json";
 
       setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
-      localVarRequestOptions.headers = {...localVarHeaderParameter, ...options.headers};
+      localVarRequestOptions.headers = { ...localVarHeaderParameter, ...options.headers };
       localVarRequestOptions.data = serializeDataIfNeeded(body, localVarRequestOptions);
 
       return {
@@ -258,14 +258,14 @@ export const OpenFgaApiAxiosParamCreator = function (configuration: Configuratio
         baseOptions = configuration.baseOptions;
       }
 
-      const localVarRequestOptions = { method: "DELETE", ...baseOptions, ...options};
+      const localVarRequestOptions = { method: "DELETE", ...baseOptions, ...options };
       const localVarHeaderParameter = {} as any;
       const localVarQueryParameter = {} as any;
 
 
-    
+
       setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
-      localVarRequestOptions.headers = {...localVarHeaderParameter, ...options.headers};
+      localVarRequestOptions.headers = { ...localVarHeaderParameter, ...options.headers };
 
       return {
         url: toPathString(localVarUrlObj),
@@ -294,16 +294,16 @@ export const OpenFgaApiAxiosParamCreator = function (configuration: Configuratio
         baseOptions = configuration.baseOptions;
       }
 
-      const localVarRequestOptions = { method: "POST", ...baseOptions, ...options};
+      const localVarRequestOptions = { method: "POST", ...baseOptions, ...options };
       const localVarHeaderParameter = {} as any;
       const localVarQueryParameter = {} as any;
 
 
-    
+
       localVarHeaderParameter["Content-Type"] = "application/json";
 
       setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
-      localVarRequestOptions.headers = {...localVarHeaderParameter, ...options.headers};
+      localVarRequestOptions.headers = { ...localVarHeaderParameter, ...options.headers };
       localVarRequestOptions.data = serializeDataIfNeeded(body, localVarRequestOptions);
 
       return {
@@ -330,14 +330,14 @@ export const OpenFgaApiAxiosParamCreator = function (configuration: Configuratio
         baseOptions = configuration.baseOptions;
       }
 
-      const localVarRequestOptions = { method: "GET", ...baseOptions, ...options};
+      const localVarRequestOptions = { method: "GET", ...baseOptions, ...options };
       const localVarHeaderParameter = {} as any;
       const localVarQueryParameter = {} as any;
 
 
-    
+
       setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
-      localVarRequestOptions.headers = {...localVarHeaderParameter, ...options.headers};
+      localVarRequestOptions.headers = { ...localVarHeaderParameter, ...options.headers };
 
       return {
         url: toPathString(localVarUrlObj),
@@ -366,16 +366,16 @@ export const OpenFgaApiAxiosParamCreator = function (configuration: Configuratio
         baseOptions = configuration.baseOptions;
       }
 
-      const localVarRequestOptions = { method: "POST", ...baseOptions, ...options};
+      const localVarRequestOptions = { method: "POST", ...baseOptions, ...options };
       const localVarHeaderParameter = {} as any;
       const localVarQueryParameter = {} as any;
 
 
-    
+
       localVarHeaderParameter["Content-Type"] = "application/json";
 
       setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
-      localVarRequestOptions.headers = {...localVarHeaderParameter, ...options.headers};
+      localVarRequestOptions.headers = { ...localVarHeaderParameter, ...options.headers };
       localVarRequestOptions.data = serializeDataIfNeeded(body, localVarRequestOptions);
 
       return {
@@ -394,15 +394,15 @@ export const OpenFgaApiAxiosParamCreator = function (configuration: Configuratio
          */
     listStores: (pageSize?: number, continuationToken?: string, name?: string, options: any = {}): RequestArgs => {
       const localVarPath = "/stores"
-            ;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+        ;
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
       const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
       let baseOptions;
       if (configuration) {
         baseOptions = configuration.baseOptions;
       }
 
-      const localVarRequestOptions = { method: "GET", ...baseOptions, ...options};
+      const localVarRequestOptions = { method: "GET", ...baseOptions, ...options };
       const localVarHeaderParameter = {} as any;
       const localVarQueryParameter = {} as any;
 
@@ -419,9 +419,9 @@ export const OpenFgaApiAxiosParamCreator = function (configuration: Configuratio
       }
 
 
-    
+
       setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
-      localVarRequestOptions.headers = {...localVarHeaderParameter, ...options.headers};
+      localVarRequestOptions.headers = { ...localVarHeaderParameter, ...options.headers };
 
       return {
         url: toPathString(localVarUrlObj),
@@ -450,16 +450,16 @@ export const OpenFgaApiAxiosParamCreator = function (configuration: Configuratio
         baseOptions = configuration.baseOptions;
       }
 
-      const localVarRequestOptions = { method: "POST", ...baseOptions, ...options};
+      const localVarRequestOptions = { method: "POST", ...baseOptions, ...options };
       const localVarHeaderParameter = {} as any;
       const localVarQueryParameter = {} as any;
 
 
-    
+
       localVarHeaderParameter["Content-Type"] = "application/json";
 
       setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
-      localVarRequestOptions.headers = {...localVarHeaderParameter, ...options.headers};
+      localVarRequestOptions.headers = { ...localVarHeaderParameter, ...options.headers };
       localVarRequestOptions.data = serializeDataIfNeeded(body, localVarRequestOptions);
 
       return {
@@ -489,16 +489,16 @@ export const OpenFgaApiAxiosParamCreator = function (configuration: Configuratio
         baseOptions = configuration.baseOptions;
       }
 
-      const localVarRequestOptions = { method: "POST", ...baseOptions, ...options};
+      const localVarRequestOptions = { method: "POST", ...baseOptions, ...options };
       const localVarHeaderParameter = {} as any;
       const localVarQueryParameter = {} as any;
 
 
-    
+
       localVarHeaderParameter["Content-Type"] = "application/json";
 
       setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
-      localVarRequestOptions.headers = {...localVarHeaderParameter, ...options.headers};
+      localVarRequestOptions.headers = { ...localVarHeaderParameter, ...options.headers };
       localVarRequestOptions.data = serializeDataIfNeeded(body, localVarRequestOptions);
 
       return {
@@ -528,14 +528,14 @@ export const OpenFgaApiAxiosParamCreator = function (configuration: Configuratio
         baseOptions = configuration.baseOptions;
       }
 
-      const localVarRequestOptions = { method: "GET", ...baseOptions, ...options};
+      const localVarRequestOptions = { method: "GET", ...baseOptions, ...options };
       const localVarHeaderParameter = {} as any;
       const localVarQueryParameter = {} as any;
 
 
-    
+
       setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
-      localVarRequestOptions.headers = {...localVarHeaderParameter, ...options.headers};
+      localVarRequestOptions.headers = { ...localVarHeaderParameter, ...options.headers };
 
       return {
         url: toPathString(localVarUrlObj),
@@ -564,14 +564,14 @@ export const OpenFgaApiAxiosParamCreator = function (configuration: Configuratio
         baseOptions = configuration.baseOptions;
       }
 
-      const localVarRequestOptions = { method: "GET", ...baseOptions, ...options};
+      const localVarRequestOptions = { method: "GET", ...baseOptions, ...options };
       const localVarHeaderParameter = {} as any;
       const localVarQueryParameter = {} as any;
 
 
-    
+
       setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
-      localVarRequestOptions.headers = {...localVarHeaderParameter, ...options.headers};
+      localVarRequestOptions.headers = { ...localVarHeaderParameter, ...options.headers };
 
       return {
         url: toPathString(localVarUrlObj),
@@ -599,7 +599,7 @@ export const OpenFgaApiAxiosParamCreator = function (configuration: Configuratio
         baseOptions = configuration.baseOptions;
       }
 
-      const localVarRequestOptions = { method: "GET", ...baseOptions, ...options};
+      const localVarRequestOptions = { method: "GET", ...baseOptions, ...options };
       const localVarHeaderParameter = {} as any;
       const localVarQueryParameter = {} as any;
 
@@ -612,9 +612,9 @@ export const OpenFgaApiAxiosParamCreator = function (configuration: Configuratio
       }
 
 
-    
+
       setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
-      localVarRequestOptions.headers = {...localVarHeaderParameter, ...options.headers};
+      localVarRequestOptions.headers = { ...localVarHeaderParameter, ...options.headers };
 
       return {
         url: toPathString(localVarUrlObj),
@@ -644,7 +644,7 @@ export const OpenFgaApiAxiosParamCreator = function (configuration: Configuratio
         baseOptions = configuration.baseOptions;
       }
 
-      const localVarRequestOptions = { method: "GET", ...baseOptions, ...options};
+      const localVarRequestOptions = { method: "GET", ...baseOptions, ...options };
       const localVarHeaderParameter = {} as any;
       const localVarQueryParameter = {} as any;
 
@@ -667,9 +667,9 @@ export const OpenFgaApiAxiosParamCreator = function (configuration: Configuratio
       }
 
 
-    
+
       setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
-      localVarRequestOptions.headers = {...localVarHeaderParameter, ...options.headers};
+      localVarRequestOptions.headers = { ...localVarHeaderParameter, ...options.headers };
 
       return {
         url: toPathString(localVarUrlObj),
@@ -698,16 +698,16 @@ export const OpenFgaApiAxiosParamCreator = function (configuration: Configuratio
         baseOptions = configuration.baseOptions;
       }
 
-      const localVarRequestOptions = { method: "POST", ...baseOptions, ...options};
+      const localVarRequestOptions = { method: "POST", ...baseOptions, ...options };
       const localVarHeaderParameter = {} as any;
       const localVarQueryParameter = {} as any;
 
 
-    
+
       localVarHeaderParameter["Content-Type"] = "application/json";
 
       setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
-      localVarRequestOptions.headers = {...localVarHeaderParameter, ...options.headers};
+      localVarRequestOptions.headers = { ...localVarHeaderParameter, ...options.headers };
       localVarRequestOptions.data = serializeDataIfNeeded(body, localVarRequestOptions);
 
       return {
@@ -740,16 +740,16 @@ export const OpenFgaApiAxiosParamCreator = function (configuration: Configuratio
         baseOptions = configuration.baseOptions;
       }
 
-      const localVarRequestOptions = { method: "PUT", ...baseOptions, ...options};
+      const localVarRequestOptions = { method: "PUT", ...baseOptions, ...options };
       const localVarHeaderParameter = {} as any;
       const localVarQueryParameter = {} as any;
 
 
-    
+
       localVarHeaderParameter["Content-Type"] = "application/json";
 
       setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
-      localVarRequestOptions.headers = {...localVarHeaderParameter, ...options.headers};
+      localVarRequestOptions.headers = { ...localVarHeaderParameter, ...options.headers };
       localVarRequestOptions.data = serializeDataIfNeeded(body, localVarRequestOptions);
 
       return {
@@ -779,17 +779,68 @@ export const OpenFgaApiAxiosParamCreator = function (configuration: Configuratio
         baseOptions = configuration.baseOptions;
       }
 
-      const localVarRequestOptions = { method: "POST", ...baseOptions, ...options};
+      const localVarRequestOptions = { method: "POST", ...baseOptions, ...options };
       const localVarHeaderParameter = {} as any;
       const localVarQueryParameter = {} as any;
 
 
-    
+
       localVarHeaderParameter["Content-Type"] = "application/json";
 
       setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
-      localVarRequestOptions.headers = {...localVarHeaderParameter, ...options.headers};
+      localVarRequestOptions.headers = { ...localVarHeaderParameter, ...options.headers };
       localVarRequestOptions.data = serializeDataIfNeeded(body, localVarRequestOptions);
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
+    /**
+         * Make a raw HTTP request to an arbitrary API endpoint.
+         * This method provides an escape hatch for calling new or experimental endpoints
+         * that may not yet have dedicated SDK methods.
+         * @summary Make a raw HTTP request
+         * @param {'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH'} method - HTTP method
+         * @param {string} path - API path (e.g., '/stores/{store_id}/my-endpoint')
+         * @param {any} [body] - Optional request body
+         * @param {Record<string, any>} [queryParams] - Optional query parameters
+         * @param {*} [options] Override http request option.
+         * @throws { FgaError }
+         */
+    rawRequest: (method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH", path: string, body?: any, queryParams?: Record<string, any>, options: any = {}): RequestArgs => {
+      const localVarPath = path;
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
+
+      const localVarRequestOptions = { method: method, ...baseOptions, ...options };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
+
+      // Add query parameters if provided
+      if (queryParams) {
+        for (const [key, value] of Object.entries(queryParams)) {
+          if (value !== undefined) {
+            localVarQueryParameter[key] = value;
+          }
+        }
+      }
+
+      // Set Content-Type for requests with body
+      if (body !== undefined && (method === "POST" || method === "PUT" || method === "PATCH")) {
+        localVarHeaderParameter["Content-Type"] = "application/json";
+      }
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
+      localVarRequestOptions.headers = { ...localVarHeaderParameter, ...options.headers };
+
+      if (body !== undefined) {
+        localVarRequestOptions.data = serializeDataIfNeeded(body, localVarRequestOptions);
+      }
 
       return {
         url: toPathString(localVarUrlObj),
@@ -803,7 +854,7 @@ export const OpenFgaApiAxiosParamCreator = function (configuration: Configuratio
  * OpenFgaApi - functional programming interface
  * @export
  */
-export const OpenFgaApiFp = function(configuration: Configuration, credentials: Credentials) {
+export const OpenFgaApiFp = function (configuration: Configuration, credentials: Credentials) {
   const localVarAxiosParamCreator = OpenFgaApiAxiosParamCreator(configuration, credentials);
   return {
     /**
@@ -1072,6 +1123,24 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
         ...TelemetryAttributes.fromRequestBody(body)
       });
     },
+    /**
+         * Make a raw HTTP request to an arbitrary API endpoint.
+         * This method provides an escape hatch for calling new or experimental endpoints
+         * that may not yet have dedicated SDK methods.
+         * @summary Make a raw HTTP request
+         * @param {'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH'} method - HTTP method
+         * @param {string} path - API path (e.g., '/stores/{store_id}/my-endpoint')
+         * @param {any} [body] - Optional request body
+         * @param {Record<string, any>} [queryParams] - Optional query parameters
+         * @param {*} [options] Override http request option.
+         * @throws { FgaError }
+         */
+    async rawRequest(method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH", path: string, body?: any, queryParams?: Record<string, any>, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<any>> {
+      const localVarAxiosArgs = localVarAxiosParamCreator.rawRequest(method, path, body, queryParams, options);
+      return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials, {
+        [TelemetryAttribute.FgaClientRequestMethod]: "RawRequest",
+      });
+    },
   };
 };
 
@@ -1271,6 +1340,21 @@ export const OpenFgaApiFactory = function (configuration: Configuration, credent
          */
     writeAuthorizationModel(storeId: string, body: WriteAuthorizationModelRequest, options?: any): PromiseResult<WriteAuthorizationModelResponse> {
       return localVarFp.writeAuthorizationModel(storeId, body, options).then((request) => request(axios));
+    },
+    /**
+         * Make a raw HTTP request to an arbitrary API endpoint.
+         * This method provides an escape hatch for calling new or experimental endpoints
+         * that may not yet have dedicated SDK methods.
+         * @summary Make a raw HTTP request
+         * @param {'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH'} method - HTTP method
+         * @param {string} path - API path (e.g., '/stores/{store_id}/my-endpoint')
+         * @param {any} [body] - Optional request body
+         * @param {Record<string, any>} [queryParams] - Optional query parameters
+         * @param {*} [options] Override http request option.
+         * @throws { FgaError }
+         */
+    rawRequest(method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH", path: string, body?: any, queryParams?: Record<string, any>, options?: any): PromiseResult<any> {
+      return localVarFp.rawRequest(method, path, body, queryParams, options).then((request) => request(axios));
     },
   };
 };
@@ -1504,6 +1588,23 @@ export class OpenFgaApi extends BaseAPI {
      */
   public writeAuthorizationModel(storeId: string, body: WriteAuthorizationModelRequest, options?: any): Promise<CallResult<WriteAuthorizationModelResponse>> {
     return OpenFgaApiFp(this.configuration, this.credentials).writeAuthorizationModel(storeId, body, options).then((request) => request(this.axios));
+  }
+
+  /**
+     * Make a raw HTTP request to an arbitrary API endpoint.
+     * This method provides an escape hatch for calling new or experimental endpoints
+     * that may not yet have dedicated SDK methods.
+     * @summary Make a raw HTTP request
+     * @param {'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH'} method - HTTP method
+     * @param {string} path - API path (e.g., '/stores/{store_id}/my-endpoint')
+     * @param {any} [body] - Optional request body
+     * @param {Record<string, any>} [queryParams] - Optional query parameters
+     * @param {*} [options] Override http request option.
+     * @throws { FgaError }
+     * @memberof OpenFgaApi
+     */
+  public rawRequest(method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH", path: string, body?: any, queryParams?: Record<string, any>, options?: any): Promise<CallResult<any>> {
+    return OpenFgaApiFp(this.configuration, this.credentials).rawRequest(method, path, body, queryParams, options).then((request) => request(this.axios));
   }
 }
 

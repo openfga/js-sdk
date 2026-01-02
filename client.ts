@@ -120,8 +120,8 @@ export type ClientRequestOptsWithConsistency = ClientRequestOpts & StoreIdOpts &
 export type PaginationOptions = { pageSize?: number, continuationToken?: string, name?: string; };
 
 export type ClientCheckRequest = CheckRequestTupleKey &
-    Pick<CheckRequest, "context"> &
-    { contextualTuples?: Array<TupleKey> };
+  Pick<CheckRequest, "context"> &
+{ contextualTuples?: Array<TupleKey> };
 
 export type ClientBatchCheckClientRequest = ClientCheckRequest[];
 
@@ -160,17 +160,17 @@ export type ClientBatchCheckRequest = {
 
 // for server batch check
 export interface ClientBatchCheckRequestOpts {
-    maxParallelRequests?: number;
-    maxBatchSize?: number;
+  maxParallelRequests?: number;
+  maxBatchSize?: number;
 }
 
 
 // for server batch check
 export type ClientBatchCheckSingleResponse = {
-    allowed: boolean;
-    request: ClientBatchCheckItem;
-    correlationId: string;
-    error?: CheckError;
+  allowed: boolean;
+  request: ClientBatchCheckItem;
+  correlationId: string;
+  error?: CheckError;
 }
 
 export interface ClientBatchCheckResponse {
@@ -244,19 +244,38 @@ export interface ClientReadChangesRequest {
 }
 
 export type ClientExpandRequest = ExpandRequestTupleKey & Omit<ExpandRequest, "tuple_key" | "authorization_model_id" | "contextual_tuples" | "consistency"> & {
-    contextualTuples?: Array<TupleKey>
+  contextualTuples?: Array<TupleKey>
 };
 export type ClientReadRequest = ReadRequestTupleKey;
 export type ClientListObjectsRequest = Omit<ListObjectsRequest, "authorization_model_id" | "contextual_tuples" | "consistency"> & {
-    contextualTuples?: Array<TupleKey>
+  contextualTuples?: Array<TupleKey>
 };
 export type ClientListUsersRequest = Omit<ListUsersRequest, "authorization_model_id" | "contextual_tuples" | "consistency"> & {
-    contextualTuples?: Array<TupleKey>
+  contextualTuples?: Array<TupleKey>
 };
 export type ClientListRelationsRequest = Omit<ClientCheckRequest, "relation" | "consistency"> & {
-    relations?: string[],
+  relations?: string[],
 };
 export type ClientWriteAssertionsRequest = (CheckRequestTupleKey & Pick<Assertion, "expectation">)[];
+
+/**
+ * HTTP methods supported by rawRequest
+ */
+export type HttpMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
+
+/**
+ * Request parameters for rawRequest method
+ */
+export interface ClientRawRequestParams {
+  /** HTTP method */
+  method: HttpMethod;
+  /** API path (e.g., '/stores/{store_id}/custom-endpoint') */
+  path: string;
+  /** Optional request body for POST/PUT/PATCH requests */
+  body?: any;
+  /** Optional query parameters */
+  queryParams?: Record<string, any>;
+}
 
 export class OpenFgaClient extends BaseAPI {
   public api: OpenFgaApi;
@@ -548,7 +567,7 @@ export class OpenFgaClient extends BaseAPI {
     const writeResponses: ClientWriteSingleResponse[][] = [];
     if (writes?.length) {
       for await (const singleChunkResponse of asyncPool(maxParallelRequests, chunkArray(writes, maxPerChunk),
-        (chunk) => this.writeTuples(chunk,{ ...options, headers, conflict, transaction: undefined }).catch(err => {
+        (chunk) => this.writeTuples(chunk, { ...options, headers, conflict, transaction: undefined }).catch(err => {
           if (err instanceof FgaApiAuthenticationError) {
             throw err;
           }
@@ -703,7 +722,7 @@ export class OpenFgaClient extends BaseAPI {
 
 
 
-  private singleBatchCheck(body: BatchCheckRequest, options: ClientRequestOptsWithConsistency & ClientBatchCheckRequestOpts = {}): Promise<BatchCheckResponse>  {
+  private singleBatchCheck(body: BatchCheckRequest, options: ClientRequestOptsWithConsistency & ClientBatchCheckRequestOpts = {}): Promise<BatchCheckResponse> {
     return this.api.batchCheck(this.getStoreId(options)!, body, options);
   }
 
@@ -781,7 +800,7 @@ export class OpenFgaClient extends BaseAPI {
 
     // Collect the responses and associate them with their correlation IDs
     for await (const response of batchResponses) {
-      if (response) { 
+      if (response) {
         for (const [correlationId, result] of Object.entries(response)) {
           const check = correlationIdToCheck.get(correlationId);
           if (check && result) {
@@ -797,7 +816,7 @@ export class OpenFgaClient extends BaseAPI {
     }
 
     return { result: results };
-  } 
+  }
 
   /**
    * Expand - Expands the relationships in userset tree format (evaluates)
@@ -944,5 +963,52 @@ export class OpenFgaClient extends BaseAPI {
         expectation: assertion.expectation,
       }))
     }, options);
+  }
+
+
+  /**
+   * RawRequest lets you send any HTTP request directly to an OpenFGA API endpoint.
+   * It’s useful when you need to call a new or experimental API that doesn’t yet have a built-in method in the SDK.
+   * You still get the benefits of the SDK, like authentication, configuration, and consistent error handling.
+   * 
+   * @param {ClientRawRequestParams} request - The request parameters
+   * @param {HttpMethod} request.method - HTTP method (GET, POST, PUT, DELETE, PATCH)
+   * @param {string} request.path - API path (e.g., '/stores/{store_id}/my-endpoint')
+   * @param {any} [request.body] - Optional request body for POST/PUT/PATCH requests
+   * @param {Record<string, any>} [request.queryParams] - Optional query parameters
+   * @param {ClientRequestOpts} [options] - Request options
+   * @param {object} [options.headers] - Custom headers to send alongside the request
+   * @param {object} [options.retryParams] - Override the retry parameters for this request
+   * @param {number} [options.retryParams.maxRetry] - Override the max number of retries on each API request
+   * @param {number} [options.retryParams.minWaitInMs] - Override the minimum wait before a retry is initiated
+   * @throws { FgaError }
+   * 
+   * @example
+   * // Call a new endpoint that isn't yet in the SDK
+   * const response = await client.rawRequest({
+   *   method: 'POST',
+   *   path: '/stores/my-store-id/some-new-endpoint',
+   *   body: { foo: 'bar' },
+   * });
+   * 
+   * @example
+   * // Call an existing endpoint with query parameters
+   * const stores = await client.rawRequest({
+   *   method: 'GET',
+   *   path: '/stores',
+   *   queryParams: { page_size: 10 },
+   * });
+   */
+  async rawRequest(
+    request: ClientRawRequestParams,
+    options: ClientRequestOpts = {}
+  ): PromiseResult<any> {
+    return this.api.rawRequest(
+      request.method,
+      request.path,
+      request.body,
+      request.queryParams,
+      options
+    );
   }
 }
