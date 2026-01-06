@@ -250,3 +250,217 @@ describe("OpenFgaClient.rawRequest", () => {
         });
     });
 });
+
+describe("OpenFgaClient.rawRequest - path parameters", () => {
+    let fgaClient: OpenFgaClient;
+    const basePath = defaultConfiguration.getBasePath();
+
+    beforeEach(() => {
+        fgaClient = new OpenFgaClient({ ...baseConfig });
+        nocks.tokenExchange(OPENFGA_API_TOKEN_ISSUER, "test-token");
+    });
+
+    afterEach(() => {
+        nock.cleanAll();
+    });
+
+    describe("path parameter replacement", () => {
+        it("should replace path parameters with values (single_parameter)", async () => {
+            const storeId = "01ARZ3NDEKTSV4RRFFQ69G5FAV";
+            const responseData = { id: storeId, name: "Test Store" };
+
+            nock(basePath)
+                .get(`/stores/${storeId}`)
+                .reply(200, responseData);
+
+            const result = await fgaClient.rawRequest({
+                method: "GET",
+                path: "/stores/{store_id}",
+                pathParams: { store_id: storeId },
+            });
+
+            expect(result.id).toBe(storeId);
+        });
+
+        it("should replace multiple path parameters (multiple_parameters)", async () => {
+            const storeId = "store-123";
+            const modelId = "model-456";
+            const responseData = { id: modelId };
+
+            nock(basePath)
+                .get(`/stores/${storeId}/authorization-models/${modelId}`)
+                .reply(200, responseData);
+
+            const result = await fgaClient.rawRequest({
+                method: "GET",
+                path: "/stores/{store_id}/authorization-models/{model_id}",
+                pathParams: { store_id: storeId, model_id: modelId },
+            });
+
+            expect(result.id).toBe(modelId);
+        });
+
+        it("should URL-encode path parameter values with spaces (parameter_with_special_characters)", async () => {
+            const storeId = "store id with spaces";
+            const encodedStoreId = "store%20id%20with%20spaces";
+
+            nock(basePath)
+                .get(`/stores/${encodedStoreId}`)
+                .reply(200, { id: storeId });
+
+            const result = await fgaClient.rawRequest({
+                method: "GET",
+                path: "/stores/{store_id}",
+                pathParams: { store_id: storeId },
+            });
+
+            expect(result.id).toBe(storeId);
+        });
+
+        it("should URL-encode path parameter values with URL-unsafe characters (parameter_with_url_unsafe_characters)", async () => {
+            const id = "test/with?special&chars";
+            const encodedId = encodeURIComponent(id);
+
+            nock(basePath)
+                .get(`/items/${encodedId}`)
+                .reply(200, { id: id });
+
+            const result = await fgaClient.rawRequest({
+                method: "GET",
+                path: "/items/{id}",
+                pathParams: { id: id },
+            });
+
+            expect(result.id).toBe(id);
+        });
+
+        it("should URL-encode unicode characters in path parameters (parameter_with_unicode)", async () => {
+            const name = "用户";
+            const encodedName = encodeURIComponent(name); // %E7%94%A8%E6%88%B7
+
+            nock(basePath)
+                .get(`/users/${encodedName}`)
+                .reply(200, { name: name });
+
+            const result = await fgaClient.rawRequest({
+                method: "GET",
+                path: "/users/{name}",
+                pathParams: { name: name },
+            });
+
+            expect(result.name).toBe(name);
+        });
+
+        it("should ignore unused path parameters (unused_parameters_ignored)", async () => {
+            const storeId = "123";
+
+            nock(basePath)
+                .get(`/stores/${storeId}`)
+                .reply(200, { id: storeId });
+
+            const result = await fgaClient.rawRequest({
+                method: "GET",
+                path: "/stores/{store_id}",
+                pathParams: {
+                    store_id: storeId,
+                    unused: "value" // Should be ignored
+                },
+            });
+
+            expect(result.id).toBe(storeId);
+        });
+
+        it("should replace parameter appearing multiple times in path (parameter_appears_multiple_times)", async () => {
+            const id = "abc";
+
+            nock(basePath)
+                .get(`/stores/${id}/check/${id}`)
+                .reply(200, { id: id });
+
+            const result = await fgaClient.rawRequest({
+                method: "GET",
+                path: "/stores/{id}/check/{id}",
+                pathParams: { id: id },
+            });
+
+            expect(result.id).toBe(id);
+        });
+
+        it("should allow empty parameter value (empty_parameter_value)", async () => {
+            nock(basePath)
+                .get("/stores/")
+                .reply(200, { id: "" });
+
+            const result = await fgaClient.rawRequest({
+                method: "GET",
+                path: "/stores/{store_id}",
+                pathParams: { store_id: "" },
+            });
+
+            expect(result.id).toBe("");
+        });
+
+        it("should work without pathParams for paths with no template (no_parameters)", async () => {
+            nock(basePath)
+                .get("/stores")
+                .reply(200, { stores: [] });
+
+            const result = await fgaClient.rawRequest({
+                method: "GET",
+                path: "/stores",
+            });
+
+            expect(result.stores).toEqual([]);
+        });
+
+        it("should throw error for unresolved path parameters", async () => {
+            await expect(
+                fgaClient.rawRequest({
+                    method: "GET",
+                    path: "/stores/{store_id}/check",
+                    // pathParams intentionally omitted
+                })
+            ).rejects.toThrow("Path parameter 'store_id' was not provided for path: /stores/{store_id}/check");
+        });
+
+        it("should throw error when some path parameters are missing", async () => {
+            await expect(
+                fgaClient.rawRequest({
+                    method: "GET",
+                    path: "/stores/{store_id}/authorization-models/{model_id}",
+                    pathParams: { store_id: "abc" }, // model_id is missing
+                })
+            ).rejects.toThrow("Path parameter 'model_id' was not provided");
+        });
+    });
+
+    describe("operationName for telemetry", () => {
+        it("should accept operationName parameter", async () => {
+            nock(basePath)
+                .get("/stores")
+                .reply(200, { stores: [] });
+
+            // Should complete without error when operationName is provided
+            const result = await fgaClient.rawRequest({
+                operationName: "CustomListStores",
+                method: "GET",
+                path: "/stores",
+            });
+
+            expect(result.stores).toEqual([]);
+        });
+
+        it("should work without operationName (backward compatible)", async () => {
+            nock(basePath)
+                .get("/stores")
+                .reply(200, { stores: [] });
+
+            const result = await fgaClient.rawRequest({
+                method: "GET",
+                path: "/stores",
+            });
+
+            expect(result.stores).toEqual([]);
+        });
+    });
+});

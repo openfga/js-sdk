@@ -802,14 +802,31 @@ export const OpenFgaApiAxiosParamCreator = function (configuration: Configuratio
          * that may not yet have dedicated SDK methods.
          * @summary Make a raw HTTP request
          * @param {'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH'} method - HTTP method
-         * @param {string} path - API path (e.g., '/stores/{store_id}/my-endpoint')
+         * @param {string} path - API path with optional template parameters (e.g., '/stores/{store_id}/my-endpoint')
          * @param {any} [body] - Optional request body
          * @param {Record<string, any>} [queryParams] - Optional query parameters
+         * @param {Record<string, string>} [pathParams] - Optional path parameters to replace template variables
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    rawRequest: (method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH", path: string, body?: any, queryParams?: Record<string, any>, options: any = {}): RequestArgs => {
-      const localVarPath = path;
+    rawRequest: (method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH", path: string, body?: any, queryParams?: Record<string, any>, pathParams?: Record<string, string>, options: any = {}): RequestArgs => {
+      // Build path by replacing template parameters with URL-encoded values
+      let localVarPath = path;
+      if (pathParams) {
+        for (const [key, value] of Object.entries(pathParams)) {
+          // Use split/join to replace ALL occurrences of the parameter
+          localVarPath = localVarPath.split(`{${key}}`).join(encodeURIComponent(value));
+        }
+      }
+
+      // Validate that all path parameters have been replaced
+      if (localVarPath.includes("{") && localVarPath.includes("}")) {
+        const unresolvedMatch = localVarPath.match(/\{([^}]+)\}/);
+        if (unresolvedMatch) {
+          throw new Error(`Path parameter '${unresolvedMatch[1]}' was not provided for path: ${path}`);
+        }
+      }
+
       // use dummy base URL string because the URL constructor only accepts absolute URLs.
       const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
       let baseOptions;
@@ -1129,16 +1146,18 @@ export const OpenFgaApiFp = function (configuration: Configuration, credentials:
          * that may not yet have dedicated SDK methods.
          * @summary Make a raw HTTP request
          * @param {'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH'} method - HTTP method
-         * @param {string} path - API path (e.g., '/stores/{store_id}/my-endpoint')
+         * @param {string} path - API path with optional template parameters (e.g., '/stores/{store_id}/my-endpoint')
          * @param {any} [body] - Optional request body
          * @param {Record<string, any>} [queryParams] - Optional query parameters
+         * @param {Record<string, string>} [pathParams] - Optional path parameters to replace template variables
+         * @param {string} [operationName] - Optional operation name for telemetry (defaults to "RawRequest")
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    async rawRequest(method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH", path: string, body?: any, queryParams?: Record<string, any>, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<any>> {
-      const localVarAxiosArgs = localVarAxiosParamCreator.rawRequest(method, path, body, queryParams, options);
+    async rawRequest(method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH", path: string, body?: any, queryParams?: Record<string, any>, pathParams?: Record<string, string>, operationName?: string, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<any>> {
+      const localVarAxiosArgs = localVarAxiosParamCreator.rawRequest(method, path, body, queryParams, pathParams, options);
       return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials, {
-        [TelemetryAttribute.FgaClientRequestMethod]: "RawRequest",
+        [TelemetryAttribute.FgaClientRequestMethod]: operationName || "RawRequest",
       });
     },
   };
@@ -1347,14 +1366,16 @@ export const OpenFgaApiFactory = function (configuration: Configuration, credent
          * that may not yet have dedicated SDK methods.
          * @summary Make a raw HTTP request
          * @param {'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH'} method - HTTP method
-         * @param {string} path - API path (e.g., '/stores/{store_id}/my-endpoint')
+         * @param {string} path - API path with optional template parameters (e.g., '/stores/{store_id}/my-endpoint')
          * @param {any} [body] - Optional request body
          * @param {Record<string, any>} [queryParams] - Optional query parameters
+         * @param {Record<string, string>} [pathParams] - Optional path parameters to replace template variables
+         * @param {string} [operationName] - Optional operation name for telemetry (defaults to "RawRequest")
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    rawRequest(method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH", path: string, body?: any, queryParams?: Record<string, any>, options?: any): PromiseResult<any> {
-      return localVarFp.rawRequest(method, path, body, queryParams, options).then((request) => request(axios));
+    rawRequest(method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH", path: string, body?: any, queryParams?: Record<string, any>, pathParams?: Record<string, string>, operationName?: string, options?: any): PromiseResult<any> {
+      return localVarFp.rawRequest(method, path, body, queryParams, pathParams, operationName, options).then((request) => request(axios));
     },
   };
 };
@@ -1596,15 +1617,17 @@ export class OpenFgaApi extends BaseAPI {
      * that may not yet have dedicated SDK methods.
      * @summary Make a raw HTTP request
      * @param {'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH'} method - HTTP method
-     * @param {string} path - API path (e.g., '/stores/{store_id}/my-endpoint')
+     * @param {string} path - API path with optional template parameters (e.g., '/stores/{store_id}/my-endpoint')
      * @param {any} [body] - Optional request body
      * @param {Record<string, any>} [queryParams] - Optional query parameters
+     * @param {Record<string, string>} [pathParams] - Optional path parameters to replace template variables
+     * @param {string} [operationName] - Optional operation name for telemetry (defaults to "RawRequest")
      * @param {*} [options] Override http request option.
      * @throws { FgaError }
      * @memberof OpenFgaApi
      */
-  public rawRequest(method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH", path: string, body?: any, queryParams?: Record<string, any>, options?: any): Promise<CallResult<any>> {
-    return OpenFgaApiFp(this.configuration, this.credentials).rawRequest(method, path, body, queryParams, options).then((request) => request(this.axios));
+  public rawRequest(method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH", path: string, body?: any, queryParams?: Record<string, any>, pathParams?: Record<string, string>, operationName?: string, options?: any): Promise<CallResult<any>> {
+    return OpenFgaApiFp(this.configuration, this.credentials).rawRequest(method, path, body, queryParams, pathParams, operationName, options).then((request) => request(this.axios));
   }
 }
 

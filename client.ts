@@ -267,10 +267,27 @@ export type HttpMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
  * Request parameters for rawRequest method
  */
 export interface ClientRawRequestParams {
+  /** 
+   * Operation name for telemetry and logging (e.g., "CustomCheck", "CustomEndpoint").
+   * Used for observability when calling new or experimental endpoints.
+   * Defaults to "RawRequest" if not provided.
+   */
+  operationName?: string;
   /** HTTP method */
   method: HttpMethod;
-  /** API path (e.g., '/stores/{store_id}/custom-endpoint') */
+  /** 
+   * API path with optional template parameters.
+   * Template parameters should be in the format {param_name} and will be replaced
+   * with URL-encoded values from pathParams.
+   * Example: '/stores/{store_id}/custom-endpoint'
+   */
   path: string;
+  /** 
+   * Path parameters to replace template variables in the path.
+   * Values will be URL-encoded automatically.
+   * Example: { store_id: "abc123" } will replace {store_id} in the path.
+   */
+  pathParams?: Record<string, string>;
   /** Optional request body for POST/PUT/PATCH requests */
   body?: any;
   /** Optional query parameters */
@@ -984,10 +1001,12 @@ export class OpenFgaClient extends BaseAPI {
    * @throws { FgaError }
    * 
    * @example
-   * // Call a new endpoint that isn't yet in the SDK
+   * // Call a new endpoint using path parameters (recommended)
    * const response = await client.rawRequest({
+   *   operationName: 'CustomCheck',
    *   method: 'POST',
-   *   path: '/stores/my-store-id/some-new-endpoint',
+   *   path: '/stores/{store_id}/custom-endpoint',
+   *   pathParams: { store_id: 'my-store-id' },
    *   body: { foo: 'bar' },
    * });
    * 
@@ -1008,6 +1027,8 @@ export class OpenFgaClient extends BaseAPI {
       request.path,
       request.body,
       request.queryParams,
+      request.pathParams,
+      request.operationName,
       options
     );
   }
