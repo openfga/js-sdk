@@ -34,13 +34,15 @@ export const getNocks = ((nock: typeof Nock) => ({
     expiresIn = 300,
     statusCode = 200,
     headers = {},
+    persist = false,
   ) => {
-    return nock(`https://${apiTokenIssuer}`, { reqheaders: { "Content-Type": "application/x-www-form-urlencoded"} })
+    const scope = nock(`https://${apiTokenIssuer}`, { reqheaders: { "Content-Type": "application/x-www-form-urlencoded" } })
       .post("/oauth/token")
       .reply(statusCode, {
         access_token: accessToken,
         expires_in: expiresIn,
       }, headers);
+    return persist ? scope.persist() : scope;
   },
   listStores: (
     basePath = defaultConfiguration.getBasePath(),
@@ -142,8 +144,8 @@ export const getNocks = ((nock: typeof Nock) => ({
       .query({
         page_size: pageSize,
         continuation_token: contToken,
-        ...(type ? { type } : { }),
-        ...(startTime ? {start_time: startTime } :{})
+        ...(type ? { type } : {}),
+        ...(startTime ? { start_time: startTime } : {})
       })
       .reply(200, {
         changes: [{
@@ -162,10 +164,10 @@ export const getNocks = ((nock: typeof Nock) => ({
     storeId: string,
     tuple: TupleKey,
     basePath = defaultConfiguration.getBasePath(),
-    consistency: ConsistencyPreference|undefined = undefined,
+    consistency: ConsistencyPreference | undefined = undefined,
   ) => {
     return nock(basePath)
-      .post(`/stores/${storeId}/read`, (body: ReadRequest) => 
+      .post(`/stores/${storeId}/read`, (body: ReadRequest) =>
         body.consistency === consistency
       )
       .reply(200, { tuples: [], continuation_token: "" } as ReadResponse);
@@ -195,7 +197,7 @@ export const getNocks = ((nock: typeof Nock) => ({
     basePath = defaultConfiguration.getBasePath(),
     response: { allowed: boolean } | { code: string, message: string } = { allowed: true },
     statusCode = 200,
-    consistency: ConsistencyPreference|undefined = undefined,
+    consistency: ConsistencyPreference | undefined = undefined,
   ) => {
     return nock(basePath)
       .post(`/stores/${storeId}/check`, (body: CheckRequest) =>
@@ -210,7 +212,7 @@ export const getNocks = ((nock: typeof Nock) => ({
     storeId: string,
     responseBody: BatchCheckResponse,
     basePath = defaultConfiguration.getBasePath(),
-    consistency: ConsistencyPreference|undefined | undefined,
+    consistency: ConsistencyPreference | undefined | undefined,
     authorizationModelId = "auth-model-id",
   ) => {
     return nock(basePath)
@@ -224,10 +226,10 @@ export const getNocks = ((nock: typeof Nock) => ({
     storeId: string,
     tuple: TupleKey,
     basePath = defaultConfiguration.getBasePath(),
-    consistency: ConsistencyPreference|undefined = undefined,
+    consistency: ConsistencyPreference | undefined = undefined,
   ) => {
     return nock(basePath)
-      .post(`/stores/${storeId}/expand`, (body: ExpandRequest) => 
+      .post(`/stores/${storeId}/expand`, (body: ExpandRequest) =>
         body.consistency === consistency
       )
       .reply(200, { tree: {} } as ExpandResponse);
@@ -236,7 +238,7 @@ export const getNocks = ((nock: typeof Nock) => ({
     storeId: string,
     responseBody: ListObjectsResponse,
     basePath = defaultConfiguration.getBasePath(),
-    consistency: ConsistencyPreference|undefined = undefined,
+    consistency: ConsistencyPreference | undefined = undefined,
   ) => {
     return nock(basePath)
       .post(`/stores/${storeId}/list-objects`, (body: ListUsersRequest) =>
@@ -248,10 +250,10 @@ export const getNocks = ((nock: typeof Nock) => ({
     storeId: string,
     responseBody: ListUsersResponse,
     basePath = defaultConfiguration.getBasePath(),
-    consistency: ConsistencyPreference|undefined = undefined
+    consistency: ConsistencyPreference | undefined = undefined
   ) => {
     return nock(basePath)
-      .post(`/stores/${storeId}/list-users`, (body: ListUsersRequest) => 
+      .post(`/stores/${storeId}/list-users`, (body: ListUsersRequest) =>
         body.consistency === consistency
       )
       .reply(200, responseBody);
