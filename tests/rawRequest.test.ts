@@ -4,26 +4,25 @@ import {
     OpenFgaClient,
     FgaApiNotFoundError,
     FgaApiValidationError,
+    CredentialsMethod,
 } from "../index";
 import {
     baseConfig,
     defaultConfiguration,
-    OPENFGA_API_TOKEN_ISSUER,
     OPENFGA_STORE_ID,
 } from "./helpers/default-config";
-import { getNocks } from "./helpers/nocks";
 
-const nocks = getNocks(nock);
 nock.disableNetConnect();
 
 describe("OpenFgaClient.rawRequest", () => {
     let fgaClient: OpenFgaClient;
     const basePath = defaultConfiguration.getBasePath();
-    let tokenScope: nock.Scope;
 
     beforeEach(() => {
-        tokenScope = nocks.tokenExchange(OPENFGA_API_TOKEN_ISSUER, "test-token", 300, 200, {},);
-        fgaClient = new OpenFgaClient({ ...baseConfig });
+        fgaClient = new OpenFgaClient({
+            ...baseConfig,
+            credentials: { method: CredentialsMethod.None }
+        });
     });
 
     afterEach(() => {
@@ -232,16 +231,27 @@ describe("OpenFgaClient.rawRequest", () => {
     });
 
     describe("authentication", () => {
-        it("should include authentication headers", async () => {
+        it("should include authentication headers when configured", async () => {
+            // Create a client with ApiToken authentication
+            const authenticatedClient = new OpenFgaClient({
+                ...baseConfig,
+                credentials: {
+                    method: CredentialsMethod.ApiToken,
+                    config: {
+                        token: "test-api-token",
+                    },
+                },
+            });
+
             nock(basePath, {
                 reqheaders: {
-                    Authorization: "Bearer test-token",
+                    Authorization: "Bearer test-api-token",
                 },
             })
                 .get("/stores")
                 .reply(200, {});
 
-            await fgaClient.rawRequest({
+            await authenticatedClient.rawRequest({
                 method: "GET",
                 path: "/stores",
             });
@@ -255,11 +265,12 @@ describe("OpenFgaClient.rawRequest", () => {
 describe("OpenFgaClient.rawRequest - path parameters", () => {
     let fgaClient: OpenFgaClient;
     const basePath = defaultConfiguration.getBasePath();
-    let tokenScope: nock.Scope;
 
     beforeEach(() => {
-        tokenScope = nocks.tokenExchange(OPENFGA_API_TOKEN_ISSUER, "test-token", 300, 200, {});
-        fgaClient = new OpenFgaClient({ ...baseConfig });
+        fgaClient = new OpenFgaClient({
+            ...baseConfig,
+            credentials: { method: CredentialsMethod.None }
+        });
     });
 
     afterEach(() => {
