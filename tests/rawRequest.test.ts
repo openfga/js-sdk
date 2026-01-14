@@ -18,13 +18,9 @@ nock.disableNetConnect();
 
 describe("OpenFgaClient.rawRequest", () => {
     let fgaClient: OpenFgaClient;
-<<<<<<< HEAD
     // Use regex for nock to match requests with or without explicit :443 port
     const basePath = /https:\/\/api\.fga\.example/;
-=======
-    const basePath = defaultConfiguration.getBasePath();
     let tokenScope: nock.Scope;
->>>>>>> parent of 1a1e8f6 (Updated RawRequest.test.ts by comparing it to go-sdk)
 
     beforeEach(() => {
         tokenScope = nocks.tokenExchange(OPENFGA_API_TOKEN_ISSUER, "test-token", 300, 200, {},);
@@ -259,13 +255,9 @@ describe("OpenFgaClient.rawRequest", () => {
 
 describe("OpenFgaClient.rawRequest - path parameters", () => {
     let fgaClient: OpenFgaClient;
-<<<<<<< HEAD
     // Use regex for nock to match requests with or without explicit :443 port
     const basePath = /https:\/\/api\.fga\.example/;
-=======
-    const basePath = defaultConfiguration.getBasePath();
     let tokenScope: nock.Scope;
->>>>>>> parent of 1a1e8f6 (Updated RawRequest.test.ts by comparing it to go-sdk)
 
     beforeEach(() => {
         tokenScope = nocks.tokenExchange(OPENFGA_API_TOKEN_ISSUER, "test-token", 300, 200, {});
