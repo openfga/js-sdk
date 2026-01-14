@@ -120,8 +120,8 @@ export type ClientRequestOptsWithConsistency = ClientRequestOpts & StoreIdOpts &
 export type PaginationOptions = { pageSize?: number, continuationToken?: string, name?: string; };
 
 export type ClientCheckRequest = CheckRequestTupleKey &
-  Pick<CheckRequest, "context"> &
-{ contextualTuples?: Array<TupleKey> };
+    Pick<CheckRequest, "context"> &
+    { contextualTuples?: Array<TupleKey> };
 
 export type ClientBatchCheckClientRequest = ClientCheckRequest[];
 
@@ -160,17 +160,17 @@ export type ClientBatchCheckRequest = {
 
 // for server batch check
 export interface ClientBatchCheckRequestOpts {
-  maxParallelRequests?: number;
-  maxBatchSize?: number;
+    maxParallelRequests?: number;
+    maxBatchSize?: number;
 }
 
 
 // for server batch check
 export type ClientBatchCheckSingleResponse = {
-  allowed: boolean;
-  request: ClientBatchCheckItem;
-  correlationId: string;
-  error?: CheckError;
+    allowed: boolean;
+    request: ClientBatchCheckItem;
+    correlationId: string;
+    error?: CheckError;
 }
 
 export interface ClientBatchCheckResponse {
@@ -244,17 +244,17 @@ export interface ClientReadChangesRequest {
 }
 
 export type ClientExpandRequest = ExpandRequestTupleKey & Omit<ExpandRequest, "tuple_key" | "authorization_model_id" | "contextual_tuples" | "consistency"> & {
-  contextualTuples?: Array<TupleKey>
+    contextualTuples?: Array<TupleKey>
 };
 export type ClientReadRequest = ReadRequestTupleKey;
 export type ClientListObjectsRequest = Omit<ListObjectsRequest, "authorization_model_id" | "contextual_tuples" | "consistency"> & {
-  contextualTuples?: Array<TupleKey>
+    contextualTuples?: Array<TupleKey>
 };
 export type ClientListUsersRequest = Omit<ListUsersRequest, "authorization_model_id" | "contextual_tuples" | "consistency"> & {
-  contextualTuples?: Array<TupleKey>
+    contextualTuples?: Array<TupleKey>
 };
 export type ClientListRelationsRequest = Omit<ClientCheckRequest, "relation" | "consistency"> & {
-  relations?: string[],
+    relations?: string[],
 };
 export type ClientWriteAssertionsRequest = (CheckRequestTupleKey & Pick<Assertion, "expectation">)[];
 
@@ -584,7 +584,7 @@ export class OpenFgaClient extends BaseAPI {
     const writeResponses: ClientWriteSingleResponse[][] = [];
     if (writes?.length) {
       for await (const singleChunkResponse of asyncPool(maxParallelRequests, chunkArray(writes, maxPerChunk),
-        (chunk) => this.writeTuples(chunk, { ...options, headers, conflict, transaction: undefined }).catch(err => {
+        (chunk) => this.writeTuples(chunk,{ ...options, headers, conflict, transaction: undefined }).catch(err => {
           if (err instanceof FgaApiAuthenticationError) {
             throw err;
           }
@@ -739,7 +739,7 @@ export class OpenFgaClient extends BaseAPI {
 
 
 
-  private singleBatchCheck(body: BatchCheckRequest, options: ClientRequestOptsWithConsistency & ClientBatchCheckRequestOpts = {}): Promise<BatchCheckResponse> {
+  private singleBatchCheck(body: BatchCheckRequest, options: ClientRequestOptsWithConsistency & ClientBatchCheckRequestOpts = {}): Promise<BatchCheckResponse>{
     return this.api.batchCheck(this.getStoreId(options)!, body, options);
   }
 
@@ -817,7 +817,7 @@ export class OpenFgaClient extends BaseAPI {
 
     // Collect the responses and associate them with their correlation IDs
     for await (const response of batchResponses) {
-      if (response) {
+      if (response) { 
         for (const [correlationId, result] of Object.entries(response)) {
           const check = correlationIdToCheck.get(correlationId);
           if (check && result) {
@@ -833,7 +833,7 @@ export class OpenFgaClient extends BaseAPI {
     }
 
     return { result: results };
-  }
+  } 
 
   /**
    * Expand - Expands the relationships in userset tree format (evaluates)
