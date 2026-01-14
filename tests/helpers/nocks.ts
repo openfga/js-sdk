@@ -37,6 +37,11 @@ export const getNocks = ((nock: typeof Nock) => ({
     persist = false,
   ) => {
     return nock(`https://${apiTokenIssuer}`, { reqheaders: { "Content-Type": "application/x-www-form-urlencoded"} })
+      .post("/oauth/token")
+      .reply(statusCode, {
+        access_token: accessToken,
+        expires_in: expiresIn,
+      }, headers);
   },
   listStores: (
     basePath = defaultConfiguration.getBasePath(),
@@ -206,11 +211,11 @@ export const getNocks = ((nock: typeof Nock) => ({
     storeId: string,
     responseBody: BatchCheckResponse,
     basePath = defaultConfiguration.getBasePath(),
-    consistency: ConsistencyPreference | undefined | undefined,
+    consistency: ConsistencyPreference|undefined | undefined,
     authorizationModelId = "auth-model-id",
   ) => {
     return nock(basePath)
-      .post(`/stores/${storeId}/batch-check`, (body: BatchCheckRequest) =>
+      .post(`/stores/${storeId}/batch-check`, (body: BatchCheckRequest) => 
         body.consistency === consistency &&
         body.authorization_model_id === authorizationModelId
       )
@@ -223,7 +228,7 @@ export const getNocks = ((nock: typeof Nock) => ({
     consistency: ConsistencyPreference|undefined = undefined,
   ) => {
     return nock(basePath)
-      .post(`/stores/${storeId}/expand`, (body: ExpandRequest) =>
+      .post(`/stores/${storeId}/expand`, (body: ExpandRequest) => 
         body.consistency === consistency
       )
       .reply(200, { tree: {} } as ExpandResponse);
@@ -247,7 +252,7 @@ export const getNocks = ((nock: typeof Nock) => ({
     consistency: ConsistencyPreference|undefined = undefined
   ) => {
     return nock(basePath)
-      .post(`/stores/${storeId}/list-users`, (body: ListUsersRequest) =>
+      .post(`/stores/${storeId}/list-users`, (body: ListUsersRequest) => 
         body.consistency === consistency
       )
       .reply(200, responseBody);
