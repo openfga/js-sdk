@@ -739,7 +739,7 @@ export class OpenFgaClient extends BaseAPI {
 
 
 
-  private singleBatchCheck(body: BatchCheckRequest, options: ClientRequestOptsWithConsistency & ClientBatchCheckRequestOpts = {}): Promise<BatchCheckResponse>{
+  private singleBatchCheck(body: BatchCheckRequest, options: ClientRequestOptsWithConsistency & ClientBatchCheckRequestOpts = {}): Promise<BatchCheckResponse>  {
     return this.api.batchCheck(this.getStoreId(options)!, body, options);
   }
 
