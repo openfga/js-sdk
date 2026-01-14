@@ -334,8 +334,9 @@ describe("OpenFgaClient.rawRequest - path parameters", () => {
             const id = "test/with?special&chars";
             const encodedId = encodeURIComponent(id);
 
+            // Use regex matching to handle URL-encoded special characters properly
             nock(basePath)
-                .get(`/items/${encodedId}`)
+                .get(new RegExp(`/items/${encodedId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`))
                 .reply(200, { id: id });
 
             const result = await fgaClient.rawRequest({
@@ -351,8 +352,9 @@ describe("OpenFgaClient.rawRequest - path parameters", () => {
             const name = "用户";
             const encodedName = encodeURIComponent(name); // %E7%94%A8%E6%88%B7
 
+            // Use regex matching to handle URL-encoded unicode characters properly
             nock(basePath)
-                .get(`/users/${encodedName}`)
+                .get(new RegExp(`/users/${encodedName}`))
                 .reply(200, { name: name });
 
             const result = await fgaClient.rawRequest({
