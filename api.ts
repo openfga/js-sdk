@@ -152,11 +152,11 @@ export const OpenFgaApiAxiosParamCreator = function (configuration: Configuratio
       const localVarQueryParameter = {} as any;
 
 
-      
+    
       localVarHeaderParameter["Content-Type"] = "application/json";
 
       setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
-      localVarRequestOptions.headers = {...localVarHeaderParameter, ...options.headers };
+      localVarRequestOptions.headers = {...localVarHeaderParameter, ...options.headers};
       localVarRequestOptions.data = serializeDataIfNeeded(body, localVarRequestOptions);
 
       return {
@@ -191,11 +191,11 @@ export const OpenFgaApiAxiosParamCreator = function (configuration: Configuratio
       const localVarQueryParameter = {} as any;
 
 
-
+    
       localVarHeaderParameter["Content-Type"] = "application/json";
 
       setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
-      localVarRequestOptions.headers = {...localVarHeaderParameter, ...options.headers };
+      localVarRequestOptions.headers = {...localVarHeaderParameter, ...options.headers};
       localVarRequestOptions.data = serializeDataIfNeeded(body, localVarRequestOptions);
 
       return {
@@ -227,11 +227,11 @@ export const OpenFgaApiAxiosParamCreator = function (configuration: Configuratio
       const localVarQueryParameter = {} as any;
 
 
-
+    
       localVarHeaderParameter["Content-Type"] = "application/json";
 
       setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
-      localVarRequestOptions.headers = {...localVarHeaderParameter, ...options.headers };
+      localVarRequestOptions.headers = {...localVarHeaderParameter, ...options.headers};
       localVarRequestOptions.data = serializeDataIfNeeded(body, localVarRequestOptions);
 
       return {
@@ -263,9 +263,9 @@ export const OpenFgaApiAxiosParamCreator = function (configuration: Configuratio
       const localVarQueryParameter = {} as any;
 
 
-
+    
       setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
-      localVarRequestOptions.headers = {...localVarHeaderParameter, ...options.headers };
+      localVarRequestOptions.headers = {...localVarHeaderParameter, ...options.headers};
 
       return {
         url: toPathString(localVarUrlObj),
@@ -299,7 +299,7 @@ export const OpenFgaApiAxiosParamCreator = function (configuration: Configuratio
       const localVarQueryParameter = {} as any;
 
 
-
+    
       localVarHeaderParameter["Content-Type"] = "application/json";
 
       setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
@@ -335,7 +335,7 @@ export const OpenFgaApiAxiosParamCreator = function (configuration: Configuratio
       const localVarQueryParameter = {} as any;
 
 
-
+    
       setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
       localVarRequestOptions.headers = {...localVarHeaderParameter, ...options.headers};
 
@@ -371,7 +371,7 @@ export const OpenFgaApiAxiosParamCreator = function (configuration: Configuratio
       const localVarQueryParameter = {} as any;
 
 
-
+    
       localVarHeaderParameter["Content-Type"] = "application/json";
 
       setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
@@ -419,7 +419,7 @@ export const OpenFgaApiAxiosParamCreator = function (configuration: Configuratio
       }
 
 
-
+    
       setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
       localVarRequestOptions.headers = {...localVarHeaderParameter, ...options.headers};
 
@@ -455,7 +455,7 @@ export const OpenFgaApiAxiosParamCreator = function (configuration: Configuratio
       const localVarQueryParameter = {} as any;
 
 
-
+    
       localVarHeaderParameter["Content-Type"] = "application/json";
 
       setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
@@ -494,7 +494,7 @@ export const OpenFgaApiAxiosParamCreator = function (configuration: Configuratio
       const localVarQueryParameter = {} as any;
 
 
-
+    
       localVarHeaderParameter["Content-Type"] = "application/json";
 
       setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
@@ -533,7 +533,7 @@ export const OpenFgaApiAxiosParamCreator = function (configuration: Configuratio
       const localVarQueryParameter = {} as any;
 
 
-
+    
       setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
       localVarRequestOptions.headers = {...localVarHeaderParameter, ...options.headers};
 
@@ -569,7 +569,7 @@ export const OpenFgaApiAxiosParamCreator = function (configuration: Configuratio
       const localVarQueryParameter = {} as any;
 
 
-
+    
       setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
       localVarRequestOptions.headers = {...localVarHeaderParameter, ...options.headers};
 
@@ -612,7 +612,7 @@ export const OpenFgaApiAxiosParamCreator = function (configuration: Configuratio
       }
 
 
-
+    
       setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
       localVarRequestOptions.headers = {...localVarHeaderParameter, ...options.headers};
 
@@ -667,7 +667,7 @@ export const OpenFgaApiAxiosParamCreator = function (configuration: Configuratio
       }
 
 
-
+    
       setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
       localVarRequestOptions.headers = {...localVarHeaderParameter, ...options.headers};
 
@@ -703,7 +703,7 @@ export const OpenFgaApiAxiosParamCreator = function (configuration: Configuratio
       const localVarQueryParameter = {} as any;
 
 
-
+    
       localVarHeaderParameter["Content-Type"] = "application/json";
 
       setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
@@ -745,7 +745,7 @@ export const OpenFgaApiAxiosParamCreator = function (configuration: Configuratio
       const localVarQueryParameter = {} as any;
 
 
-
+    
       localVarHeaderParameter["Content-Type"] = "application/json";
 
       setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
@@ -784,7 +784,7 @@ export const OpenFgaApiAxiosParamCreator = function (configuration: Configuratio
       const localVarQueryParameter = {} as any;
 
 
-
+    
       localVarHeaderParameter["Content-Type"] = "application/json";
 
       setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
