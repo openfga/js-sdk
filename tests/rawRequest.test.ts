@@ -4,26 +4,31 @@ import {
     OpenFgaClient,
     FgaApiNotFoundError,
     FgaApiValidationError,
-    CredentialsMethod,
 } from "../index";
 import {
     baseConfig,
     defaultConfiguration,
+    OPENFGA_API_TOKEN_ISSUER,
     OPENFGA_STORE_ID,
 } from "./helpers/default-config";
+import { getNocks } from "./helpers/nocks";
 
+const nocks = getNocks(nock);
 nock.disableNetConnect();
 
 describe("OpenFgaClient.rawRequest", () => {
     let fgaClient: OpenFgaClient;
+<<<<<<< HEAD
     // Use regex for nock to match requests with or without explicit :443 port
     const basePath = /https:\/\/api\.fga\.example/;
+=======
+    const basePath = defaultConfiguration.getBasePath();
+    let tokenScope: nock.Scope;
+>>>>>>> parent of 1a1e8f6 (Updated RawRequest.test.ts by comparing it to go-sdk)
 
     beforeEach(() => {
-        fgaClient = new OpenFgaClient({
-            ...baseConfig,
-            credentials: { method: CredentialsMethod.None }
-        });
+        tokenScope = nocks.tokenExchange(OPENFGA_API_TOKEN_ISSUER, "test-token", 300, 200, {},);
+        fgaClient = new OpenFgaClient({ ...baseConfig });
     });
 
     afterEach(() => {
@@ -232,27 +237,16 @@ describe("OpenFgaClient.rawRequest", () => {
     });
 
     describe("authentication", () => {
-        it("should include authentication headers when configured", async () => {
-            // Create a client with ApiToken authentication
-            const authenticatedClient = new OpenFgaClient({
-                ...baseConfig,
-                credentials: {
-                    method: CredentialsMethod.ApiToken,
-                    config: {
-                        token: "test-api-token",
-                    },
-                },
-            });
-
+        it("should include authentication headers", async () => {
             nock(basePath, {
                 reqheaders: {
-                    Authorization: "Bearer test-api-token",
+                    Authorization: "Bearer test-token",
                 },
             })
                 .get("/stores")
                 .reply(200, {});
 
-            await authenticatedClient.rawRequest({
+            await fgaClient.rawRequest({
                 method: "GET",
                 path: "/stores",
             });
@@ -265,14 +259,17 @@ describe("OpenFgaClient.rawRequest", () => {
 
 describe("OpenFgaClient.rawRequest - path parameters", () => {
     let fgaClient: OpenFgaClient;
+<<<<<<< HEAD
     // Use regex for nock to match requests with or without explicit :443 port
     const basePath = /https:\/\/api\.fga\.example/;
+=======
+    const basePath = defaultConfiguration.getBasePath();
+    let tokenScope: nock.Scope;
+>>>>>>> parent of 1a1e8f6 (Updated RawRequest.test.ts by comparing it to go-sdk)
 
     beforeEach(() => {
-        fgaClient = new OpenFgaClient({
-            ...baseConfig,
-            credentials: { method: CredentialsMethod.None }
-        });
+        tokenScope = nocks.tokenExchange(OPENFGA_API_TOKEN_ISSUER, "test-token", 300, 200, {});
+        fgaClient = new OpenFgaClient({ ...baseConfig });
     });
 
     afterEach(() => {
