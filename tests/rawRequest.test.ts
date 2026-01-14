@@ -16,7 +16,8 @@ nock.disableNetConnect();
 
 describe("OpenFgaClient.rawRequest", () => {
     let fgaClient: OpenFgaClient;
-    const basePath = defaultConfiguration.getBasePath();
+    // Use basePath with explicit port for nock to match requests in CI where axios includes :443
+    const basePath = "https://api.fga.example:443";
 
     beforeEach(() => {
         fgaClient = new OpenFgaClient({
@@ -264,7 +265,8 @@ describe("OpenFgaClient.rawRequest", () => {
 
 describe("OpenFgaClient.rawRequest - path parameters", () => {
     let fgaClient: OpenFgaClient;
-    const basePath = defaultConfiguration.getBasePath();
+    // Use basePath with explicit port for nock to match requests in CI where axios includes :443
+    const basePath = "https://api.fga.example:443";
 
     beforeEach(() => {
         fgaClient = new OpenFgaClient({
