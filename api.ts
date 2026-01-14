@@ -152,7 +152,7 @@ export const OpenFgaApiAxiosParamCreator = function (configuration: Configuratio
       const localVarQueryParameter = {} as any;
 
 
-
+      
       localVarHeaderParameter["Content-Type"] = "application/json";
 
       setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
