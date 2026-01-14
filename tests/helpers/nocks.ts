@@ -36,13 +36,7 @@ export const getNocks = ((nock: typeof Nock) => ({
     headers = {},
     persist = false,
   ) => {
-    const scope = nock(`https://${apiTokenIssuer}`, { reqheaders: { "Content-Type": "application/x-www-form-urlencoded" } })
-      .post("/oauth/token")
-      .reply(statusCode, {
-        access_token: accessToken,
-        expires_in: expiresIn,
-      }, headers);
-    return persist ? scope.persist() : scope;
+    return nock(`https://${apiTokenIssuer}`, { reqheaders: { "Content-Type": "application/x-www-form-urlencoded"} })
   },
   listStores: (
     basePath = defaultConfiguration.getBasePath(),
@@ -144,8 +138,8 @@ export const getNocks = ((nock: typeof Nock) => ({
       .query({
         page_size: pageSize,
         continuation_token: contToken,
-        ...(type ? { type } : {}),
-        ...(startTime ? { start_time: startTime } : {})
+        ...(type ? { type } : { }),
+        ...(startTime ? {start_time: startTime } :{})
       })
       .reply(200, {
         changes: [{
@@ -164,10 +158,10 @@ export const getNocks = ((nock: typeof Nock) => ({
     storeId: string,
     tuple: TupleKey,
     basePath = defaultConfiguration.getBasePath(),
-    consistency: ConsistencyPreference | undefined = undefined,
+    consistency: ConsistencyPreference|undefined = undefined,
   ) => {
     return nock(basePath)
-      .post(`/stores/${storeId}/read`, (body: ReadRequest) =>
+      .post(`/stores/${storeId}/read`, (body: ReadRequest) => 
         body.consistency === consistency
       )
       .reply(200, { tuples: [], continuation_token: "" } as ReadResponse);
@@ -197,7 +191,7 @@ export const getNocks = ((nock: typeof Nock) => ({
     basePath = defaultConfiguration.getBasePath(),
     response: { allowed: boolean } | { code: string, message: string } = { allowed: true },
     statusCode = 200,
-    consistency: ConsistencyPreference | undefined = undefined,
+    consistency: ConsistencyPreference|undefined = undefined,
   ) => {
     return nock(basePath)
       .post(`/stores/${storeId}/check`, (body: CheckRequest) =>
@@ -226,7 +220,7 @@ export const getNocks = ((nock: typeof Nock) => ({
     storeId: string,
     tuple: TupleKey,
     basePath = defaultConfiguration.getBasePath(),
-    consistency: ConsistencyPreference | undefined = undefined,
+    consistency: ConsistencyPreference|undefined = undefined,
   ) => {
     return nock(basePath)
       .post(`/stores/${storeId}/expand`, (body: ExpandRequest) =>
@@ -238,10 +232,10 @@ export const getNocks = ((nock: typeof Nock) => ({
     storeId: string,
     responseBody: ListObjectsResponse,
     basePath = defaultConfiguration.getBasePath(),
-    consistency: ConsistencyPreference | undefined = undefined,
+    consistency: ConsistencyPreference|undefined = undefined,
   ) => {
     return nock(basePath)
-      .post(`/stores/${storeId}/list-objects`, (body: ListUsersRequest) =>
+      .post(`/stores/${storeId}/list-objects`, (body: ListUsersRequest) => 
         body.consistency === consistency
       )
       .reply(200, responseBody);
@@ -250,7 +244,7 @@ export const getNocks = ((nock: typeof Nock) => ({
     storeId: string,
     responseBody: ListUsersResponse,
     basePath = defaultConfiguration.getBasePath(),
-    consistency: ConsistencyPreference | undefined = undefined
+    consistency: ConsistencyPreference|undefined = undefined
   ) => {
     return nock(basePath)
       .post(`/stores/${storeId}/list-users`, (body: ListUsersRequest) =>
