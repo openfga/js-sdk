@@ -22,7 +22,7 @@ describe("OpenFgaClient.rawRequest", () => {
     let tokenScope: nock.Scope;
 
     beforeEach(() => {
-        tokenScope = nocks.tokenExchange(OPENFGA_API_TOKEN_ISSUER, "test-token", 300, 200, {}, true);
+        tokenScope = nocks.tokenExchange(OPENFGA_API_TOKEN_ISSUER, "test-token", 300, 200, {},);
         fgaClient = new OpenFgaClient({ ...baseConfig });
     });
 
@@ -258,7 +258,7 @@ describe("OpenFgaClient.rawRequest - path parameters", () => {
     let tokenScope: nock.Scope;
 
     beforeEach(() => {
-        tokenScope = nocks.tokenExchange(OPENFGA_API_TOKEN_ISSUER, "test-token", 300, 200, {}, true);
+        tokenScope = nocks.tokenExchange(OPENFGA_API_TOKEN_ISSUER, "test-token", 300, 200, {});
         fgaClient = new OpenFgaClient({ ...baseConfig });
     });
 
