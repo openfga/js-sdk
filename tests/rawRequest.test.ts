@@ -9,8 +9,15 @@ import {
 import {
     baseConfig,
     OPENFGA_STORE_ID,
-} from "./helpers/default-config";
-nock.disableNetConnect();
+} from "./helpers";
+
+beforeAll(() => {
+    nock.disableNetConnect();
+});
+
+afterAll(() => {
+    nock.restore();
+});
 
 describe("OpenFgaClient.rawRequest", () => {
     let fgaClient: OpenFgaClient;
