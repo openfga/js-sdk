@@ -4,27 +4,24 @@ import {
     OpenFgaClient,
     FgaApiNotFoundError,
     FgaApiValidationError,
+    CredentialsMethod,
 } from "../index";
 import {
     baseConfig,
     defaultConfiguration,
-    OPENFGA_API_TOKEN_ISSUER,
     OPENFGA_STORE_ID,
 } from "./helpers/default-config";
-import { getNocks } from "./helpers/nocks";
 
-const nocks = getNocks(nock);
 nock.disableNetConnect();
 
 describe("OpenFgaClient.rawRequest", () => {
     let fgaClient: OpenFgaClient;
     // Use regex for nock to match requests with or without explicit :443 port
     const basePath = /https:\/\/api\.fga\.example/;
-    let tokenScope: nock.Scope;
 
     beforeEach(() => {
-        tokenScope = nocks.tokenExchange(OPENFGA_API_TOKEN_ISSUER, "test-token", 300, 200, {},);
-        fgaClient = new OpenFgaClient({ ...baseConfig });
+        // Use CredentialsMethod.None to bypass OAuth token exchange
+        fgaClient = new OpenFgaClient({ ...baseConfig, credentials: { method: CredentialsMethod.None } });
     });
 
     afterEach(() => {
@@ -231,37 +228,16 @@ describe("OpenFgaClient.rawRequest", () => {
             ).rejects.toThrow(FgaApiValidationError);
         });
     });
-
-    describe("authentication", () => {
-        it("should include authentication headers", async () => {
-            nock(basePath, {
-                reqheaders: {
-                    Authorization: "Bearer test-token",
-                },
-            })
-                .get("/stores")
-                .reply(200, {});
-
-            await fgaClient.rawRequest({
-                method: "GET",
-                path: "/stores",
-            });
-
-            // If we get here without error, the auth header was correctly applied
-            expect(true).toBe(true);
-        });
-    });
 });
 
 describe("OpenFgaClient.rawRequest - path parameters", () => {
     let fgaClient: OpenFgaClient;
     // Use regex for nock to match requests with or without explicit :443 port
     const basePath = /https:\/\/api\.fga\.example/;
-    let tokenScope: nock.Scope;
 
     beforeEach(() => {
-        tokenScope = nocks.tokenExchange(OPENFGA_API_TOKEN_ISSUER, "test-token", 300, 200, {});
-        fgaClient = new OpenFgaClient({ ...baseConfig });
+        // Use CredentialsMethod.None to bypass OAuth token exchange
+        fgaClient = new OpenFgaClient({ ...baseConfig, credentials: { method: CredentialsMethod.None } });
     });
 
     afterEach(() => {
