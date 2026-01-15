@@ -35,15 +35,30 @@ export const getNocks = ((nock: typeof Nock) => ({
     statusCode = 200,
     headers = {},
   ) => {
-    // Use regex to match URLs with or without explicit :443 port (CI environments may include the port)
-    const escapedIssuer = apiTokenIssuer.replace(/\./g, "\\.");
-    const tokenIssuerPattern = new RegExp("https://" + escapedIssuer + "(:\\d+)?");
-    return nock(tokenIssuerPattern, { reqheaders: { "Content-Type": "application/x-www-form-urlencoded" } })
+    // Set up TWO nock scopes to handle both URL formats:
+    // - Without port: https://tokenissuer.fga.example (local environment)
+    // - With port: https://tokenissuer.fga.example:443 (CI environment)
+    const replyBody = {
+      access_token: accessToken,
+      expires_in: expiresIn,
+    };
+    const reqheaders = { "Content-Type": "application/x-www-form-urlencoded" };
+
+    // Scope 1: Without explicit port
+    const scope1 = nock(`https://${apiTokenIssuer}`, { reqheaders })
       .post("/oauth/token")
-      .reply(statusCode, {
-        access_token: accessToken,
-        expires_in: expiresIn,
-      }, headers);
+      .reply(statusCode, replyBody, headers);
+
+    // Scope 2: With explicit :443 port (for CI environments)
+    const scope2 = nock(`https://${apiTokenIssuer}:443`, { reqheaders })
+      .post("/oauth/token")
+      .reply(statusCode, replyBody, headers);
+
+    // Return a proxy object that considers the mock "done" if EITHER scope was used
+    return {
+      isDone: () => scope1.isDone() || scope2.isDone(),
+      pendingMocks: () => [...scope1.pendingMocks(), ...scope2.pendingMocks()],
+    } as Nock.Scope;
   },
   listStores: (
     basePath = defaultConfiguration.getBasePath(),
