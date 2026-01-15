@@ -61,7 +61,7 @@ jobs:
         run: npx madge --circular . --extensions ts,js
 
       - name: Run tests
-        run: npm test -- --runInBand
+        run: npm test
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5.5.2
