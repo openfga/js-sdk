@@ -37,7 +37,7 @@ export const getNocks = ((nock: typeof Nock) => ({
   ) => {
     // Use regex to match URLs with or without explicit :443 port (CI environments may include the port)
     const escapedIssuer = apiTokenIssuer.replace(/\./g, "\\.");
-    const tokenIssuerPattern = new RegExp("^https://" + escapedIssuer + "(:\\d+)?$");
+    const tokenIssuerPattern = new RegExp("https://" + escapedIssuer + "(:\\d+)?");
     return nock(tokenIssuerPattern, { reqheaders: { "Content-Type": "application/x-www-form-urlencoded" } })
       .post("/oauth/token")
       .reply(statusCode, {
