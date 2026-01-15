@@ -18,7 +18,7 @@ describe("OpenFgaClient.rawRequest", () => {
     };
     let fgaClient: OpenFgaClient;
 
-    beforeEach(() => {
+    beforeAll(() => {
         fgaClient = new OpenFgaClient(testConfig);
     });
 
@@ -237,7 +237,7 @@ describe("OpenFgaClient.rawRequest - path parameters", () => {
     };
     let fgaClient: OpenFgaClient;
 
-    beforeEach(() => {
+    beforeAll(() => {
         fgaClient = new OpenFgaClient(testConfig);
     });
 
