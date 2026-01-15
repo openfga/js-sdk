@@ -16,8 +16,8 @@ nock.disableNetConnect();
 
 describe("OpenFgaClient.rawRequest", () => {
     let fgaClient: OpenFgaClient;
-    // Use regex for nock to match requests with or without explicit :443 port
-    const basePath = /https:\/\/api\.fga\.example/;
+    // Use regex for nock to match requests with or without explicit :443 port (CI environments may include the port)
+    const basePath = /https:\/\/api\.fga\.example(:\d+)?/;
 
     beforeEach(() => {
         // Use CredentialsMethod.None to bypass OAuth token exchange
@@ -232,8 +232,8 @@ describe("OpenFgaClient.rawRequest", () => {
 
 describe("OpenFgaClient.rawRequest - path parameters", () => {
     let fgaClient: OpenFgaClient;
-    // Use regex for nock to match requests with or without explicit :443 port
-    const basePath = /https:\/\/api\.fga\.example/;
+    // Use regex for nock to match requests with or without explicit :443 port (CI environments may include the port)
+    const basePath = /https:\/\/api\.fga\.example(:\d+)?/;
 
     beforeEach(() => {
         // Use CredentialsMethod.None to bypass OAuth token exchange
