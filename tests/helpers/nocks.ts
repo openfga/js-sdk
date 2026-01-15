@@ -35,7 +35,9 @@ export const getNocks = ((nock: typeof Nock) => ({
     statusCode = 200,
     headers = {},
   ) => {
-    return nock(`https://${apiTokenIssuer}`, { reqheaders: { "Content-Type": "application/x-www-form-urlencoded"} })
+    // Use regex to match URLs with or without explicit :443 port (CI environments may include the port)
+    const tokenIssuerPattern = new RegExp(`https://${apiTokenIssuer.replace(/\./g, "\\.")}(:\\d+)?`);
+    return nock(tokenIssuerPattern, { reqheaders: { "Content-Type": "application/x-www-form-urlencoded" } })
       .post("/oauth/token")
       .reply(statusCode, {
         access_token: accessToken,
