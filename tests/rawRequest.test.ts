@@ -8,15 +8,13 @@ import {
 } from "../index";
 import {
     baseConfig,
-    defaultConfiguration,
     OPENFGA_STORE_ID,
 } from "./helpers/default-config";
 nock.disableNetConnect();
 
 describe("OpenFgaClient.rawRequest", () => {
     let fgaClient: OpenFgaClient;
-    // Use defaultConfiguration.getBasePath() like other tests
-    const basePath = defaultConfiguration.getBasePath();
+    const basePath = baseConfig.apiUrl!;
     beforeEach(() => {
         // Use CredentialsMethod.None to bypass OAuth token exchange
         fgaClient = new OpenFgaClient({ ...baseConfig, credentials: { method: CredentialsMethod.None } });
@@ -232,8 +230,7 @@ describe("OpenFgaClient.rawRequest", () => {
 
 describe("OpenFgaClient.rawRequest - path parameters", () => {
     let fgaClient: OpenFgaClient;
-    // Use defaultConfiguration.getBasePath() like other tests
-    const basePath = defaultConfiguration.getBasePath();
+    const basePath = baseConfig.apiUrl!;
     beforeEach(() => {
         // Use CredentialsMethod.None to bypass OAuth token exchange
         fgaClient = new OpenFgaClient({ ...baseConfig, credentials: { method: CredentialsMethod.None } });
