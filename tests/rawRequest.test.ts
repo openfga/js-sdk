@@ -7,15 +7,20 @@ import {
     FgaApiValidationError,
 } from "../index";
 import { CredentialsMethod } from "../credentials";
-import { baseConfig, OPENFGA_STORE_ID } from "./helpers/default-config";
+import { baseConfig, defaultConfiguration, OPENFGA_STORE_ID } from "./helpers/default-config";
 
 nock.disableNetConnect();
 
 describe("OpenFgaClient.rawRequest", () => {
+    const basePath = defaultConfiguration.getBasePath();
     const testConfig: UserClientConfigurationParams = {
         ...baseConfig,
         credentials: { method: CredentialsMethod.None }
     };
+
+    beforeAll(() => {
+        nock.cleanAll();
+    });
 
     afterEach(() => {
         nock.cleanAll();
@@ -26,7 +31,7 @@ describe("OpenFgaClient.rawRequest", () => {
             const fgaClient = new OpenFgaClient(testConfig);
             const responseData = { stores: [{ id: "store-1", name: "Test Store" }] };
 
-            nock(testConfig.apiUrl!)
+            nock(basePath)
                 .get("/stores")
                 .reply(200, responseData);
 
@@ -42,7 +47,7 @@ describe("OpenFgaClient.rawRequest", () => {
             const fgaClient = new OpenFgaClient(testConfig);
             const responseData = { stores: [] };
 
-            nock(testConfig.apiUrl!)
+            nock(basePath)
                 .get("/stores")
                 .query({ page_size: 10, name: "test" })
                 .reply(200, responseData);
@@ -60,7 +65,7 @@ describe("OpenFgaClient.rawRequest", () => {
             const fgaClient = new OpenFgaClient(testConfig);
             const responseData = { stores: [] };
 
-            nock(testConfig.apiUrl!)
+            nock(basePath)
                 .get("/stores")
                 .reply(200, responseData);
 
@@ -80,7 +85,7 @@ describe("OpenFgaClient.rawRequest", () => {
             const requestBody = { name: "New Store" };
             const responseData = { id: "new-store-id", name: "New Store" };
 
-            nock(testConfig.apiUrl!)
+            nock(basePath)
                 .post("/stores", requestBody)
                 .reply(201, responseData);
 
@@ -97,7 +102,7 @@ describe("OpenFgaClient.rawRequest", () => {
             const fgaClient = new OpenFgaClient(testConfig);
             const requestBody = { foo: "bar" };
 
-            nock(testConfig.apiUrl!, {
+            nock(basePath, {
                 reqheaders: {
                     "Content-Type": "application/json",
                 },
@@ -121,7 +126,7 @@ describe("OpenFgaClient.rawRequest", () => {
             const fgaClient = new OpenFgaClient(testConfig);
             const requestBody = { name: "Updated Store" };
 
-            nock(testConfig.apiUrl!)
+            nock(basePath)
                 .put(`/stores/${OPENFGA_STORE_ID}`, requestBody)
                 .reply(200, { success: true });
 
@@ -139,7 +144,7 @@ describe("OpenFgaClient.rawRequest", () => {
         it("should make DELETE requests", async () => {
             const fgaClient = new OpenFgaClient(testConfig);
 
-            nock(testConfig.apiUrl!)
+            nock(basePath)
                 .delete(`/stores/${OPENFGA_STORE_ID}`)
                 .reply(204, {});
 
@@ -157,7 +162,7 @@ describe("OpenFgaClient.rawRequest", () => {
             const fgaClient = new OpenFgaClient(testConfig);
             const requestBody = { name: "Patched Store" };
 
-            nock(testConfig.apiUrl!)
+            nock(basePath)
                 .patch(`/stores/${OPENFGA_STORE_ID}`, requestBody)
                 .reply(200, { success: true });
 
@@ -175,7 +180,7 @@ describe("OpenFgaClient.rawRequest", () => {
         it("should include custom headers in requests", async () => {
             const fgaClient = new OpenFgaClient(testConfig);
 
-            nock(testConfig.apiUrl!, {
+            nock(basePath, {
                 reqheaders: {
                     "X-Custom-Header": "custom-value",
                 },
@@ -202,7 +207,7 @@ describe("OpenFgaClient.rawRequest", () => {
         it("should throw FgaApiNotFoundError for 404 responses", async () => {
             const fgaClient = new OpenFgaClient(testConfig);
 
-            nock(testConfig.apiUrl!)
+            nock(basePath)
                 .get("/nonexistent-endpoint")
                 .reply(404, {
                     code: "undefined_endpoint",
@@ -220,7 +225,7 @@ describe("OpenFgaClient.rawRequest", () => {
         it("should throw FgaApiValidationError for 400 responses", async () => {
             const fgaClient = new OpenFgaClient(testConfig);
 
-            nock(testConfig.apiUrl!)
+            nock(basePath)
                 .post("/stores")
                 .reply(400, {
                     code: "validation_error",
@@ -241,10 +246,15 @@ describe("OpenFgaClient.rawRequest", () => {
 });
 
 describe("OpenFgaClient.rawRequest - path parameters", () => {
+    const basePath = defaultConfiguration.getBasePath();
     const testConfig: UserClientConfigurationParams = {
         ...baseConfig,
         credentials: { method: CredentialsMethod.None }
     };
+
+    beforeAll(() => {
+        nock.cleanAll();
+    });
 
     afterEach(() => {
         nock.cleanAll();
@@ -256,7 +266,7 @@ describe("OpenFgaClient.rawRequest - path parameters", () => {
             const storeId = "01ARZ3NDEKTSV4RRFFQ69G5FAV";
             const responseData = { id: storeId, name: "Test Store" };
 
-            nock(testConfig.apiUrl!)
+            nock(basePath)
                 .get(`/stores/${storeId}`)
                 .reply(200, responseData);
 
@@ -275,7 +285,7 @@ describe("OpenFgaClient.rawRequest - path parameters", () => {
             const modelId = "model-456";
             const responseData = { id: modelId };
 
-            nock(testConfig.apiUrl!)
+            nock(basePath)
                 .get(`/stores/${storeId}/authorization-models/${modelId}`)
                 .reply(200, responseData);
 
@@ -293,7 +303,7 @@ describe("OpenFgaClient.rawRequest - path parameters", () => {
             const storeId = "store id with spaces";
             const encodedStoreId = "store%20id%20with%20spaces";
 
-            nock(testConfig.apiUrl!)
+            nock(basePath)
                 .get(`/stores/${encodedStoreId}`)
                 .reply(200, { id: storeId });
 
@@ -312,7 +322,7 @@ describe("OpenFgaClient.rawRequest - path parameters", () => {
             const encodedId = encodeURIComponent(id);
 
             // Use regex matching to handle URL-encoded special characters properly
-            nock(testConfig.apiUrl!)
+            nock(basePath)
                 .get(new RegExp(`/items/${encodedId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`))
                 .reply(200, { id: id });
 
@@ -331,7 +341,7 @@ describe("OpenFgaClient.rawRequest - path parameters", () => {
             const encodedName = encodeURIComponent(name); // %E7%94%A8%E6%88%B7
 
             // Use regex matching to handle URL-encoded unicode characters properly
-            nock(testConfig.apiUrl!)
+            nock(basePath)
                 .get(new RegExp(`/users/${encodedName}`))
                 .reply(200, { name: name });
 
@@ -348,7 +358,7 @@ describe("OpenFgaClient.rawRequest - path parameters", () => {
             const fgaClient = new OpenFgaClient(testConfig);
             const storeId = "123";
 
-            nock(testConfig.apiUrl!)
+            nock(basePath)
                 .get(`/stores/${storeId}`)
                 .reply(200, { id: storeId });
 
@@ -368,7 +378,7 @@ describe("OpenFgaClient.rawRequest - path parameters", () => {
             const fgaClient = new OpenFgaClient(testConfig);
             const id = "abc";
 
-            nock(testConfig.apiUrl!)
+            nock(basePath)
                 .get(`/stores/${id}/check/${id}`)
                 .reply(200, { id: id });
 
@@ -384,7 +394,7 @@ describe("OpenFgaClient.rawRequest - path parameters", () => {
         it("should allow empty parameter value (empty_parameter_value)", async () => {
             const fgaClient = new OpenFgaClient(testConfig);
 
-            nock(testConfig.apiUrl!)
+            nock(basePath)
                 .get("/stores/")
                 .reply(200, { id: "" });
 
@@ -400,7 +410,7 @@ describe("OpenFgaClient.rawRequest - path parameters", () => {
         it("should work without pathParams for paths with no template (no_parameters)", async () => {
             const fgaClient = new OpenFgaClient(testConfig);
 
-            nock(testConfig.apiUrl!)
+            nock(basePath)
                 .get("/stores")
                 .reply(200, { stores: [] });
 
@@ -441,7 +451,7 @@ describe("OpenFgaClient.rawRequest - path parameters", () => {
         it("should accept operationName parameter", async () => {
             const fgaClient = new OpenFgaClient(testConfig);
 
-            nock(testConfig.apiUrl!)
+            nock(basePath)
                 .get("/stores")
                 .reply(200, { stores: [] });
 
@@ -458,7 +468,7 @@ describe("OpenFgaClient.rawRequest - path parameters", () => {
         it("should work without operationName (backward compatible)", async () => {
             const fgaClient = new OpenFgaClient(testConfig);
 
-            nock(testConfig.apiUrl!)
+            nock(basePath)
                 .get("/stores")
                 .reply(200, { stores: [] });
 
