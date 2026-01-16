@@ -9,8 +9,6 @@ import {
 import { CredentialsMethod } from "../credentials";
 import { baseConfig, defaultConfiguration, OPENFGA_STORE_ID } from "./helpers/default-config";
 
-nock.disableNetConnect();
-
 describe("OpenFgaClient.rawRequest", () => {
     const basePath = defaultConfiguration.getBasePath();
     const testConfig: UserClientConfigurationParams = {
@@ -19,11 +17,18 @@ describe("OpenFgaClient.rawRequest", () => {
     };
 
     beforeAll(() => {
+        nock.restore();
         nock.cleanAll();
+        nock.activate();
+        nock.disableNetConnect();
     });
 
     afterEach(() => {
         nock.cleanAll();
+    });
+
+    afterAll(() => {
+        nock.restore();
     });
 
     describe("GET requests", () => {
@@ -253,11 +258,18 @@ describe("OpenFgaClient.rawRequest - path parameters", () => {
     };
 
     beforeAll(() => {
+        nock.restore();
         nock.cleanAll();
+        nock.activate();
+        nock.disableNetConnect();
     });
 
     afterEach(() => {
         nock.cleanAll();
+    });
+
+    afterAll(() => {
+        nock.restore();
     });
 
     describe("path parameter replacement", () => {
