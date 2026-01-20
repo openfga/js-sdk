@@ -29,4 +29,10 @@ export class TelemetryHistograms {
     unit: "milliseconds",
     description: "How long it took to perform a query request.",
   };
+
+  static httpRequestDuration: TelemetryHistogram = {
+    name: "fga-client.http_request.duration",
+    unit: "milliseconds",
+    description: "The time (in milliseconds) for a single HTTP request to complete."
+  }
 }

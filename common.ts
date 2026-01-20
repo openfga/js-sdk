@@ -14,6 +14,7 @@ import {
 } from "./errors";
 import { setNotEnumerableProperty } from "./utils";
 import { TelemetryAttribute, TelemetryAttributes } from "./telemetry/attributes";
+import { TelemetryConfiguration } from "./telemetry/configuration";
 import { TelemetryHistograms } from "./telemetry/histograms";
 
 /**
@@ -240,30 +241,91 @@ export async function attemptHttpRequest<B, R>(
     minWaitInMs: number;
   },
   axiosInstance: AxiosInstance,
+  telemetryConfig?: {
+    telemetry?: TelemetryConfiguration;
+    userAgent?: string;
+  },
 ): Promise<WrappedAxiosResponse<R> | undefined> {
   let iterationCount = 0;
   do {
     iterationCount++;
+
+    // Track HTTP request duration for this specific call
+    const httpRequestStart = performance.now();
+    let response: AxiosResponse<R> | undefined;
+    let httpRequestError: any;
+
     try {
-      const response = await axiosInstance(request);
+      response = await axiosInstance(request);
+    } catch (err: any) {
+      httpRequestError = err;
+    }
+
+    // Calculate duration for this individual HTTP call
+    const httpRequestDuration = Math.round(performance.now() - httpRequestStart);
+
+    // Emit per-HTTP-request metric if telemetry is configured
+    if (telemetryConfig?.telemetry?.metrics?.histogramHttpRequestDuration) {
+      const httpAttrs: Record<string, string | number> = {};
+
+      // Build attributes from the request
+      if (request.url) {
+        try {
+          const parsedUrl = new URL(request.url);
+          httpAttrs[TelemetryAttribute.HttpHost] = parsedUrl.hostname;
+          httpAttrs[TelemetryAttribute.UrlScheme] = parsedUrl.protocol;
+          httpAttrs[TelemetryAttribute.UrlFull] = request.url;
+        } catch {
+          // URL parsing failed, still include the raw URL
+          httpAttrs[TelemetryAttribute.UrlFull] = request.url;
+        }
+      }
+      if (request.method) {
+        httpAttrs[TelemetryAttribute.HttpRequestMethod] = request.method.toUpperCase();
+      }
+      if (telemetryConfig.userAgent) {
+        httpAttrs[TelemetryAttribute.UserAgentOriginal] = telemetryConfig.userAgent;
+      }
+
+      // Add response status code if available
+      const responseStatus = response?.status || httpRequestError?.response?.status;
+      if (responseStatus) {
+        httpAttrs[TelemetryAttribute.HttpResponseStatusCode] = responseStatus;
+      }
+
+      telemetryConfig.telemetry.recorder.histogram(
+        TelemetryHistograms.httpRequestDuration,
+        httpRequestDuration,
+        TelemetryAttributes.prepare(
+          httpAttrs,
+          telemetryConfig.telemetry.metrics.histogramHttpRequestDuration.attributes
+        )
+      );
+    }
+
+    // Handle successful response
+    if (response && !httpRequestError) {
       return {
         response: response,
         retries: iterationCount - 1,
       };
-    } catch (err: any) {
-      const { retryable, error } = checkIfRetryableError(err, iterationCount, config.maxRetry);
+    }
+
+    // Handle error
+    if (httpRequestError) {
+      const { retryable, error } = checkIfRetryableError(httpRequestError, iterationCount, config.maxRetry);
 
       if (!retryable) {
         throw error;
       }
 
-      const status = (err as any)?.response?.status;
+      const status = httpRequestError?.response?.status;
       let retryDelayMs: number | undefined;
 
       if ((status &&
           (status === 429 || (status >= 500 && status !== 501))) &&
-        err.response?.headers) {
-        retryDelayMs = parseRetryAfterHeader(err.response.headers);
+        httpRequestError.response?.headers) {
+        retryDelayMs = parseRetryAfterHeader(httpRequestError.response.headers);
       }
       if (!retryDelayMs) {
         retryDelayMs = calculateExponentialBackoffWithJitter(iterationCount, config.minWaitInMs);
@@ -295,7 +357,10 @@ export const createRequestFunction = function (axiosArgs: RequestArgs, axiosInst
     const wrappedResponse = await attemptHttpRequest(axiosRequestArgs, {
       maxRetry,
       minWaitInMs,
-    }, axios);
+    }, axios, {
+      telemetry: configuration.telemetry,
+      userAgent: configuration.baseOptions?.headers?.["User-Agent"],
+    });
     const response = wrappedResponse?.response;
     const data = typeof response?.data === "undefined" ? {} : response?.data;
     const result: CallResult<any> = { ...data };
