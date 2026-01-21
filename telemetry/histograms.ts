@@ -34,5 +34,5 @@ export class TelemetryHistograms {
     name: "fga-client.http_request.duration",
     unit: "milliseconds",
     description: "The time (in milliseconds) for a single HTTP request to complete."
-  }
+  };
 }
