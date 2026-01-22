@@ -273,7 +273,7 @@ export async function attemptHttpRequest<B, R>(
         try {
           const parsedUrl = new URL(request.url);
           httpAttrs[TelemetryAttribute.HttpHost] = parsedUrl.hostname;
-          httpAttrs[TelemetryAttribute.UrlScheme] = parsedUrl.protocol;
+          httpAttrs[TelemetryAttribute.UrlScheme] = parsedUrl.protocol.replace(":", "");
           httpAttrs[TelemetryAttribute.UrlFull] = request.url;
         } catch {
           // URL parsing failed, still include the raw URL
