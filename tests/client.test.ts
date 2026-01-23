@@ -1703,7 +1703,7 @@ describe("OpenFGA Client", () => {
             user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
             object: "workspace:1",
             relations: ["admin", "guest", "reader", "viewer"],
-          });
+          }, { retryParams: { maxRetry: 0 } });
         } catch (err) {
           expect(scope0.isDone()).toBe(true);
           expect(scope1.isDone()).toBe(true);
