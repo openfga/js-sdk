@@ -259,18 +259,18 @@ export type ClientListRelationsRequest = Omit<ClientCheckRequest, "relation" | "
 export type ClientWriteAssertionsRequest = (CheckRequestTupleKey & Pick<Assertion, "expectation">)[];
 
 /**
- * HTTP methods supported by rawRequest
+ * HTTP methods supported by apiExecutor
  */
 export type HttpMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
 
 /**
- * Request parameters for rawRequest method
+ * Request parameters for apiExecutor method
  */
-export interface ClientRawRequestParams {
+export interface ClientApiExecutorParams {
   /** 
    * Operation name for telemetry and logging (e.g., "CustomCheck", "CustomEndpoint").
    * Used for observability when calling new or experimental endpoints.
-   * Defaults to "RawRequest" if not provided.
+   * Defaults to "ApiExecutor" if not provided.
    */
   operationName?: string;
   /** HTTP method */
@@ -984,11 +984,11 @@ export class OpenFgaClient extends BaseAPI {
 
 
   /**
-   * RawRequest lets you send any HTTP request directly to an OpenFGA API endpoint.
+   * apiExecutor lets you send any HTTP request directly to an OpenFGA API endpoint.
    * It’s useful when you need to call a new or experimental API that doesn’t yet have a built-in method in the SDK.
    * You still get the benefits of the SDK, like authentication, configuration, and consistent error handling.
    * 
-   * @param {ClientRawRequestParams} request - The request parameters
+   * @param {ClientApiExecutorParams} request - The request parameters
    * @param {HttpMethod} request.method - HTTP method (GET, POST, PUT, DELETE, PATCH)
    * @param {string} request.path - API path (e.g., '/stores/{store_id}/my-endpoint')
    * @param {any} [request.body] - Optional request body for POST/PUT/PATCH requests
@@ -1002,7 +1002,7 @@ export class OpenFgaClient extends BaseAPI {
    * 
    * @example
    * // Call a new endpoint using path parameters (recommended)
-   * const response = await client.rawRequest({
+   * const response = await client.apiExecutor({
    *   operationName: 'CustomCheck',
    *   method: 'POST',
    *   path: '/stores/{store_id}/custom-endpoint',
@@ -1012,17 +1012,17 @@ export class OpenFgaClient extends BaseAPI {
    * 
    * @example
    * // Call an existing endpoint with query parameters
-   * const stores = await client.rawRequest({
+   * const stores = await client.apiExecutor({
    *   method: 'GET',
    *   path: '/stores',
    *   queryParams: { page_size: 10 },
    * });
    */
-  async rawRequest(
-    request: ClientRawRequestParams,
+  async apiExecutor(
+    request: ClientApiExecutorParams,
     options: ClientRequestOpts = {}
   ): PromiseResult<any> {
-    return this.api.rawRequest(
+    return this.api.apiExecutor(
       request.method,
       request.path,
       request.body,

@@ -797,19 +797,19 @@ export const OpenFgaApiAxiosParamCreator = function (configuration: Configuratio
       };
     },
     /**
-         * Make a raw HTTP request to an arbitrary API endpoint.
-         * This method provides an escape hatch for calling new or experimental endpoints
-         * that may not yet have dedicated SDK methods.
-         * @summary Make a raw HTTP request
-         * @param {'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH'} method - HTTP method
-         * @param {string} path - API path with optional template parameters (e.g., '/stores/{store_id}/my-endpoint')
-         * @param {any} [body] - Optional request body
-         * @param {Record<string, any>} [queryParams] - Optional query parameters
-         * @param {Record<string, string>} [pathParams] - Optional path parameters to replace template variables
-         * @param {*} [options] Override http request option.
-         * @throws { FgaError }
-         */
-    rawRequest: (method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH", path: string, body?: any, queryParams?: Record<string, any>, pathParams?: Record<string, string>, options: any = {}): RequestArgs => {
+     * Make a raw HTTP request to an arbitrary API endpoint.
+     * This method provides an escape hatch for calling new or experimental endpoints
+     * that may not yet have dedicated SDK methods.
+     * @summary Make a raw HTTP request
+     * @param {'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH'} method - HTTP method
+     * @param {string} path - API path with optional template parameters (e.g., '/stores/{store_id}/my-endpoint')
+     * @param {any} [body] - Optional request body
+     * @param {Record<string, any>} [queryParams] - Optional query parameters
+     * @param {Record<string, string>} [pathParams] - Optional path parameters to replace template variables
+     * @param {*} [options] Override http request option.
+     * @throws { FgaError }
+     */
+    apiExecutor: (method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH", path: string, body?: any, queryParams?: Record<string, any>, pathParams?: Record<string, string>, options: any = {}): RequestArgs => {
       // Build path by replacing template parameters with URL-encoded values
       let localVarPath = path;
       if (pathParams) {
@@ -1150,14 +1150,14 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @param {any} [body] - Optional request body
          * @param {Record<string, any>} [queryParams] - Optional query parameters
          * @param {Record<string, string>} [pathParams] - Optional path parameters to replace template variables
-         * @param {string} [operationName] - Optional operation name for telemetry (defaults to "RawRequest")
+         * @param {string} [operationName] - Optional operation name for telemetry (defaults to "ApiExecutor")
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    async rawRequest(method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH", path: string, body?: any, queryParams?: Record<string, any>, pathParams?: Record<string, string>, operationName?: string, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<any>> {
-      const localVarAxiosArgs = localVarAxiosParamCreator.rawRequest(method, path, body, queryParams, pathParams, options);
+    async apiExecutor(method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH", path: string, body?: any, queryParams?: Record<string, any>, pathParams?: Record<string, string>, operationName?: string, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<any>> {
+      const localVarAxiosArgs = localVarAxiosParamCreator.apiExecutor(method, path, body, queryParams, pathParams, options);
       return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials, {
-        [TelemetryAttribute.FgaClientRequestMethod]: operationName || "RawRequest",
+        [TelemetryAttribute.FgaClientRequestMethod]: operationName || "ApiExecutor",
       });
     },
   };
@@ -1370,12 +1370,12 @@ export const OpenFgaApiFactory = function (configuration: Configuration, credent
          * @param {any} [body] - Optional request body
          * @param {Record<string, any>} [queryParams] - Optional query parameters
          * @param {Record<string, string>} [pathParams] - Optional path parameters to replace template variables
-         * @param {string} [operationName] - Optional operation name for telemetry (defaults to "RawRequest")
+         * @param {string} [operationName] - Optional operation name for telemetry (defaults to "ApiExecutor")
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    rawRequest(method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH", path: string, body?: any, queryParams?: Record<string, any>, pathParams?: Record<string, string>, operationName?: string, options?: any): PromiseResult<any> {
-      return localVarFp.rawRequest(method, path, body, queryParams, pathParams, operationName, options).then((request) => request(axios));
+    apiExecutor(method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH", path: string, body?: any, queryParams?: Record<string, any>, pathParams?: Record<string, string>, operationName?: string, options?: any): PromiseResult<any> {
+      return localVarFp.apiExecutor(method, path, body, queryParams, pathParams, operationName, options).then((request) => request(axios));
     },
   };
 };
@@ -1621,13 +1621,13 @@ export class OpenFgaApi extends BaseAPI {
      * @param {any} [body] - Optional request body
      * @param {Record<string, any>} [queryParams] - Optional query parameters
      * @param {Record<string, string>} [pathParams] - Optional path parameters to replace template variables
-     * @param {string} [operationName] - Optional operation name for telemetry (defaults to "RawRequest")
+     * @param {string} [operationName] - Optional operation name for telemetry (defaults to "ApiExecutor")
      * @param {*} [options] Override http request option.
      * @throws { FgaError }
      * @memberof OpenFgaApi
      */
-  public rawRequest(method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH", path: string, body?: any, queryParams?: Record<string, any>, pathParams?: Record<string, string>, operationName?: string, options?: any): Promise<CallResult<any>> {
-    return OpenFgaApiFp(this.configuration, this.credentials).rawRequest(method, path, body, queryParams, pathParams, operationName, options).then((request) => request(this.axios));
+  public apiExecutor(method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH", path: string, body?: any, queryParams?: Record<string, any>, pathParams?: Record<string, string>, operationName?: string, options?: any): Promise<CallResult<any>> {
+    return OpenFgaApiFp(this.configuration, this.credentials).apiExecutor(method, path, body, queryParams, pathParams, operationName, options).then((request) => request(this.axios));
   }
 }
 

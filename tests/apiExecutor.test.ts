@@ -9,7 +9,7 @@ import {
 import { CredentialsMethod } from "../credentials";
 import { baseConfig, defaultConfiguration, OPENFGA_STORE_ID } from "./helpers/default-config";
 
-describe("OpenFgaClient.rawRequest", () => {
+describe("OpenFgaClient.apiExecutor", () => {
     const basePath = defaultConfiguration.getBasePath();
     const testConfig: UserClientConfigurationParams = {
         ...baseConfig,
@@ -40,7 +40,7 @@ describe("OpenFgaClient.rawRequest", () => {
                 .get("/stores")
                 .reply(200, responseData);
 
-            const result = await fgaClient.rawRequest({
+            const result = await fgaClient.apiExecutor({
                 method: "GET",
                 path: "/stores",
             });
@@ -57,7 +57,7 @@ describe("OpenFgaClient.rawRequest", () => {
                 .query({ page_size: 10, name: "test" })
                 .reply(200, responseData);
 
-            const result = await fgaClient.rawRequest({
+            const result = await fgaClient.apiExecutor({
                 method: "GET",
                 path: "/stores",
                 queryParams: { page_size: 10, name: "test" },
@@ -74,7 +74,7 @@ describe("OpenFgaClient.rawRequest", () => {
                 .get("/stores")
                 .reply(200, responseData);
 
-            const result = await fgaClient.rawRequest({
+            const result = await fgaClient.apiExecutor({
                 method: "GET",
                 path: "/stores",
             });
@@ -94,7 +94,7 @@ describe("OpenFgaClient.rawRequest", () => {
                 .post("/stores", requestBody)
                 .reply(201, responseData);
 
-            const result = await fgaClient.rawRequest({
+            const result = await fgaClient.apiExecutor({
                 method: "POST",
                 path: "/stores",
                 body: requestBody,
@@ -115,7 +115,7 @@ describe("OpenFgaClient.rawRequest", () => {
                 .post("/stores", requestBody)
                 .reply(200, {});
 
-            await fgaClient.rawRequest({
+            await fgaClient.apiExecutor({
                 method: "POST",
                 path: "/stores",
                 body: requestBody,
@@ -135,7 +135,7 @@ describe("OpenFgaClient.rawRequest", () => {
                 .put(`/stores/${OPENFGA_STORE_ID}`, requestBody)
                 .reply(200, { success: true });
 
-            const result = await fgaClient.rawRequest({
+            const result = await fgaClient.apiExecutor({
                 method: "PUT",
                 path: `/stores/${OPENFGA_STORE_ID}`,
                 body: requestBody,
@@ -153,7 +153,7 @@ describe("OpenFgaClient.rawRequest", () => {
                 .delete(`/stores/${OPENFGA_STORE_ID}`)
                 .reply(204, {});
 
-            const result = await fgaClient.rawRequest({
+            const result = await fgaClient.apiExecutor({
                 method: "DELETE",
                 path: `/stores/${OPENFGA_STORE_ID}`,
             });
@@ -171,7 +171,7 @@ describe("OpenFgaClient.rawRequest", () => {
                 .patch(`/stores/${OPENFGA_STORE_ID}`, requestBody)
                 .reply(200, { success: true });
 
-            const result = await fgaClient.rawRequest({
+            const result = await fgaClient.apiExecutor({
                 method: "PATCH",
                 path: `/stores/${OPENFGA_STORE_ID}`,
                 body: requestBody,
@@ -193,7 +193,7 @@ describe("OpenFgaClient.rawRequest", () => {
                 .get("/stores")
                 .reply(200, {});
 
-            await fgaClient.rawRequest(
+            await fgaClient.apiExecutor(
                 {
                     method: "GET",
                     path: "/stores",
@@ -220,7 +220,7 @@ describe("OpenFgaClient.rawRequest", () => {
                 });
 
             await expect(
-                fgaClient.rawRequest({
+                fgaClient.apiExecutor({
                     method: "GET",
                     path: "/nonexistent-endpoint",
                 })
@@ -238,7 +238,7 @@ describe("OpenFgaClient.rawRequest", () => {
                 });
 
             await expect(
-                fgaClient.rawRequest({
+                fgaClient.apiExecutor({
                     method: "POST",
                     path: "/stores",
                     body: { invalid: "data" },
@@ -250,7 +250,7 @@ describe("OpenFgaClient.rawRequest", () => {
 
 });
 
-describe("OpenFgaClient.rawRequest - path parameters", () => {
+describe("OpenFgaClient.apiExecutor - path parameters", () => {
     const basePath = defaultConfiguration.getBasePath();
     const testConfig: UserClientConfigurationParams = {
         ...baseConfig,
@@ -282,7 +282,7 @@ describe("OpenFgaClient.rawRequest - path parameters", () => {
                 .get(`/stores/${storeId}`)
                 .reply(200, responseData);
 
-            const result = await fgaClient.rawRequest({
+            const result = await fgaClient.apiExecutor({
                 method: "GET",
                 path: "/stores/{store_id}",
                 pathParams: { store_id: storeId },
@@ -301,7 +301,7 @@ describe("OpenFgaClient.rawRequest - path parameters", () => {
                 .get(`/stores/${storeId}/authorization-models/${modelId}`)
                 .reply(200, responseData);
 
-            const result = await fgaClient.rawRequest({
+            const result = await fgaClient.apiExecutor({
                 method: "GET",
                 path: "/stores/{store_id}/authorization-models/{model_id}",
                 pathParams: { store_id: storeId, model_id: modelId },
@@ -319,7 +319,7 @@ describe("OpenFgaClient.rawRequest - path parameters", () => {
                 .get(`/stores/${encodedStoreId}`)
                 .reply(200, { id: storeId });
 
-            const result = await fgaClient.rawRequest({
+            const result = await fgaClient.apiExecutor({
                 method: "GET",
                 path: "/stores/{store_id}",
                 pathParams: { store_id: storeId },
@@ -338,7 +338,7 @@ describe("OpenFgaClient.rawRequest - path parameters", () => {
                 .get(new RegExp(`/items/${encodedId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`))
                 .reply(200, { id: id });
 
-            const result = await fgaClient.rawRequest({
+            const result = await fgaClient.apiExecutor({
                 method: "GET",
                 path: "/items/{id}",
                 pathParams: { id: id },
@@ -357,7 +357,7 @@ describe("OpenFgaClient.rawRequest - path parameters", () => {
                 .get(new RegExp(`/users/${encodedName}`))
                 .reply(200, { name: name });
 
-            const result = await fgaClient.rawRequest({
+            const result = await fgaClient.apiExecutor({
                 method: "GET",
                 path: "/users/{name}",
                 pathParams: { name: name },
@@ -374,7 +374,7 @@ describe("OpenFgaClient.rawRequest - path parameters", () => {
                 .get(`/stores/${storeId}`)
                 .reply(200, { id: storeId });
 
-            const result = await fgaClient.rawRequest({
+            const result = await fgaClient.apiExecutor({
                 method: "GET",
                 path: "/stores/{store_id}",
                 pathParams: {
@@ -394,7 +394,7 @@ describe("OpenFgaClient.rawRequest - path parameters", () => {
                 .get(`/stores/${id}/check/${id}`)
                 .reply(200, { id: id });
 
-            const result = await fgaClient.rawRequest({
+            const result = await fgaClient.apiExecutor({
                 method: "GET",
                 path: "/stores/{id}/check/{id}",
                 pathParams: { id: id },
@@ -410,7 +410,7 @@ describe("OpenFgaClient.rawRequest - path parameters", () => {
                 .get("/stores/")
                 .reply(200, { id: "" });
 
-            const result = await fgaClient.rawRequest({
+            const result = await fgaClient.apiExecutor({
                 method: "GET",
                 path: "/stores/{store_id}",
                 pathParams: { store_id: "" },
@@ -426,7 +426,7 @@ describe("OpenFgaClient.rawRequest - path parameters", () => {
                 .get("/stores")
                 .reply(200, { stores: [] });
 
-            const result = await fgaClient.rawRequest({
+            const result = await fgaClient.apiExecutor({
                 method: "GET",
                 path: "/stores",
             });
@@ -438,7 +438,7 @@ describe("OpenFgaClient.rawRequest - path parameters", () => {
             const fgaClient = new OpenFgaClient(testConfig);
 
             await expect(
-                fgaClient.rawRequest({
+                fgaClient.apiExecutor({
                     method: "GET",
                     path: "/stores/{store_id}/check",
                     // pathParams intentionally omitted
@@ -450,7 +450,7 @@ describe("OpenFgaClient.rawRequest - path parameters", () => {
             const fgaClient = new OpenFgaClient(testConfig);
 
             await expect(
-                fgaClient.rawRequest({
+                fgaClient.apiExecutor({
                     method: "GET",
                     path: "/stores/{store_id}/authorization-models/{model_id}",
                     pathParams: { store_id: "abc" }, // model_id is missing
@@ -468,7 +468,7 @@ describe("OpenFgaClient.rawRequest - path parameters", () => {
                 .reply(200, { stores: [] });
 
             // Should complete without error when operationName is provided
-            const result = await fgaClient.rawRequest({
+            const result = await fgaClient.apiExecutor({
                 operationName: "CustomListStores",
                 method: "GET",
                 path: "/stores",
@@ -484,7 +484,7 @@ describe("OpenFgaClient.rawRequest - path parameters", () => {
                 .get("/stores")
                 .reply(200, { stores: [] });
 
-            const result = await fgaClient.rawRequest({
+            const result = await fgaClient.apiExecutor({
                 method: "GET",
                 path: "/stores",
             });
