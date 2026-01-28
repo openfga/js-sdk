@@ -25,6 +25,9 @@ describe("OpenFgaClient.apiExecutor", () => {
         nock.cleanAll();
     });
 
+    afterAll(() => {
+        nock.enableNetConnect();
+    });
 
     describe("GET requests", () => {
         it("should make GET requests successfully", async () => {
@@ -261,6 +264,9 @@ describe("OpenFgaClient.apiExecutor - path parameters", () => {
         nock.cleanAll();
     });
 
+    afterAll(() => {
+        nock.enableNetConnect();
+    });
 
     describe("path parameter replacement", () => {
         it("should replace path parameters with values (single_parameter)", async () => {
