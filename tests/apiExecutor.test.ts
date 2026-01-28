@@ -17,9 +17,7 @@ describe("OpenFgaClient.apiExecutor", () => {
     };
 
     beforeAll(() => {
-        nock.restore();
         nock.cleanAll();
-        nock.activate();
         nock.disableNetConnect();
     });
 
@@ -27,9 +25,6 @@ describe("OpenFgaClient.apiExecutor", () => {
         nock.cleanAll();
     });
 
-    afterAll(() => {
-        nock.restore();
-    });
 
     describe("GET requests", () => {
         it("should make GET requests successfully", async () => {
@@ -258,9 +253,7 @@ describe("OpenFgaClient.apiExecutor - path parameters", () => {
     };
 
     beforeAll(() => {
-        nock.restore();
         nock.cleanAll();
-        nock.activate();
         nock.disableNetConnect();
     });
 
@@ -268,9 +261,6 @@ describe("OpenFgaClient.apiExecutor - path parameters", () => {
         nock.cleanAll();
     });
 
-    afterAll(() => {
-        nock.restore();
-    });
 
     describe("path parameter replacement", () => {
         it("should replace path parameters with values (single_parameter)", async () => {
