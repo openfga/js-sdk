@@ -9,9 +9,6 @@ import {
 import { CredentialsMethod } from "../credentials";
 import { baseConfig, defaultConfiguration, OPENFGA_STORE_ID } from "./helpers/default-config";
 
-// Ensure nock is properly loaded at module level
-nock.recorder.clear();
-
 describe("OpenFgaClient.apiExecutor", () => {
     const basePath = defaultConfiguration.getBasePath();
     const testConfig: UserClientConfigurationParams = {
@@ -31,7 +28,6 @@ describe("OpenFgaClient.apiExecutor", () => {
     afterAll(() => {
         nock.cleanAll();
         nock.enableNetConnect();
-        
     });
 
     describe("GET requests", () => {
@@ -272,7 +268,6 @@ describe("OpenFgaClient.apiExecutor - path parameters", () => {
     afterAll(() => {
         nock.cleanAll();
         nock.enableNetConnect();
-        
     });
 
     describe("path parameter replacement", () => {
