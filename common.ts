@@ -29,8 +29,8 @@ export const DUMMY_BASE_URL = `https://${SdkConstants.SampleBaseDomain}`;
  * @interface RequestArgs
  */
 export interface RequestArgs {
-   url: string;
-   options: any;
+  url: string;
+  options: any;
 }
 
 
@@ -289,7 +289,7 @@ export async function attemptHttpRequest<B, R>(
 
       // Add response status code if available
       const responseStatus = response?.status || httpRequestError?.response?.status;
-      if (responseStatus) {
+      if (responseStatus != null) {
         httpAttrs[TelemetryAttribute.HttpResponseStatusCode] = responseStatus;
       }
 
@@ -323,7 +323,7 @@ export async function attemptHttpRequest<B, R>(
       let retryDelayMs: number | undefined;
 
       if ((status &&
-          (status === 429 || (status >= 500 && status !== 501))) &&
+        (status === 429 || (status >= 500 && status !== 501))) &&
         httpRequestError.response?.headers) {
         retryDelayMs = parseRetryAfterHeader(httpRequestError.response.headers);
       }
@@ -348,12 +348,12 @@ export const createRequestFunction = function (axiosArgs: RequestArgs, axiosInst
 
   const start = performance.now();
 
-  return async (axios: AxiosInstance = axiosInstance) : PromiseResult<any> => {
+  return async (axios: AxiosInstance = axiosInstance): PromiseResult<any> => {
     await setBearerAuthToObject(axiosArgs.options.headers, credentials!);
 
     const url = configuration.getBasePath() + axiosArgs.url;
 
-    const axiosRequestArgs = {...axiosArgs.options, url: url};
+    const axiosRequestArgs = { ...axiosArgs.options, url: url };
     const wrappedResponse = await attemptHttpRequest(axiosRequestArgs, {
       maxRetry,
       minWaitInMs,
