@@ -61,7 +61,7 @@ describe("OpenFGA SDK", function () {
       ).not.toThrowError();
     });
 
-    it("should validate apiTokenIssuer in configuration (should not allow scheme as part of the apiTokenIssuer)", () => {
+    it.each(["https://", "http://", ""])("should allow valid schemes or default when scheme is missing (%s)", (scheme) => {
       expect(
         () => new OpenFgaApi({
           ...baseConfig,
@@ -69,7 +69,22 @@ describe("OpenFGA SDK", function () {
             method: CredentialsMethod.ClientCredentials,
             config: {
               ...(baseConfig.credentials as any).config,
-              apiTokenIssuer: "https://tokenissuer.fga.example"
+              apiTokenIssuer: `${scheme}tokenissuer.fga.example`
+            }
+          } as Configuration["credentials"]
+        })
+      ).not.toThrowError();
+    });
+
+    it.each(["tcp://", "grpc://", "file://"])("should not allow invalid schemes as part of the apiTokenIssuer in configuration (%s)", (scheme) => {
+      expect(
+        () => new OpenFgaApi({
+          ...baseConfig,
+          credentials: {
+            method: CredentialsMethod.ClientCredentials,
+            config: {
+              ...(baseConfig.credentials as any).config,
+              apiTokenIssuer: `${scheme}tokenissuer.fga.example`
             }
           } as Configuration["credentials"]
         })
