@@ -11,7 +11,6 @@
  */
 
 
-import { URL } from "url";
 
 export enum TelemetryAttribute {
   FgaClientRequestClientId = "fga-client.request.client_id",
