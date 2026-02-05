@@ -76,7 +76,7 @@ export class TelemetryAttributes {
     if (url) {
       const parsedUrl = new URL(url);
       attributes[TelemetryAttribute.HttpHost] = parsedUrl.hostname;
-      attributes[TelemetryAttribute.UrlScheme] = parsedUrl.protocol;
+      attributes[TelemetryAttribute.UrlScheme] = parsedUrl.protocol.replace(":", "");
       attributes[TelemetryAttribute.UrlFull] = url;
     }
 
