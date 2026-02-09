@@ -3,6 +3,7 @@ module.exports = {
   rootDir: "../",
   testEnvironment: "node",
   moduleFileExtensions: ["js", "d.ts", "ts", "json"],
+  setupFilesAfterEnv: ["./tests/setup.ts"],
   collectCoverage: true,
   coverageReporters: ["text", "cobertura", "lcov"],
   collectCoverageFrom: [
