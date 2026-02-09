@@ -9,6 +9,7 @@
 
 - feat: add support for [streamedListObjects](https://openfga.dev/api/service#/Relationship%20Queries/StreamedListObjects). See [documentation](#streamed-list-objects)
 - chore: remove node url dependency blocking browser usage (#300)
+- feat: Report a per-http call metric (#303)
 
 ## v0.9.1
 
