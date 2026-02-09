@@ -40,6 +40,10 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
+    strategy:
+      matrix:
+        test-file: [client.test.ts, credentials.test.ts, headers.test.ts, index.test.ts, streaming.test.ts, validation.test.ts, telemetry/attributes.test.ts, telemetry/configuration.test.ts, telemetry/counters.test.ts, telemetry/histograms.test.ts, telemetry/metrics.test.ts]
+
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
@@ -61,7 +65,7 @@ jobs:
         run: npx madge --circular . --extensions ts,js
 
       - name: Run tests
-        run: npm test
+        run: npm test -- tests/${{ matrix.test-file }}
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5.5.2
