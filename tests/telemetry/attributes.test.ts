@@ -55,7 +55,7 @@ describe("TelemetryAttributes", () => {
     expect(result["fga-client.request.method"]).toEqual("GET");
     expect(result["http.request.method"]).toEqual("POST");
     expect(result["http.host"]).toEqual("example.com");
-    expect(result["url.scheme"]).toEqual("https:");
+    expect(result["url.scheme"]).toEqual("https");
   });
 
   test("should create attributes from response correctly", () => {
