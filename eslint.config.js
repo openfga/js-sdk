@@ -1,5 +1,6 @@
 const typescriptEslint = require("@typescript-eslint/eslint-plugin");
 const typescriptParser = require("@typescript-eslint/parser");
+const globals = require("globals");
 
 module.exports = [
   {
@@ -14,9 +15,8 @@ module.exports = [
         sourceType: "module"
       },
       globals: {
-        browser: true,
-        es2021: true,
-        node: true
+        ...globals.browser,
+        ...globals.node
       }
     },
     plugins: {
