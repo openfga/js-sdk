@@ -22,7 +22,6 @@ import { TelemetryAttributes } from "../telemetry/attributes";
 import { TelemetryCounters } from "../telemetry/counters";
 import { TelemetryConfiguration } from "../telemetry/configuration";
 import { randomUUID } from "crypto";
-import { URL } from "url";
 
 interface ClientSecretRequest {
   client_id: string;
