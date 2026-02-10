@@ -34,31 +34,31 @@ describe("OpenFGA SDK", function () {
     it("should not require storeId in configuration", () => {
       expect(
         () => new OpenFgaApi({ ...baseConfig, storeId: undefined } as any)
-      ).not.toThrowError();
+      ).not.toThrow();
     });
 
     it("should require host in configuration", () => {
       expect(
         () => new OpenFgaApi({ ...baseConfig, apiUrl: undefined! })
-      ).toThrowError();
+      ).toThrow();
     });
 
     it("should validate host in configuration (adding scheme as part of the host)", () => {
       expect(
         () => new OpenFgaApi({ ...baseConfig, apiUrl: "//api.fga.example" })
-      ).toThrowError();
+      ).toThrow();
     });
 
     it("should allow using apiHost if apiUrl is not provided", () => {
       expect(
         () => new OpenFgaApi({ ...baseConfig, apiHost: "api.fga.example" })
-      ).not.toThrowError();
+      ).not.toThrow();
     });
 
     it("should still validate apiHost", () => {
       expect(
         () => new OpenFgaApi({ ...baseConfig, apiHost: "//api.fga.example" })
-      ).not.toThrowError();
+      ).not.toThrow();
     });
 
     it("should validate apiTokenIssuer in configuration (should not allow scheme as part of the apiTokenIssuer)", () => {
@@ -73,7 +73,7 @@ describe("OpenFGA SDK", function () {
             }
           } as Configuration["credentials"]
         })
-      ).toThrowError();
+      ).toThrow();
     });
 
     it("should not require credentials in configuration when not needed", () => {
@@ -82,7 +82,7 @@ describe("OpenFGA SDK", function () {
           new OpenFgaApi({
             apiUrl: baseConfig.apiUrl,
           })
-      ).not.toThrowError();
+      ).not.toThrow();
     });
 
     it("should require apiToken credentials in configuration in api_token flow", () => {
@@ -94,7 +94,7 @@ describe("OpenFGA SDK", function () {
               method: CredentialsMethod.ApiToken as any
             }
           })
-      ).toThrowError();
+      ).toThrow();
     });
 
     it("should require clientId, clientSecret, apiTokenIssuer and apiAudience credentials in configuration in client_credentials flow", () => {
@@ -278,7 +278,7 @@ describe("OpenFGA SDK", function () {
 
     it("should allow passing in a configuration instance", async () => {
       const configuration = new Configuration(baseConfig);
-      expect(() => new OpenFgaApi(configuration)).not.toThrowError();
+      expect(() => new OpenFgaApi(configuration)).not.toThrow();
     });
 
     it("should only accept valid telemetry attributes", async () => {

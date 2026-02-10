@@ -15,4 +15,11 @@ module.exports = {
     "!**/node_modules/**",
     "!**/tests/**",
   ],
+  transformIgnorePatterns: [
+    "node_modules/(?!jose)",
+  ],
+  transform: {
+    "^.+\\.tsx?$": "ts-jest",
+    "^.+\\.jsx?$": "ts-jest",
+  },
 };
