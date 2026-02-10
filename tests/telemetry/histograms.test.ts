@@ -12,4 +12,10 @@ describe("TelemetryHistograms", () => {
     expect(TelemetryHistograms.queryDuration.unit).toBe("milliseconds");
     expect(TelemetryHistograms.queryDuration.description).toBe("How long it took to perform a query request.");
   });
+
+  test("should have correct histogram details for http request duration", () => {
+    expect(TelemetryHistograms.httpRequestDuration.name).toBe("fga-client.http_request.duration");
+    expect(TelemetryHistograms.httpRequestDuration.unit).toBe("milliseconds");
+    expect(TelemetryHistograms.httpRequestDuration.description).toBe("The time (in milliseconds) for a single HTTP request to complete.");
+  });
 });

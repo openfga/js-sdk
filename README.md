@@ -740,6 +740,35 @@ const response = await fgaClient.listObjects({
 // response.objects = ["document:0192ab2a-d83f-756d-9397-c5ed9f3cb69a"]
 ```
 
+##### Streamed List Objects
+
+List objects of a particular type that the user has access to, using the streaming API.
+
+The Streamed ListObjects API is very similar to the ListObjects API, with two key differences:
+1. **Streaming Results**: Instead of collecting all objects before returning a response, it streams them to the client as they are collected.
+2. **No Pagination Limit**: Returns all results without the 1000-object limit of the standard ListObjects API.
+
+This is particularly useful when querying **computed relations** that may return large result sets.
+
+[API Documentation](https://openfga.dev/api/service#/Relationship%20Queries/StreamedListObjects)
+
+```javascript
+const options = {};
+
+// To override the authorization model id for this request
+options.authorizationModelId = "01GXSA8YR785C4FYS3C0RTG7B1";
+
+const objects = [];
+for await (const response of fgaClient.streamedListObjects(
+  { user: "user:anne", relation: "can_read", type: "document" },
+  { consistency: ConsistencyPreference.HigherConsistency }
+)) {
+  objects.push(response.object);
+}
+
+// objects = ["document:0192ab2a-d83f-756d-9397-c5ed9f3cb69a"]
+```
+
 ##### List Relations
 
 List the relations a user has with an object. This wraps around [BatchCheck](#batchcheck) to allow checking multiple relationships at once.

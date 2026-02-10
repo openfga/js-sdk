@@ -20,6 +20,7 @@ export enum TelemetryMetric {
   CounterCredentialsRequest = "counterCredentialsRequest",
   HistogramRequestDuration = "histogramRequestDuration",
   HistogramQueryDuration = "histogramQueryDuration",
+  HistogramHttpRequestDuration = "histogramHttpRequestDuration",
 }
 
 export class MetricRecorder {
