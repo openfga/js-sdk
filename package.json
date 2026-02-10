@@ -47,7 +47,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git://github.com:openfga/js-sdk.git"
+    "url": "git://github.com/openfga/js-sdk.git"
   },
   "bugs": {
     "url": "https://github.com/openfga/js-sdk/issues"
