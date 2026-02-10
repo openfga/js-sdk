@@ -3,9 +3,9 @@
 
 ## [Unreleased](https://github.com/openfga/js-sdk/compare/v0.9.2-beta.1...HEAD)
 
-## v0.9.2-beta.1
+## v0.9.2
 
-### [v0.9.2-beta.1](https://github.com/openfga/js-sdk/compare/v0.9.1...v0.9.2-beta.1) (2026-02-10)
+### [v0.9.2](https://github.com/openfga/js-sdk/compare/v0.9.1...v0.9.2) (2026-02-10)
 
 - feat: add support for [streamedListObjects](https://openfga.dev/api/service#/Relationship%20Queries/StreamedListObjects). See [documentation](#streamed-list-objects)
 - chore: remove node url dependency blocking browser usage (#300)
