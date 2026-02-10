@@ -1,6 +1,6 @@
 {
   "name": "@openfga/sdk",
-  "version": "0.9.2-beta.3",
+  "version": "0.9.2",
   "description": "JavaScript and Node.js SDK for OpenFGA",
   "author": "OpenFGA",
   "keywords": [
