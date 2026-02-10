@@ -145,7 +145,11 @@ jobs:
           fi
 
       - name: Ensure latest npm is installed
-        run: sudo npm install -g npm@latest
+        run: |
+          npm config set prefix ~/.npm-global
+          export PATH=~/.npm-global/bin:$PATH
+          npm install -g npm@latest
+          echo "$HOME/.npm-global/bin" >> $GITHUB_PATH
 
       - name: Publish to npm
         run: npm publish --tag ${{ steps.npm-tag.outputs.tag }}
