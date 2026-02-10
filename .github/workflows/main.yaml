@@ -145,7 +145,7 @@ jobs:
           fi
 
       - name: Ensure latest npm is installed
-        run: npm install -g npm@latest
+        run: sudo npm install -g npm@latest
 
       - name: Publish to npm
         run: npm publish --tag ${{ steps.npm-tag.outputs.tag }}
