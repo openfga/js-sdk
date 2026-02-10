@@ -20,7 +20,14 @@
   The client now supports setting `conflict` on `ClientWriteRequestOpts` to control behavior when writing duplicate tuples or deleting non-existent tuples. This feature requires OpenFGA server [v1.10.0](https://github.com/openfga/openfga/releases/tag/v1.10.0) or later.
   See [Conflict Options for Write Operations](./README.md#conflict-options-for-write-operations) for more.
 
+### Bug Fixes
+
+- fix(telemetry): support TypeScript exactOptionalPropertyTypes compiler option
+
+
 ## v0.9.0
+
+
 
 ### [v0.9.0](https://github.com/openfga/js-sdk/compare/v0.8.1...v0.9.0) (2025-06-04)
 
