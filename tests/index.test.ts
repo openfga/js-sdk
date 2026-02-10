@@ -73,7 +73,7 @@ describe("OpenFGA SDK", function () {
             }
           } as Configuration["credentials"]
         })
-      ).not.toThrowError();
+      ).not.toThrow();
     });
 
     it.each(["tcp://", "grpc://", "file://"])("should not allow invalid schemes as part of the apiTokenIssuer in configuration (%s)", (scheme) => {
