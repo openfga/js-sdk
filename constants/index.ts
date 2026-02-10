@@ -14,12 +14,12 @@
 /**
  * Version of the OpenFGA JavaScript SDK.
  */
-const SdkVersion = "0.9.2-beta.1";
+const SdkVersion = "0.9.2-beta.3";
 
 /**
  * User agent used in HTTP requests.
  */
-const UserAgent = "openfga-sdk js/0.9.2-beta.1";
+const UserAgent = "openfga-sdk js/0.9.2-beta.3";
 
 /**
  * Example API domain for documentation/tests.
