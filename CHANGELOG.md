@@ -10,6 +10,7 @@
 - feat: add support for [streamedListObjects](https://openfga.dev/api/service#/Relationship%20Queries/StreamedListObjects). See [documentation](#streamed-list-objects)
 - chore: remove node url dependency blocking browser usage (#300)
 - feat: Report a per-http call metric (#303)
+- chore: update Node.js to v22.14.0 for trusted publishing support and add Node.js 22 and 24 to CI test matrix (#317)
 
 ## v0.9.1
 
