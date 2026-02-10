@@ -1,7 +1,24 @@
 # Changelog
 
 
-## [Unreleased](https://github.com/openfga/js-sdk/compare/v0.9.0...HEAD)
+## [Unreleased](https://github.com/openfga/js-sdk/compare/v0.9.2...HEAD)
+
+## v0.9.2
+
+### [v0.9.2](https://github.com/openfga/js-sdk/compare/v0.9.1...v0.9.2) (2026-02-10)
+
+- feat: add support for [streamedListObjects](https://openfga.dev/api/service#/Relationship%20Queries/StreamedListObjects). See [documentation](#streamed-list-objects)
+- chore: remove node url dependency blocking browser usage (#300)
+- feat: Report a per-http call metric (#303)
+
+## v0.9.1
+
+### [v0.9.1](https://github.com/openfga/js-sdk/compare/v0.9.0...v0.9.1) (2025-11-05)
+
+- feat: add support for handling Retry-After header (#267)
+- feat: add support for conflict options for Write operations: (#276)
+  The client now supports setting `conflict` on `ClientWriteRequestOpts` to control behavior when writing duplicate tuples or deleting non-existent tuples. This feature requires OpenFGA server [v1.10.0](https://github.com/openfga/openfga/releases/tag/v1.10.0) or later.
+  See [Conflict Options for Write Operations](./README.md#conflict-options-for-write-operations) for more.
 
 ### Bug Fixes
 

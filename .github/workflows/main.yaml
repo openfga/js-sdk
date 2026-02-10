@@ -9,21 +9,24 @@ on:
 permissions:
   contents: read
 
+env:
+  TARGET_NODE_VERSION: '24.x'
+
 jobs:
   build:
     runs-on: ubuntu-latest
 
     strategy:
       matrix:
-        node-version: [16, 18, 20]
+        node-version: [16.x, 18.x, 20.x, 22.x, 24.x]
 
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 0
 
       - name: Set up node
-        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
         with:
           node-version: ${{ matrix.node-version }}
           registry-url: "https://registry.npmjs.org"
@@ -41,21 +44,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 0
 
       - name: Set up node
-        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
         with:
-          node-version: 20
+          node-version: ${{ env.TARGET_NODE_VERSION }}
           cache: "npm"
 
       - name: Install dependencies
         run: npm ci
-
-      - name: Audit dependencies
-        run: npm audit
 
       - name: Check for circular dependencies
         run: npx madge --circular . --extensions ts,js
@@ -64,15 +64,35 @@ jobs:
         run: npm test
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7 # v5.5.1
+        uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5.5.2
         continue-on-error: true
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           slug: openfga/js-sdk
 
+  audit:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
+
+      - name: Set up node
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
+        with:
+          node-version: ${{ env.TARGET_NODE_VERSION }}
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Audit dependencies
+        run: npm audit
+
   publish:
     if: startsWith(github.ref, 'refs/tags/v')
-    needs: [build, test]
+    needs: [build, test, audit]
     runs-on: ubuntu-latest
 
     permissions:
@@ -80,14 +100,14 @@ jobs:
       id-token: write
 
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 0
 
       - name: Set up node
-        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
         with:
-          node-version: 20
+          node-version: ${{ env.NODE_VERSION }}
           registry-url: "https://registry.npmjs.org"
           scope: "@openfga"
           always-auth: false
@@ -96,10 +116,37 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Validate tag and determine npm tag
+        id: npm-tag
+        run: |
+          TAG="${GITHUB_REF#refs/tags/}"
+
+          # Validate tag format
+          if [[ ! "$TAG" =~ ^v[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+(-(alpha|beta|rc)\.[[:digit:]]+)?$ ]]; then
+            echo "Error: Tag '$TAG' does not match the required format"
+            echo "Valid formats:"
+            echo "  - v1.2.3"
+            echo "  - v1.2.3-alpha.1"
+            echo "  - v1.2.3-beta.1"
+            echo "  - v1.2.3-rc.1"
+            exit 1
+          fi
+
+          # Determine npm tag
+          VERSION="${TAG#v}"
+          if [[ "$VERSION" =~ -alpha ]]; then
+            echo "tag=alpha" >> $GITHUB_OUTPUT
+          elif [[ "$VERSION" =~ -beta ]]; then
+            echo "tag=beta" >> $GITHUB_OUTPUT
+          elif [[ "$VERSION" =~ -rc ]]; then
+            echo "tag=rc" >> $GITHUB_OUTPUT
+          else
+            echo "tag=latest" >> $GITHUB_OUTPUT
+          fi
+
       - name: Publish to npm
-        run: npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npx -y npm@11.9.0 publish --tag ${{ steps.npm-tag.outputs.tag }}
+
 
   create-release:
     if: startsWith(github.ref, 'refs/tags/v')
@@ -110,12 +157,15 @@ jobs:
       contents: write
 
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 0
 
       - uses: Roang-zero1/github-create-release-action@57eb9bdce7a964e48788b9e78b5ac766cb684803 # v3.0.1
         with:
           version_regex: ^v[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+
+          prerelease_regex: ^v[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+-(alpha|beta|rc)\.[[:digit:]]+$
+          changelog_file: CHANGELOG.md
+          create_draft: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

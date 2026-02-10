@@ -115,12 +115,14 @@ export class TelemetryConfiguration implements TelemetryConfig {
         [TelemetryMetric.CounterCredentialsRequest]: {attributes: TelemetryConfiguration.defaultAttributes},
         [TelemetryMetric.HistogramRequestDuration]: {attributes: TelemetryConfiguration.defaultAttributes},
         [TelemetryMetric.HistogramQueryDuration]: {attributes: TelemetryConfiguration.defaultAttributes},
+        [TelemetryMetric.HistogramHttpRequestDuration]: {attributes: TelemetryConfiguration.defaultAttributes},
       };
     } else {
       this.metrics = {
         [TelemetryMetric.CounterCredentialsRequest]: metrics[TelemetryMetric.CounterCredentialsRequest] || undefined,
         [TelemetryMetric.HistogramRequestDuration]: metrics[TelemetryMetric.HistogramRequestDuration] || undefined,
         [TelemetryMetric.HistogramQueryDuration]: metrics[TelemetryMetric.HistogramQueryDuration] || undefined,
+        [TelemetryMetric.HistogramHttpRequestDuration]: metrics[TelemetryMetric.HistogramHttpRequestDuration] || undefined,
       };
     }
   }
@@ -151,6 +153,13 @@ export class TelemetryConfiguration implements TelemetryConfig {
     histogramQueryDurationConfigAttrs.forEach(histogramQueryDurationConfigAttr => {
       if (!validAttrs.has(histogramQueryDurationConfigAttr)) {
         throw new FgaValidationError(`Configuration.telemetry.metrics.histogramQueryDuration attribute '${histogramQueryDurationConfigAttr}' is not a valid attribute`);
+      }
+    });
+
+    const histogramHttpRequestDurationConfigAttrs = this.metrics?.histogramHttpRequestDuration?.attributes || new Set<TelemetryAttribute>();
+    histogramHttpRequestDurationConfigAttrs.forEach(histogramHttpRequestDurationAttr => {
+      if (!validAttrs.has(histogramHttpRequestDurationAttr)) {
+        throw new FgaValidationError(`Configuration.telemetry.metrics.histogramHttpRequestDuration attribute '${histogramHttpRequestDurationAttr}' is not a valid attribute`);
       }
     });
   }
