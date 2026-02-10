@@ -144,11 +144,8 @@ jobs:
             echo "tag=latest" >> $GITHUB_OUTPUT
           fi
 
-      - name: Ensure latest npm is installed
-        run: npm install -g npm@latest
-
       - name: Publish to npm
-        run: npm publish --tag ${{ steps.npm-tag.outputs.tag }}
+        run: npx -y npm@11.9.0 publish --tag ${{ steps.npm-tag.outputs.tag }}
 
 
   create-release:
