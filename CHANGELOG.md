@@ -3,8 +3,8 @@
 
 ## [Unreleased](https://github.com/openfga/js-sdk/compare/v0.9.2...HEAD)
 
-- chore!: drop support for Node.js v16, support for Node.js 18 is best-effort, we recommend updating to a node-runtime that is [supported upstream](https://nodejs.org/en/about/previous-releases) - currently 20 (maintenance), 22 (maintenance), 24 (LTS) and 25 (current).
-  The minimum supported version of Node.js is now v18.18.0. This is in line with our [stated supported environments](./SUPPORTED_RUNTIMES.md)
+- chore!: drop support for Node.js v16 & 18. We recommend updating to a node-runtime that is [supported upstream](https://nodejs.org/en/about/previous-releases) - currently 20 (maintenance), 22 (maintenance), 24 (LTS) and 25 (current).
+  The minimum supported version of Node.js is now v20. This is in line with our [stated supported environments](./SUPPORTED_RUNTIMES.md)
 
 ## v0.9.2
 

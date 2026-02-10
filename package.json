@@ -55,7 +55,7 @@
   },
   "homepage": "https://github.com/openfga/js-sdk#readme",
   "engines": {
-    "node": ">=18.18.0"
+    "node": ">=20.19.0"
   },
   "publishConfig": {
     "access": "public",
