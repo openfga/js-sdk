@@ -37,7 +37,7 @@ describe("OpenFGA Client", () => {
       it("should throw an error if the storeId is not in a valid format", async () => {
         expect(
           () => new OpenFgaClient({ ...baseConfig, storeId: "abcsa"! })
-        ).toThrowError(FgaValidationError);
+        ).toThrow(FgaValidationError);
       });
 
       it("should require storeId when calling endpoints that require it", () => {
