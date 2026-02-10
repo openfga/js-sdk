@@ -157,11 +157,9 @@ export class FgaApiRateLimitExceededError extends FgaApiError {
     super(err);
     this.apiErrorCode = (err.response?.data as any)?.code;
 
-    const { endpointCategory } = getRequestMetadataFromPath(err.request?.path);
-    const errResponseHeaders = getResponseHeaders(err);
     this.message = msg
       ? msg
-      : `FGA API Rate Limit Error for ${this.method} ${endpointCategory}`;
+      : `FGA API Rate Limit Error for ${this.method} ${this.endpointCategory}`;
   }
 }
 
