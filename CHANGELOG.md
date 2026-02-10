@@ -1,7 +1,7 @@
 # Changelog
 
 
-## [Unreleased](https://github.com/openfga/js-sdk/compare/v0.9.2-beta.1...HEAD)
+## [Unreleased](https://github.com/openfga/js-sdk/compare/v0.9.2...HEAD)
 
 ## v0.9.2
 
