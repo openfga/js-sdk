@@ -152,7 +152,7 @@ jobs:
           echo "$HOME/.npm-global/bin" >> $GITHUB_PATH
 
       - name: Publish to npm
-        run: npm publish --tag ${{ steps.npm-tag.outputs.tag }}
+        run: npx -y npm@11.9.0 publish --tag ${{ steps.npm-tag.outputs.tag }}
 
 
   create-release:
