@@ -96,8 +96,37 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Validate tag and determine npm tag
+        id: npm-tag
+        run: |
+          TAG="${GITHUB_REF#refs/tags/}"
+
+          # Validate tag format
+          if [[ ! "$TAG" =~ ^v[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+(-(alpha|beta|rc)\.[[:digit:]]+)?$ ]]; then
+            echo "Error: Tag '$TAG' does not match the required format"
+            echo "Valid formats:"
+            echo "  - v1.2.3"
+            echo "  - v1.2.3-alpha.1"
+            echo "  - v1.2.3-beta.1"
+            echo "  - v1.2.3-rc.1"
+            exit 1
+          fi
+
+          # Determine npm tag
+          VERSION="${TAG#v}"
+          if [[ "$VERSION" =~ -alpha ]]; then
+            echo "tag=alpha" >> $GITHUB_OUTPUT
+          elif [[ "$VERSION" =~ -beta ]]; then
+            echo "tag=beta" >> $GITHUB_OUTPUT
+          elif [[ "$VERSION" =~ -rc ]]; then
+            echo "tag=rc" >> $GITHUB_OUTPUT
+          else
+            echo "tag=latest" >> $GITHUB_OUTPUT
+          fi
+
       - name: Publish to npm
-        run: npm publish
+        run: npm publish --tag ${{ steps.npm-tag.outputs.tag }}
+
 
   create-release:
     if: startsWith(github.ref, 'refs/tags/v')
@@ -115,5 +144,8 @@ jobs:
       - uses: Roang-zero1/github-create-release-action@57eb9bdce7a964e48788b9e78b5ac766cb684803 # v3.0.1
         with:
           version_regex: ^v[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+
+          prerelease_regex: ^v[[:digit:]]+\.[[:digit:]]+\.[[:digit:]]+-(alpha|beta|rc)\.[[:digit:]]+$
+          changelog_file: CHANGELOG.md
+          create_draft: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
