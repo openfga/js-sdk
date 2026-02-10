@@ -9,13 +9,16 @@ on:
 permissions:
   contents: read
 
+env:
+  TARGET_NODE_VERSION: '24.x'
+
 jobs:
   build:
     runs-on: ubuntu-latest
 
     strategy:
       matrix:
-        node-version: [16, 18, 20]
+        node-version: [16.x, 18.x, 20.x, 22.x, 24.x]
 
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -48,14 +51,11 @@ jobs:
       - name: Set up node
         uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
         with:
-          node-version: 20
+          node-version: ${{ env.TARGET_NODE_VERSION }}
           cache: "npm"
 
       - name: Install dependencies
         run: npm ci
-
-      - name: Audit dependencies
-        run: npm audit
 
       - name: Check for circular dependencies
         run: npx madge --circular . --extensions ts,js
@@ -70,9 +70,29 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           slug: openfga/js-sdk
 
+  audit:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
+
+      - name: Set up node
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
+        with:
+          node-version: ${{ env.TARGET_NODE_VERSION }}
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Audit dependencies
+        run: npm audit
+
   publish:
     if: startsWith(github.ref, 'refs/tags/v')
-    needs: [build, test]
+    needs: [build, test, audit]
     runs-on: ubuntu-latest
 
     permissions:
@@ -87,7 +107,7 @@ jobs:
       - name: Set up node
         uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
         with:
-          node-version: 20
+          node-version: ${{ env.NODE_VERSION }}
           registry-url: "https://registry.npmjs.org"
           scope: "@openfga"
           always-auth: false
@@ -125,9 +145,8 @@ jobs:
           fi
 
       - name: Publish to npm
-        run: npm publish --tag ${{ steps.npm-tag.outputs.tag }}
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npx -y npm@11.9.0 publish --tag ${{ steps.npm-tag.outputs.tag }}
+
 
   create-release:
     if: startsWith(github.ref, 'refs/tags/v')
