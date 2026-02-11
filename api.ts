@@ -28,6 +28,7 @@ import {
 import { Configuration } from "./configuration";
 import { Credentials } from "./credentials";
 import { assertParamExists } from "./validation";
+import { FgaValidationError } from "./errors";
 
 import {
   AbortedMessageResponse,
@@ -863,7 +864,7 @@ export const OpenFgaApiAxiosParamCreator = function (configuration: Configuratio
       if (localVarPath.includes("{") && localVarPath.includes("}")) {
         const unresolvedMatch = localVarPath.match(/\{([^}]+)\}/);
         if (unresolvedMatch) {
-          throw new Error(`Path parameter '${unresolvedMatch[1]}' was not provided for path: ${path}`);
+          throw new FgaValidationError(unresolvedMatch[1], `Path parameter '${unresolvedMatch[1]}' was not provided for path: ${path}`);
         }
       }
 
