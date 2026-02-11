@@ -145,7 +145,7 @@ export const getNocks = ((nock: typeof Nock) => ({
         page_size: pageSize,
         continuation_token: contToken,
         ...(type ? { type } : { }),
-        ...(startTime ? { start_time: startTime } :{})
+        ...(startTime ? {start_time: startTime } :{})
       })
       .reply(200, {
         changes: [{
@@ -287,4 +287,4 @@ export const getNocks = ((nock: typeof Nock) => ({
       .put(`/stores/${storeId}/assertions/${modelId}`)
       .reply(responseStatus);
   },
-  }));
+}));
