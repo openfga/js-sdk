@@ -545,9 +545,8 @@ describe("Credentials", () => {
 
       const scope = nock(expectedBaseUrl)
         .post(expectedPath)
-        .times(4)
-        .reply(500, {
-          code: "internal_error",
+        .reply(404, {
+          code: "not_found",
           message: "token exchange failed",
         });
 
