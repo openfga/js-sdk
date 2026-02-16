@@ -237,11 +237,25 @@ export class Credentials {
       return this.accessToken;
     } catch (err: unknown) {
       if (err instanceof FgaApiError) {
-        (err as any).constructor = FgaApiAuthenticationError;
-        (err as any).name = "FgaApiAuthenticationError";
-        (err as any).clientId = clientCredentials.clientId;
-        (err as any).audience = clientCredentials.apiAudience;
-        (err as any).grantType = "client_credentials";
+        const authError = new FgaApiAuthenticationError({
+          response: {
+            status: err.statusCode,
+            statusText: err.statusText,
+            data: err.responseData,
+            headers: err.responseHeader,
+          },
+          config: {
+            url: err.requestURL,
+            method: err.method,
+            data: JSON.stringify({
+              client_id: clientCredentials.clientId,
+              audience: clientCredentials.apiAudience,
+              grant_type: "client_credentials",
+            }),
+          },
+        } as any);
+        authError.stack = err.stack;
+        throw authError;
       }
 
       throw err;
