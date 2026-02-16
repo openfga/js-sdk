@@ -30,7 +30,7 @@ export class MetricRecorder {
 
   meter(): Meter {
     if (!this._meter) {
-      this._meter = metrics.getMeter("@openfga/sdk", "0.6.3");
+      this._meter = metrics.getMeter("@openfga/sdk", "0.9.0");
     }
     return this._meter;
   }
