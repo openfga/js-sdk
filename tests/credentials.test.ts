@@ -537,5 +537,44 @@ describe("Credentials", () => {
 
       expect(scope.isDone()).toBe(true);
     });
+
+    test("should refresh cached token when it is close to expiration", async () => {
+      const apiTokenIssuer = "issuer.fga.example";
+      const expectedBaseUrl = "https://issuer.fga.example";
+      const expectedPath = `/${DEFAULT_TOKEN_ENDPOINT_PATH}`;
+
+      const scope = nock(expectedBaseUrl)
+        .post(expectedPath)
+        .reply(200, {
+          access_token: "short-lived-token",
+          expires_in: 120,
+        })
+        .post(expectedPath)
+        .reply(200, {
+          access_token: "refreshed-token",
+          expires_in: 3600,
+        });
+
+      const credentials = new Credentials(
+        {
+          method: CredentialsMethod.ClientCredentials,
+          config: {
+            apiTokenIssuer,
+            apiAudience: OPENFGA_API_AUDIENCE,
+            clientId: OPENFGA_CLIENT_ID,
+            clientSecret: OPENFGA_CLIENT_SECRET,
+          },
+        } as AuthCredentialsConfig,
+        undefined,
+        mockTelemetryConfig,
+      );
+
+      const header1 = await credentials.getAccessTokenHeader();
+      const header2 = await credentials.getAccessTokenHeader();
+
+      expect(header1?.value).toBe("Bearer short-lived-token");
+      expect(header2?.value).toBe("Bearer refreshed-token");
+      expect(scope.isDone()).toBe(true);
+    });
   });
 });
