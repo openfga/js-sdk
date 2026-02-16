@@ -544,9 +544,9 @@ describe("Credentials", () => {
       const expectedPath = `/${DEFAULT_TOKEN_ENDPOINT_PATH}`;
       let tokenRequestCount = 0;
 
-      nock(expectedBaseUrl)
+      const scope = nock(expectedBaseUrl)
         .post(expectedPath)
-        .times(5)
+        .once()
         .delay(20)
         .reply(() => {
           tokenRequestCount += 1;
@@ -578,6 +578,7 @@ describe("Credentials", () => {
         expect(header?.value).toBe("Bearer shared-token");
       });
       expect(tokenRequestCount).toBe(1);
+      expect(scope.isDone()).toBe(true);
     });
   });
 });
