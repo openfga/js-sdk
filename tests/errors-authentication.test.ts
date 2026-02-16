@@ -27,6 +27,15 @@ describe("errors.ts", () => {
       const err = new FgaApiAuthenticationError(axiosError);
 
       expect(err).toBeInstanceOf(FgaApiError);
+      expect(err).toBeInstanceOf(Error);
+      expect(err.statusCode).toBe(401);
+      expect(err.statusText).toBe("Unauthorized");
+      expect(err.requestURL).toBe("https://issuer.fga.example/oauth/token");
+      expect(err.clientId).toBe("client-id");
+      expect(err.audience).toBe("api-audience");
+      expect(err.grantType).toBe("client_credentials");
+      expect(err.apiErrorCode).toBe("auth_error");
+      expect(err.message).toBe("FGA Authentication Error. Unauthorized");
     });
   });
 });
