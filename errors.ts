@@ -267,9 +267,9 @@ export class FgaApiAuthenticationError extends FgaError {
     } catch (err) {
       /* do nothing */
     }
-    this.clientId = data?.client_id;
-    this.audience = data?.audience;
-    this.grantType = data?.grant_type;
+    this.clientId = context?.clientId ?? data?.client_id;
+    this.audience = context?.audience ?? data?.audience;
+    this.grantType = context?.grantType ?? data?.grant_type;
     if ((err as Error)?.stack) {
       this.stack = (err as Error).stack;
     }

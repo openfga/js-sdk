@@ -564,7 +564,19 @@ describe("Credentials", () => {
         mockTelemetryConfig,
       );
 
-      await expect(credentials.getAccessTokenHeader()).rejects.toThrow(FgaApiAuthenticationError);
+      let error: unknown;
+      try {
+        await credentials.getAccessTokenHeader();
+      } catch (err) {
+        error = err;
+      }
+
+      expect(error).toBeInstanceOf(FgaApiAuthenticationError);
+      const authenticationError = error as FgaApiAuthenticationError;
+      expect(authenticationError.statusCode).toBe(404);
+      expect(authenticationError.clientId).toBe(OPENFGA_CLIENT_ID);
+      expect(authenticationError.audience).toBe(OPENFGA_API_AUDIENCE);
+      expect(authenticationError.grantType).toBe(CredentialsMethod.ClientCredentials);
       expect(scope.isDone()).toBe(true);
     });
   });
