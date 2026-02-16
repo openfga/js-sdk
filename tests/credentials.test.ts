@@ -537,5 +537,47 @@ describe("Credentials", () => {
 
       expect(scope.isDone()).toBe(true);
     });
+
+    test("should send a single token request for concurrent access token reads", async () => {
+      const apiTokenIssuer = "issuer.fga.example";
+      const expectedBaseUrl = "https://issuer.fga.example";
+      const expectedPath = `/${DEFAULT_TOKEN_ENDPOINT_PATH}`;
+      let tokenRequestCount = 0;
+
+      nock(expectedBaseUrl)
+        .post(expectedPath)
+        .times(5)
+        .delay(20)
+        .reply(() => {
+          tokenRequestCount += 1;
+          return [200, {
+            access_token: "shared-token",
+            expires_in: 300,
+          }];
+        });
+
+      const credentials = new Credentials(
+        {
+          method: CredentialsMethod.ClientCredentials,
+          config: {
+            apiTokenIssuer,
+            apiAudience: OPENFGA_API_AUDIENCE,
+            clientId: OPENFGA_CLIENT_ID,
+            clientSecret: OPENFGA_CLIENT_SECRET,
+          },
+        } as AuthCredentialsConfig,
+        undefined,
+        mockTelemetryConfig,
+      );
+
+      const headers = await Promise.all(
+        Array.from({ length: 5 }, () => credentials.getAccessTokenHeader())
+      );
+
+      headers.forEach(header => {
+        expect(header?.value).toBe("Bearer shared-token");
+      });
+      expect(tokenRequestCount).toBe(1);
+    });
   });
 });
