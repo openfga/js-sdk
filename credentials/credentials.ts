@@ -138,7 +138,7 @@ export class Credentials {
       return;
     case CredentialsMethod.ApiToken:
       return this.authConfig.config.token;
-    case CredentialsMethod.ClientCredentials:
+    case CredentialsMethod.ClientCredentials: {
       const tokenIsValid = !this.accessTokenExpiryDate || (
         this.accessTokenExpiryDate.getTime() - Date.now() > this.accessTokenExpiryBufferInMs
       );
@@ -147,6 +147,7 @@ export class Credentials {
       }
 
       return this.refreshAccessToken();
+    }
     }
   }
 
