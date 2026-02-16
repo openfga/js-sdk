@@ -22,6 +22,7 @@ import { TelemetryAttributes } from "../telemetry/attributes";
 import { TelemetryCounters } from "../telemetry/counters";
 import { TelemetryConfiguration } from "../telemetry/configuration";
 import { randomUUID } from "crypto";
+import SdkConstants from "../constants";
 
 interface ClientSecretRequest {
   client_id: string;
@@ -137,7 +138,14 @@ export class Credentials {
     case CredentialsMethod.ApiToken:
       return this.authConfig.config.token;
     case CredentialsMethod.ClientCredentials:
-      if (this.accessToken && (!this.accessTokenExpiryDate || this.accessTokenExpiryDate > new Date())) {
+      const tokenExpiryBufferInMs = (
+        SdkConstants.TokenExpiryThresholdBufferInSec +
+        (Math.random() * SdkConstants.TokenExpiryJitterInSec)
+      ) * 1000;
+      const tokenIsValid = !this.accessTokenExpiryDate || (
+        this.accessTokenExpiryDate.getTime() - Date.now() > tokenExpiryBufferInMs
+      );
+      if (this.accessToken && tokenIsValid) {
         return this.accessToken;
       }
 
