@@ -37,6 +37,11 @@ interface ClientAssertionRequest {
   audience: string;
 }
 
+const HTTP_SCHEME = "http://";
+const HTTPS_SCHEME = "https://";
+
+export const DEFAULT_TOKEN_ENDPOINT_PATH = "oauth/token";
+
 export class Credentials {
   private accessToken?: string;
   private accessTokenExpiryDate?: Date;
@@ -87,16 +92,18 @@ export class Credentials {
       assertParamExists("Credentials", "config.headerName", authConfig.config?.headerName);
       assertParamExists("Credentials", "config.headerName", authConfig.config?.headerName);
       break;
-    case CredentialsMethod.ClientCredentials:
+    case CredentialsMethod.ClientCredentials: {
       assertParamExists("Credentials", "config.clientId", authConfig.config?.clientId);
       assertParamExists("Credentials", "config.apiTokenIssuer", authConfig.config?.apiTokenIssuer);
       assertParamExists("Credentials", "config.apiAudience", authConfig.config?.apiAudience);
       assertParamExists("Credentials", "config.clientSecret or config.clientAssertionSigningKey", (authConfig.config as ClientSecretConfig).clientSecret || (authConfig.config as PrivateKeyJWTConfig).clientAssertionSigningKey);
 
-      if (!isWellFormedUriString(`https://${authConfig.config?.apiTokenIssuer}`)) {
+      const normalizedApiTokenIssuer = this.normalizeApiTokenIssuer(authConfig.config?.apiTokenIssuer);
+      if (!isWellFormedUriString(normalizedApiTokenIssuer)) {
         throw new FgaValidationError(
-          `Configuration.apiTokenIssuer does not form a valid URI (https://${authConfig.config?.apiTokenIssuer})`);
+          `Configuration.apiTokenIssuer does not form a valid URI (${normalizedApiTokenIssuer})`);
       }
+    }
       break;
     }
   }
@@ -139,12 +146,46 @@ export class Credentials {
   }
 
   /**
+   * Normalize API token issuer URL by ensuring it has a scheme
+   * @private
+   * @param apiTokenIssuer
+   * @return string The normalized API token issuer URL
+   */
+  private normalizeApiTokenIssuer(apiTokenIssuer: string): string {
+    if (apiTokenIssuer.startsWith(HTTP_SCHEME) || apiTokenIssuer.startsWith(HTTPS_SCHEME)) {
+      return apiTokenIssuer;
+    }
+    return `${HTTPS_SCHEME}${apiTokenIssuer}`;
+  }
+
+  /**
+   * Constructs the token endpoint URL from the provided API token issuer.
+   * @private
+   * @param apiTokenIssuer
+   * @return string The constructed token endpoint URL if valid, otherwise throws an error
+   * @throws {FgaValidationError} If the API token issuer URL is invalid
+   */
+  private buildApiTokenUrl(apiTokenIssuer: string): string {
+    const normalizedApiTokenIssuer = this.normalizeApiTokenIssuer(apiTokenIssuer);
+
+    try {
+      const url = new URL(normalizedApiTokenIssuer);
+      if (!url.pathname || url.pathname.match(/^\/+$/)) {
+        url.pathname = `/${DEFAULT_TOKEN_ENDPOINT_PATH}`;
+      }
+      return url.toString(); // Query params are preserved in the URL
+    } catch {
+      throw new FgaValidationError(`Invalid API token issuer URL: ${normalizedApiTokenIssuer}`);
+    }
+  }
+
+  /**
    * Request new access token
    * @return string
    */
   private async refreshAccessToken() {
     const clientCredentials = (this.authConfig as { method: CredentialsMethod.ClientCredentials; config: ClientCredentialsConfig })?.config;
-    const url = `https://${clientCredentials.apiTokenIssuer}/oauth/token`;
+    const url = this.buildApiTokenUrl(clientCredentials.apiTokenIssuer);
     const credentialsPayload = await this.buildClientAuthenticationPayload();
 
     try {
@@ -216,13 +257,14 @@ export class Credentials {
     if ((config as PrivateKeyJWTConfig).clientAssertionSigningKey) {
       const alg = (config as PrivateKeyJWTConfig).clientAssertionSigningAlgorithm || "RS256";
       const privateKey = await jose.importPKCS8((config as PrivateKeyJWTConfig).clientAssertionSigningKey, alg);
+      const audienceIssuer = this.normalizeApiTokenIssuer(config.apiTokenIssuer);
       const assertion = await new jose.SignJWT({})
         .setProtectedHeader({ alg })
         .setIssuedAt()
         .setSubject(config.clientId)
         .setJti(randomUUID())
         .setIssuer(config.clientId)
-        .setAudience(`https://${config.apiTokenIssuer}/`)
+        .setAudience(`${audienceIssuer}/`) // Trailing slash is required by the OAuth 2.0 specification
         .setExpirationTime("2m")
         .sign(privateKey);
       return {
