@@ -46,6 +46,7 @@ export const DEFAULT_TOKEN_ENDPOINT_PATH = "oauth/token";
 export class Credentials {
   private accessToken?: string;
   private accessTokenExpiryDate?: Date;
+  private accessTokenExpiryBufferInMs = 0;
 
   public static init(configuration: { credentials: AuthCredentialsConfig, telemetry: TelemetryConfiguration, baseOptions?: any }, axios: AxiosInstance = globalAxios): Credentials {
     return new Credentials(configuration.credentials, axios, configuration.telemetry, configuration.baseOptions);
@@ -138,12 +139,8 @@ export class Credentials {
     case CredentialsMethod.ApiToken:
       return this.authConfig.config.token;
     case CredentialsMethod.ClientCredentials:
-      const tokenExpiryBufferInMs = (
-        SdkConstants.TokenExpiryThresholdBufferInSec +
-        (Math.random() * SdkConstants.TokenExpiryJitterInSec)
-      ) * 1000;
       const tokenIsValid = !this.accessTokenExpiryDate || (
-        this.accessTokenExpiryDate.getTime() - Date.now() > tokenExpiryBufferInMs
+        this.accessTokenExpiryDate.getTime() - Date.now() > this.accessTokenExpiryBufferInMs
       );
       if (this.accessToken && tokenIsValid) {
         return this.accessToken;
@@ -216,6 +213,10 @@ export class Credentials {
       if (response) {
         this.accessToken = response.data.access_token;
         this.accessTokenExpiryDate = new Date(Date.now() + response.data.expires_in * 1000);
+        this.accessTokenExpiryBufferInMs = (
+          SdkConstants.TokenExpiryThresholdBufferInSec +
+          (Math.random() * SdkConstants.TokenExpiryJitterInSec)
+        ) * 1000;
       }
 
       if (this.telemetryConfig?.metrics?.counterCredentialsRequest?.attributes) {

@@ -3,6 +3,7 @@ import * as jose from "jose";
 import { Credentials, CredentialsMethod, DEFAULT_TOKEN_ENDPOINT_PATH } from "../credentials";
 import { AuthCredentialsConfig } from "../credentials/types";
 import { TelemetryConfiguration } from "../telemetry/configuration";
+import SdkConstants from "../constants";
 import {
   OPENFGA_API_AUDIENCE,
   OPENFGA_CLIENT_ASSERTION_SIGNING_KEY,
@@ -542,12 +543,17 @@ describe("Credentials", () => {
       const apiTokenIssuer = "issuer.fga.example";
       const expectedBaseUrl = "https://issuer.fga.example";
       const expectedPath = `/${DEFAULT_TOKEN_ENDPOINT_PATH}`;
+      const randomSpy = jest.spyOn(Math, "random").mockReturnValue(0);
+      const shortLivedTokenInSec = Math.max(
+        1,
+        SdkConstants.TokenExpiryThresholdBufferInSec - 1
+      );
 
       const scope = nock(expectedBaseUrl)
         .post(expectedPath)
         .reply(200, {
           access_token: "short-lived-token",
-          expires_in: 120,
+          expires_in: shortLivedTokenInSec,
         })
         .post(expectedPath)
         .reply(200, {
@@ -569,12 +575,16 @@ describe("Credentials", () => {
         mockTelemetryConfig,
       );
 
-      const header1 = await credentials.getAccessTokenHeader();
-      const header2 = await credentials.getAccessTokenHeader();
+      try {
+        const header1 = await credentials.getAccessTokenHeader();
+        const header2 = await credentials.getAccessTokenHeader();
 
-      expect(header1?.value).toBe("Bearer short-lived-token");
-      expect(header2?.value).toBe("Bearer refreshed-token");
-      expect(scope.isDone()).toBe(true);
+        expect(header1?.value).toBe("Bearer short-lived-token");
+        expect(header2?.value).toBe("Bearer refreshed-token");
+        expect(scope.isDone()).toBe(true);
+      } finally {
+        randomSpy.mockRestore();
+      }
     });
   });
 });
