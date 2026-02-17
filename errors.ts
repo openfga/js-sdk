@@ -54,6 +54,24 @@ function getResponseHeaders(err: AxiosError): any {
     : {};
 }
 
+function parseRequestData(data: unknown): any {
+  if (typeof data !== "string") {
+    return data;
+  }
+
+  try {
+    return JSON.parse(data);
+  } catch {
+    try {
+      const params = new URLSearchParams(data);
+      const parsedParams = Object.fromEntries(params.entries());
+      return Object.keys(parsedParams).length > 0 ? parsedParams : undefined;
+    } catch {
+      return undefined;
+    }
+  }
+}
+
 function getAuthenticationErrorMessage(err: AxiosError | FgaApiError): string {
   const statusText = err instanceof FgaApiError ? err.statusText : err.response?.statusText;
   return `FGA Authentication Error.${statusText ? ` ${statusText}` : ""}`;
@@ -231,14 +249,7 @@ export class FgaApiAuthenticationError extends FgaError {
       this.requestId = err.requestId;
       this.apiErrorCode = (err.responseData as any)?.code;
 
-      let data: any = err.requestData;
-      if (typeof data === "string") {
-        try {
-          data = JSON.parse(data);
-        } catch {
-          data = undefined;
-        }
-      }
+      const data: any = parseRequestData(err.requestData);
 
       this.clientId = context?.clientId ?? data?.client_id;
       this.audience = context?.audience ?? data?.audience;
@@ -261,12 +272,7 @@ export class FgaApiAuthenticationError extends FgaError {
     const errResponseHeaders = getResponseHeaders(err);
     this.requestId = errResponseHeaders[cFGARequestId];
 
-    let data: any;
-    try {
-      data = JSON.parse(err.config?.data || "{}");
-    } catch (err) {
-      /* do nothing */
-    }
+    const data: any = parseRequestData(err.config?.data);
     this.clientId = context?.clientId ?? data?.client_id;
     this.audience = context?.audience ?? data?.audience;
     this.grantType = context?.grantType ?? data?.grant_type;
