@@ -545,8 +545,9 @@ describe("Credentials", () => {
 
       const scope = nock(expectedBaseUrl)
         .post(expectedPath)
-        .reply(404, {
-          code: "not_found",
+        .times(4)
+        .reply(500, {
+          code: "internal_error",
           message: "token exchange failed",
         });
 
@@ -573,7 +574,7 @@ describe("Credentials", () => {
 
       expect(error).toBeInstanceOf(FgaApiAuthenticationError);
       const authenticationError = error as FgaApiAuthenticationError;
-      expect(authenticationError.statusCode).toBe(404);
+      expect(authenticationError.statusCode).toBe(500);
       expect(authenticationError.clientId).toBe(OPENFGA_CLIENT_ID);
       expect(authenticationError.audience).toBe(OPENFGA_API_AUDIENCE);
       expect(authenticationError.grantType).toBe(CredentialsMethod.ClientCredentials);
