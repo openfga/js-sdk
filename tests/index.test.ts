@@ -211,7 +211,9 @@ describe("OpenFGA SDK", function () {
     });
 
     it("should cache the bearer token and not issue a network call to get the token at the second request", async () => {
-      let scope = nocks.tokenExchange(OPENFGA_API_TOKEN_ISSUER);
+      // Use a long-lived token so this test validates caching behavior
+      // independently from proactive near-expiry refresh logic.
+      let scope = nocks.tokenExchange(OPENFGA_API_TOKEN_ISSUER, "test-token", 3600);
       nocks.readAuthorizationModels(baseConfig.storeId!);
 
       const fgaApi = new OpenFgaApi(baseConfig);
