@@ -9,7 +9,7 @@ import {
   OPENFGA_CLIENT_ID,
   OPENFGA_CLIENT_SECRET,
 } from "./helpers/default-config";
-import {FgaValidationError} from "../errors";
+import { FgaApiAuthenticationError, FgaValidationError } from "../errors";
 
 describe("Credentials", () => {
   const mockTelemetryConfig: TelemetryConfiguration = new TelemetryConfiguration({});
@@ -535,6 +535,91 @@ describe("Credentials", () => {
 
       await credentials.getAccessTokenHeader();
 
+      expect(scope.isDone()).toBe(true);
+    });
+
+    test("should throw a real FgaApiAuthenticationError instance when token refresh fails", async () => {
+      const apiTokenIssuer = "issuer.fga.example";
+      const expectedBaseUrl = "https://issuer.fga.example";
+      const expectedPath = `/${DEFAULT_TOKEN_ENDPOINT_PATH}`;
+
+      const scope = nock(expectedBaseUrl)
+        .post(expectedPath)
+        .times(4)
+        .reply(500, {
+          code: "internal_error",
+          message: "token exchange failed",
+        });
+
+      const credentials = new Credentials(
+        {
+          method: CredentialsMethod.ClientCredentials,
+          config: {
+            apiTokenIssuer,
+            apiAudience: OPENFGA_API_AUDIENCE,
+            clientId: OPENFGA_CLIENT_ID,
+            clientSecret: OPENFGA_CLIENT_SECRET,
+          },
+        } as AuthCredentialsConfig,
+        undefined,
+        mockTelemetryConfig,
+      );
+
+      let error: unknown;
+      try {
+        await credentials.getAccessTokenHeader();
+      } catch (err) {
+        error = err;
+      }
+
+      expect(error).toBeInstanceOf(FgaApiAuthenticationError);
+      const authenticationError = error as FgaApiAuthenticationError;
+      expect(authenticationError.statusCode).toBe(500);
+      expect(authenticationError.clientId).toBe(OPENFGA_CLIENT_ID);
+      expect(authenticationError.audience).toBe(OPENFGA_API_AUDIENCE);
+      expect(authenticationError.grantType).toBe(CredentialsMethod.ClientCredentials);
+      expect(scope.isDone()).toBe(true);
+    });
+
+    test("should preserve auth context when token endpoint returns 401", async () => {
+      const apiTokenIssuer = "issuer.fga.example";
+      const expectedBaseUrl = "https://issuer.fga.example";
+      const expectedPath = `/${DEFAULT_TOKEN_ENDPOINT_PATH}`;
+
+      const scope = nock(expectedBaseUrl)
+        .post(expectedPath)
+        .reply(401, {
+          code: "unauthorized",
+          message: "invalid client credentials",
+        });
+
+      const credentials = new Credentials(
+        {
+          method: CredentialsMethod.ClientCredentials,
+          config: {
+            apiTokenIssuer,
+            apiAudience: OPENFGA_API_AUDIENCE,
+            clientId: OPENFGA_CLIENT_ID,
+            clientSecret: OPENFGA_CLIENT_SECRET,
+          },
+        } as AuthCredentialsConfig,
+        undefined,
+        mockTelemetryConfig,
+      );
+
+      let error: unknown;
+      try {
+        await credentials.getAccessTokenHeader();
+      } catch (err) {
+        error = err;
+      }
+
+      expect(error).toBeInstanceOf(FgaApiAuthenticationError);
+      const authenticationError = error as FgaApiAuthenticationError;
+      expect(authenticationError.statusCode).toBe(401);
+      expect(authenticationError.clientId).toBe(OPENFGA_CLIENT_ID);
+      expect(authenticationError.audience).toBe(OPENFGA_API_AUDIENCE);
+      expect(authenticationError.grantType).toBe(CredentialsMethod.ClientCredentials);
       expect(scope.isDone()).toBe(true);
     });
   });
