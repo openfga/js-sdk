@@ -16,9 +16,10 @@ export class FgaError extends Error {
 
   constructor(err?: Error | string | unknown, msg?: string) {
     super(
-      msg || typeof err === "string"
-        ? (err as string)
+      msg ?? (typeof err === "string"
+        ? err
         : `FGA Error${(err as Error)?.message ? `: ${(err as Error).message}` : ""}`
+      )
     );
     if ((err as Error)?.stack) {
       this.stack = (err as Error).stack;
