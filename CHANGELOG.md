@@ -1,11 +1,15 @@
 # Changelog
 
 
-## [Unreleased](https://github.com/openfga/js-sdk/compare/v0.9.2...HEAD)
+## [Unreleased](https://github.com/openfga/js-sdk/compare/v0.9.3...HEAD)
+
+## v0.9.3
+
+### [v0.9.3](https://github.com/openfga/js-sdk/compare/v0.9.2...v0.9.3) (2026-02-25)
+
+- feat: Add APIExecutor for calling arbitrary API endpoints (#298), thanks @Abishek-Newar
 
 ## v0.9.2
-
-### [v0.9.2](https://github.com/openfga/js-sdk/compare/v0.9.1...v0.9.2) (2026-02-10)
 
 - feat: add support for [streamedListObjects](https://openfga.dev/api/service#/Relationship%20Queries/StreamedListObjects). See [documentation](#streamed-list-objects)
 - chore: remove node url dependency blocking browser usage (#300)
