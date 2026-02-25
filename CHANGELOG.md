@@ -9,7 +9,7 @@
 
 - feat: Add APIExecutor for calling arbitrary API endpoints (#298), thanks @Abishek-Newar
 - fix: use current SDK version in telemetry meter (#335)
-- fix: disable httprequestduration metric by default to avoid high cardinality 
+- fix: disable httprequestduration metric by default to avoid high cardinality (#344)
 
 ## v0.9.2
 
