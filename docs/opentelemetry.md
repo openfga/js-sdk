@@ -10,11 +10,12 @@ In cases when metrics events are sent, they will not be viewable outside of infr
 
 ### Supported Metrics
 
-| Metric Name                     | Type      | Enabled by default | Description                                                                     |
-|---------------------------------|-----------|--------------------|---------------------------------------------------------------------------------|
-| `fga-client.request.duration`   | Histogram | Yes                | The total request time for FGA requests                                         |
-| `fga-client.query.duration`     | Histogram | Yes                | The amount of time the FGA server took to process the request                   |
-|` fga-client.credentials.request`| Counter   | Yes                | The total number of times a new token was requested when using ClientCredentials|
+| Metric Name                        | Type      | Enabled by default | Description                                                                     |
+|------------------------------------|-----------|--------------------|---------------------------------------------------------------------------------|
+| `fga-client.request.duration`      | Histogram | Yes                | The total request time for FGA requests                                         |
+| `fga-client.query.duration`        | Histogram | Yes                | The amount of time the FGA server took to process the request                   |
+| `fga-client.http_request.duration` | Histogram | No                 | The time for a single HTTP request to complete (including retries)              |
+|` fga-client.credentials.request`   | Counter   | Yes                | The total number of times a new token was requested when using ClientCredentials|
 
 ### Supported attributes
 
@@ -41,6 +42,8 @@ In cases when metrics events are sent, they will not be viewable outside of infr
 Not all attributes are enabled by default.
 
 Some attributes, like `fga-client.user` have been disabled by default due to their high cardinality, which may result in very high costs when using some SaaS metric collectors. If you expect high cardinality for a specific attribute, you can disable it by updating the telemetry configuration accordingly.
+
+Similarly, the `fga-client.http_request.duration` metric is disabled by default because it tracks every individual HTTP request (including each retry attempt), which can generate a high volume of telemetry data and result in increased costs. You can enable it explicitly in your configuration if you need granular per-request metrics.
 
 If your configuration does not specify a given metric, the default attributes for that metric will be used.
 
@@ -81,7 +84,16 @@ const telemetryConfig = {
         TelemetryAttribute.FgaClientRequestModelId,
         TelemetryAttribute.HttpRequestResendCount,
       ])
-    }
+    },
+    // Optional: Enable per-HTTP-request metrics (disabled by default due to high cardinality)
+    // histogramHttpRequestDuration: {
+    //   attributes: new Set([
+    //     TelemetryAttribute.HttpHost,
+    //     TelemetryAttribute.HttpResponseStatusCode,
+    //     TelemetryAttribute.HttpRequestMethod,
+    //     TelemetryAttribute.UserAgentOriginal,
+    //   ])
+    // }
   }
 };
 
