@@ -397,18 +397,18 @@ describe("Header Functionality Tests", () => {
       expect(scope.isDone()).toBe(true);
     });
 
-    it("allows Content-Type override via per-request headers", async () => {
-      // At the request level, user headers can override SDK headers
-      
+    it("does not allow Content-Type override via per-request headers", async () => {
+      // SDK always enforces Content-Type for JSON requests; user attempts to override are ignored
+
       const fgaClient = new OpenFgaClient(testConfig);
 
       const scope = nock(testConfig.apiUrl!)
         .post(`/stores/${testConfig.storeId}/check`)
         .reply(function() {
-          // Per-request headers override SDK headers (including Content-Type)
-          expect(this.req.headers["content-type"]).toBe("application/xml");
+          // SDK always enforces Content-Type for JSON APIs
+          expect(this.req.headers["content-type"]).toBe("application/json");
           expect(this.req.headers["x-custom-request"]).toBe("request-value");
-          
+
           return [200, { allowed: true }];
         });
 
@@ -418,8 +418,8 @@ describe("Header Functionality Tests", () => {
         object: "document:test"
       }, {
         headers: {
-          "Content-Type": "application/xml",        // This overrides SDK's Content-Type
-          "X-Custom-Request": "request-value"       // Custom headers also work
+          "Content-Type": "application/xml",        // SDK ignores this
+          "X-Custom-Request": "request-value"       // Custom headers still work
         }
       });
 
@@ -463,16 +463,15 @@ describe("Header Functionality Tests", () => {
       expect(scope.isDone()).toBe(true);
     });
 
-    it("should demonstrate Content-Type protection is only critical header", async () => {
-      // Only Content-Type receives special protection - other SDK headers can be overridden
-      
+    it("SDK enforces Content-Type and Accept regardless of baseOptions headers", async () => {
+      // SDK always enforces Content-Type and Accept for JSON requests
+
       const fgaClient = new OpenFgaClient({
         ...testConfig,
         baseOptions: {
           headers: {
             "Content-Type": "text/plain",       // SDK ignores this
-            "User-Agent": "custom-agent",       // This might work (not protected)
-            "Accept": "text/html",              // This might work (not protected)
+            "Accept": "text/html",              // SDK ignores this too
             "X-Custom": "definitely-works"      // Custom headers always work
           }
         }
@@ -482,16 +481,13 @@ describe("Header Functionality Tests", () => {
         .post(`/stores/${testConfig.storeId}/check`)
         .reply(function() {
           const headers = this.req.headers;
-          
-          // Only Content-Type is strictly protected
+
+          // SDK enforces Content-Type and Accept for JSON APIs
           expect(headers["content-type"]).toBe("application/json");
-          
-          // Other headers may or may not be overrideable (depends on axios behavior)
-          // The key point is that only Content-Type has explicit SDK protection
-          
-          // Custom headers definitely work
+
+          // Custom headers are passed through
           expect(headers["x-custom"]).toBe("definitely-works");
-          
+
           return [200, { allowed: true }];
         });
 

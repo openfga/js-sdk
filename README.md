@@ -926,6 +926,7 @@ console.log('Response:', response);
 ```javascript
 // Get a list of stores with query parameters
 const stores = await fgaClient.apiExecutor({
+  operationName: 'ListStores',
   method: 'GET',
   path: '/stores',
   queryParams: {
@@ -943,6 +944,7 @@ Path parameters are specified in the path using `{param_name}` syntax and are re
 
 ```javascript
 const response = await fgaClient.apiExecutor({
+  operationName: 'GetAuthorizationModel',
   method: 'GET',
   path: '/stores/{store_id}/authorization-models/{model_id}',
   pathParams: {

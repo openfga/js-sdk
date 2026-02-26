@@ -1,7 +1,9 @@
 import { AxiosResponse, AxiosInstance } from "axios";
 import asyncPool = require("tiny-async-pool");
 
-import { OpenFgaApi } from "./api";
+import { OpenFgaApi, HttpMethod, RequestBuilderParams, RequestBuilder, RequestBuilderOptions } from "./api";
+export type { HttpMethod, RequestBuilderParams, RequestBuilderOptions };
+export { RequestBuilder };
 import {
   Assertion,
   BatchCheckItem,
@@ -260,41 +262,6 @@ export type ClientListRelationsRequest = Omit<ClientCheckRequest, "relation" | "
 };
 export type ClientWriteAssertionsRequest = (CheckRequestTupleKey & Pick<Assertion, "expectation">)[];
 
-/**
- * HTTP methods supported by apiExecutor
- */
-export type HttpMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
-
-/**
- * Request parameters for apiExecutor method
- */
-export interface ClientApiExecutorParams {
-  /** 
-   * Operation name for telemetry and logging (e.g., "CustomCheck", "CustomEndpoint").
-   * Used for observability when calling new or experimental endpoints.
-   * Defaults to "ApiExecutor" if not provided.
-   */
-  operationName?: string;
-  /** HTTP method */
-  method: HttpMethod;
-  /** 
-   * API path with optional template parameters.
-   * Template parameters should be in the format {param_name} and will be replaced
-   * with URL-encoded values from pathParams.
-   * Example: '/stores/{store_id}/custom-endpoint'
-   */
-  path: string;
-  /** 
-   * Path parameters to replace template variables in the path.
-   * Values will be URL-encoded automatically.
-   * Example: { store_id: "abc123" } will replace {store_id} in the path.
-   */
-  pathParams?: Record<string, string>;
-  /** Optional request body for POST/PUT/PATCH requests */
-  body?: any;
-  /** Optional query parameters */
-  queryParams?: Record<string, any>;
-}
 
 export class OpenFgaClient extends BaseAPI {
   public api: OpenFgaApi;
@@ -1034,49 +1001,71 @@ export class OpenFgaClient extends BaseAPI {
    * apiExecutor lets you send any HTTP request directly to an OpenFGA API endpoint.
    * It’s useful when you need to call a new or experimental API that doesn’t yet have a built-in method in the SDK.
    * You still get the benefits of the SDK, like authentication, configuration, and consistent error handling.
-   * 
-   * @param {ClientApiExecutorParams} request - The request parameters
+   *
+   * @param {RequestBuilderParams} request - The request parameters
+   * @param {string} request.operationName - Operation name for telemetry and logging (e.g., "CustomCheck")
    * @param {HttpMethod} request.method - HTTP method (GET, POST, PUT, DELETE, PATCH)
-   * @param {string} request.path - API path (e.g., '/stores/{store_id}/my-endpoint')
-   * @param {any} [request.body] - Optional request body for POST/PUT/PATCH requests
-   * @param {Record<string, any>} [request.queryParams] - Optional query parameters
+   * @param {string} request.path - API path (e.g., ‘/stores/{store_id}/my-endpoint’)
+   * @param {unknown} [request.body] - Optional request body for POST/PUT/PATCH requests
+   * @param {Record<string, unknown>} [request.queryParams] - Optional query parameters
+   * @param {Record<string, string>} [request.headers] - Optional custom request headers
    * @param {ClientRequestOpts} [options] - Request options
-   * @param {object} [options.headers] - Custom headers to send alongside the request
+   * @param {object} [options.headers] - Additional headers (merged with request.headers; options.headers takes precedence)
    * @param {object} [options.retryParams] - Override the retry parameters for this request
    * @param {number} [options.retryParams.maxRetry] - Override the max number of retries on each API request
    * @param {number} [options.retryParams.minWaitInMs] - Override the minimum wait before a retry is initiated
    * @throws { FgaError }
-   * 
+   *
    * @example
-   * // Call a new endpoint using path parameters (recommended)
-   * const response = await client.apiExecutor({
-   *   operationName: 'CustomCheck',
-   *   method: 'POST',
-   *   path: '/stores/{store_id}/custom-endpoint',
-   *   pathParams: { store_id: 'my-store-id' },
-   *   body: { foo: 'bar' },
-   * });
-   * 
-   * @example
-   * // Call an existing endpoint with query parameters
-   * const stores = await client.apiExecutor({
-   *   method: 'GET',
-   *   path: '/stores',
-   *   queryParams: { page_size: 10 },
+   * const response = await client.apiExecutor<{ allowed: boolean }>({
+   *   operationName: ‘CustomCheck’,
+   *   method: ‘POST’,
+   *   path: ‘/stores/{store_id}/custom-endpoint’,
+   *   pathParams: { store_id: ‘my-store-id’ },
+   *   body: { foo: ‘bar’ },
+   *   headers: { ‘X-Custom-Header’: ‘value’ },
    * });
    */
-  async apiExecutor(
-    request: ClientApiExecutorParams,
+  async apiExecutor<T extends object | void = object>(
+    request: RequestBuilderParams,
+    options: ClientRequestOpts = {}
+  ): PromiseResult<T> {
+    return this.api.apiExecutor<T>(request, options);
+  }
+
+  /**
+   * streamingApiExecutor lets you send any HTTP request directly to an OpenFGA API streaming endpoint.
+   * It’s useful when you need to call a new or experimental API that doesn’t yet have a built-in method in the SDK.
+   * You still get the benefits of the SDK, like authentication, configuration, and consistent error handling.
+   *
+   * @param {RequestBuilderParams} request - The request parameters
+   * @param {string} request.operationName - Operation name for telemetry and logging (e.g., "CustomCheck")
+   * @param {HttpMethod} request.method - HTTP method (GET, POST, PUT, DELETE, PATCH)
+   * @param {string} request.path - API path (e.g., ‘/stores/{store_id}/my-endpoint’)
+   * @param {unknown} [request.body] - Optional request body for POST/PUT/PATCH requests
+   * @param {Record<string, unknown>} [request.queryParams] - Optional query parameters
+   * @param {Record<string, string>} [request.headers] - Optional custom request headers
+   * @param {ClientRequestOpts} [options] - Request options
+   * @param {object} [options.headers] - Additional headers (merged with request.headers; options.headers takes precedence)
+   * @param {object} [options.retryParams] - Override the retry parameters for this request
+   * @param {number} [options.retryParams.maxRetry] - Override the max number of retries on each API request
+   * @param {number} [options.retryParams.minWaitInMs] - Override the minimum wait before a retry is initiated
+   * @throws { FgaError }
+   *
+   * @example
+   * const response = await client.streamingApiExecutor({
+   *   operationName: ‘CustomCheck’,
+   *   method: ‘POST’,
+   *   path: ‘/stores/{store_id}/custom-endpoint’,
+   *   pathParams: { store_id: ‘my-store-id’ },
+   *   body: { foo: ‘bar’ },
+   *   headers: { ‘X-Custom-Header’: ‘value’ },
+   * });
+   */
+  async streamingApiExecutor(
+    request: RequestBuilderParams,
     options: ClientRequestOpts = {}
   ): PromiseResult<any> {
-    return this.api.apiExecutor(
-      request.method,
-      request.path,
-      request.body,
-      request.queryParams,
-      request.pathParams,
-      request.operationName,
-      options
-    );
+    return this.api.apiExecutor(request, options);
   }
 }

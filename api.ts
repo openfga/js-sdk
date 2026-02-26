@@ -122,801 +122,142 @@ import { TelemetryAttribute, TelemetryAttributes } from "./telemetry/attributes"
 
 
 /**
- * OpenFgaApi - axios parameter creator
- * @export
+ * HTTP methods supported by apiExecutor
  */
-export const OpenFgaApiAxiosParamCreator = function (configuration: Configuration, credentials: Credentials) {
+export type HttpMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
+
+/**
+ * Request parameters for apiExecutor
+ */
+export interface RequestBuilderParams {
+  /**
+   * Operation name for telemetry and logging (e.g., "CustomCheck", "CustomEndpoint").
+   * Used for observability when calling new or experimental endpoints.
+   */
+  operationName: string;
+  /** HTTP method */
+  method: HttpMethod;
+  /**
+   * API path with optional template parameters.
+   * Template parameters should be in the format {param_name} and will be replaced
+   * with URL-encoded values from pathParams.
+   * Example: '/stores/{store_id}/custom-endpoint'
+   */
+  path: string;
+  /**
+   * Path parameters to replace template variables in the path.
+   * Values will be URL-encoded automatically.
+   * Example: { store_id: "abc123" } will replace {store_id} in the path.
+   */
+  pathParams?: Record<string, string>;
+  /** Optional request body for POST/PUT/PATCH requests */
+  body?: unknown;
+  /** Optional query parameters */
+  queryParams?: Record<string, unknown>;
+  /** Optional custom request headers */
+  headers?: Record<string, string>;
+}
+
+/**
+ * Options for RequestBuilder — typically the merge of configuration.baseOptions and per-call overrides.
+ * SDK-enforced headers (Accept, Content-Type for JSON bodies) always take precedence over these.
+ */
+export interface RequestBuilderOptions {
+  /** Custom request headers. */
+  headers?: Record<string, string>;
+  /** Extra query parameters appended to the URL. */
+  query?: Record<string, unknown>;
+  /** Any other axios request config properties (e.g. timeout, auth). */
+  [key: string]: unknown;
+}
+
+/**
+ * Builds the axios RequestArgs for an arbitrary API call.
+ *
+ * @param request - The request parameters
+ * @param options - Request options (merge configuration.baseOptions and per-call overrides before passing)
+ * @throws { FgaError }
+ */
+export function RequestBuilder(request: RequestBuilderParams, options: RequestBuilderOptions = {}): RequestArgs {
+  // Build path by replacing template parameters with URL-encoded values
+  let requestPathTemplate = request.path;
+  if (request.pathParams) {
+    for (const [key, value] of Object.entries(request.pathParams)) {
+      requestPathTemplate = requestPathTemplate.split(`{${key}}`).join(encodeURIComponent(value));
+    }
+  }
+
+  // Validate that all path parameters have been replaced
+  if (requestPathTemplate.includes("{") && requestPathTemplate.includes("}")) {
+    const unresolvedMatch = requestPathTemplate.match(/\{([^}]+)\}/);
+    if (unresolvedMatch) {
+      throw new FgaValidationError(unresolvedMatch[1], `Path parameter '${unresolvedMatch[1]}' was not provided for path: ${request.path}`);
+    }
+  }
+
+  const requestUrl = new URL(requestPathTemplate, DUMMY_BASE_URL);
+  const requestOptions: RequestBuilderOptions = { method: request.method, ...options };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const queryParams = {} as any;
+
+  if (request.queryParams) {
+    for (const [key, value] of Object.entries(request.queryParams)) {
+      if (value !== undefined) {
+        queryParams[key] = value;
+      }
+    }
+  }
+
+  setSearchParams(requestUrl, queryParams, options.query);
+  // For now - we always enforce Accept and content-type headers
+  requestOptions.headers = { ...request.headers, ...options.headers };
+  requestOptions.headers["Accept"] = "application/json";
+  if (request.body !== undefined && (request.method === "POST" || request.method === "PUT" || request.method === "PATCH")) {
+    requestOptions.headers["Content-Type"] = "application/json";
+  }
+
+  if (request.body !== undefined) {
+    requestOptions.data = serializeDataIfNeeded(request.body, requestOptions);
+  }
+
   return {
-    /**
-         * The `BatchCheck` API functions nearly identically to `Check`, but instead of checking a single user-object relationship BatchCheck accepts a list of relationships to check and returns a map containing `BatchCheckItem` response for each check it received.  An associated `correlation_id` is required for each check in the batch. This ID is used to correlate a check to the appropriate response. It is a string consisting of only alphanumeric characters or hyphens with a maximum length of 36 characters. This `correlation_id` is used to map the result of each check to the item which was checked, so it must be unique for each item in the batch. We recommend using a UUID or ULID as the `correlation_id`, but you can use whatever unique identifier you need as long  as it matches this regex pattern: `^[\\w\\d-]{1,36}$`  NOTE: The maximum number of checks that can be passed in the `BatchCheck` API is configurable via the [OPENFGA_MAX_CHECKS_PER_BATCH_CHECK](https://openfga.dev/docs/getting-started/setup-openfga/configuration#OPENFGA_MAX_CHECKS_PER_BATCH_CHECK) environment variable. If `BatchCheck` is called using the SDK, the SDK can split the batch check requests for you.  For more details on how `Check` functions, see the docs for `/check`.  ### Examples #### A BatchCheckRequest ```json {   \"checks\": [      {        \"tuple_key\": {          \"object\": \"document:2021-budget\"          \"relation\": \"reader\",          \"user\": \"user:anne\",        },        \"contextual_tuples\": {...}        \"context\": {}        \"correlation_id\": \"01JA8PM3QM7VBPGB8KMPK8SBD5\"      },      {        \"tuple_key\": {          \"object\": \"document:2021-budget\"          \"relation\": \"reader\",          \"user\": \"user:bob\",        },        \"contextual_tuples\": {...}        \"context\": {}        \"correlation_id\": \"01JA8PMM6A90NV5ET0F28CYSZQ\"      }    ] } ```  Below is a possible response to the above request. Note that the result map\'s keys are the `correlation_id` values from the checked items in the request: ```json {    \"result\": {      \"01JA8PMM6A90NV5ET0F28CYSZQ\": {        \"allowed\": false,         \"error\": {\"message\": \"\"}      },      \"01JA8PM3QM7VBPGB8KMPK8SBD5\": {        \"allowed\": true,         \"error\": {\"message\": \"\"}      } } ``` 
-         * @summary Send a list of `check` operations in a single request
-         * @param {string} storeId
-         * @param {BatchCheckRequest} body
-         * @param {*} [options] Override http request option.
-         * @throws { FgaError }
-         */
-    batchCheck: (storeId: string, body: BatchCheckRequest, options: any = {}): RequestArgs => {
-      // verify required parameter 'storeId' is not null or undefined
-      assertParamExists("batchCheck", "storeId", storeId);
-      // verify required parameter 'body' is not null or undefined
-      assertParamExists("batchCheck", "body", body);
-      const localVarPath = "/stores/{store_id}/batch-check"
-        .replace(`{${"store_id"}}`, encodeURIComponent(String(storeId)));
-      // use dummy base URL string because the URL constructor only accepts absolute URLs.
-      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-      let baseOptions;
-      if (configuration) {
-        baseOptions = configuration.baseOptions;
-      }
-
-      const localVarRequestOptions = { method: "POST", ...baseOptions, ...options};
-      const localVarHeaderParameter = {} as any;
-      const localVarQueryParameter = {} as any;
-
-
-    
-      localVarHeaderParameter["Content-Type"] = "application/json";
-
-      setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
-      localVarRequestOptions.headers = {...localVarHeaderParameter, ...options.headers};
-      localVarRequestOptions.data = serializeDataIfNeeded(body, localVarRequestOptions);
-
-      return {
-        url: toPathString(localVarUrlObj),
-        options: localVarRequestOptions,
-      };
-    },
-    /**
-         * The Check API returns whether a given user has a relationship with a given object in a given store. The `user` field of the request can be a specific target, such as `user:anne`, or a userset (set of users) such as `group:marketing#member` or a type-bound public access `user:*`. To arrive at a result, the API uses: an authorization model, explicit tuples written through the Write API, contextual tuples present in the request, and implicit tuples that exist by virtue of applying set theory (such as `document:2021-budget#viewer@document:2021-budget#viewer`; the set of users who are viewers of `document:2021-budget` are the set of users who are the viewers of `document:2021-budget`). A `contextual_tuples` object may also be included in the body of the request. This object contains one field `tuple_keys`, which is an array of tuple keys. Each of these tuples may have an associated `condition`. You may also provide an `authorization_model_id` in the body. This will be used to assert that the input `tuple_key` is valid for the model specified. If not specified, the assertion will be made against the latest authorization model ID. It is strongly recommended to specify authorization model id for better performance. You may also provide a `context` object that will be used to evaluate the conditioned tuples in the system. It is strongly recommended to provide a value for all the input parameters of all the conditions, to ensure that all tuples be evaluated correctly. By default, the Check API caches results for a short time to optimize performance. You may specify a value of `HIGHER_CONSISTENCY` for the optional `consistency` parameter in the body to inform the server that higher conisistency is preferred at the expense of increased latency. Consideration should be given to the increased latency if requesting higher consistency. The response will return whether the relationship exists in the field `allowed`.  Some exceptions apply, but in general, if a Check API responds with `{allowed: true}`, then you can expect the equivalent ListObjects query to return the object, and viceversa.  For example, if `Check(user:anne, reader, document:2021-budget)` responds with `{allowed: true}`, then `ListObjects(user:anne, reader, document)` may include `document:2021-budget` in the response. ## Examples ### Querying with contextual tuples In order to check if user `user:anne` of type `user` has a `reader` relationship with object `document:2021-budget` given the following contextual tuple ```json {   \"user\": \"user:anne\",   \"relation\": \"member\",   \"object\": \"time_slot:office_hours\" } ``` the Check API can be used with the following request body: ```json {   \"tuple_key\": {     \"user\": \"user:anne\",     \"relation\": \"reader\",     \"object\": \"document:2021-budget\"   },   \"contextual_tuples\": {     \"tuple_keys\": [       {         \"user\": \"user:anne\",         \"relation\": \"member\",         \"object\": \"time_slot:office_hours\"       }     ]   },   \"authorization_model_id\": \"01G50QVV17PECNVAHX1GG4Y5NC\" } ``` ### Querying usersets Some Checks will always return `true`, even without any tuples. For example, for the following authorization model ```python model   schema 1.1 type user type document   relations     define reader: [user] ``` the following query ```json {   \"tuple_key\": {      \"user\": \"document:2021-budget#reader\",      \"relation\": \"reader\",      \"object\": \"document:2021-budget\"   } } ``` will always return `{ \"allowed\": true }`. This is because usersets are self-defining: the userset `document:2021-budget#reader` will always have the `reader` relation with `document:2021-budget`. ### Querying usersets with difference in the model A Check for a userset can yield results that must be treated carefully if the model involves difference. For example, for the following authorization model ```python model   schema 1.1 type user type group   relations     define member: [user] type document   relations     define blocked: [user]     define reader: [group#member] but not blocked ``` the following query ```json {   \"tuple_key\": {      \"user\": \"group:finance#member\",      \"relation\": \"reader\",      \"object\": \"document:2021-budget\"   },   \"contextual_tuples\": {     \"tuple_keys\": [       {         \"user\": \"user:anne\",         \"relation\": \"member\",         \"object\": \"group:finance\"       },       {         \"user\": \"group:finance#member\",         \"relation\": \"reader\",         \"object\": \"document:2021-budget\"       },       {         \"user\": \"user:anne\",         \"relation\": \"blocked\",         \"object\": \"document:2021-budget\"       }     ]   }, } ``` will return `{ \"allowed\": true }`, even though a specific user of the userset `group:finance#member` does not have the `reader` relationship with the given object. ### Requesting higher consistency By default, the Check API caches results for a short time to optimize performance. You may request higher consistency to inform the server that higher consistency should be preferred at the expense of increased latency. Care should be taken when requesting higher consistency due to the increased latency. ```json {   \"tuple_key\": {      \"user\": \"group:finance#member\",      \"relation\": \"reader\",      \"object\": \"document:2021-budget\"   },   \"consistency\": \"HIGHER_CONSISTENCY\" } ``` 
-         * @summary Check whether a user is authorized to access an object
-         * @param {string} storeId
-         * @param {CheckRequest} body
-         * @param {*} [options] Override http request option.
-         * @throws { FgaError }
-         */
-    check: (storeId: string, body: CheckRequest, options: any = {}): RequestArgs => {
-      // verify required parameter 'storeId' is not null or undefined
-      assertParamExists("check", "storeId", storeId);
-      // verify required parameter 'body' is not null or undefined
-      assertParamExists("check", "body", body);
-      const localVarPath = "/stores/{store_id}/check"
-        .replace(`{${"store_id"}}`, encodeURIComponent(String(storeId)));
-      // use dummy base URL string because the URL constructor only accepts absolute URLs.
-      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-      let baseOptions;
-      if (configuration) {
-        baseOptions = configuration.baseOptions;
-      }
-
-      const localVarRequestOptions = { method: "POST", ...baseOptions, ...options};
-      const localVarHeaderParameter = {} as any;
-      const localVarQueryParameter = {} as any;
-
-
-    
-      localVarHeaderParameter["Content-Type"] = "application/json";
-
-      setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
-      localVarRequestOptions.headers = {...localVarHeaderParameter, ...options.headers};
-      localVarRequestOptions.data = serializeDataIfNeeded(body, localVarRequestOptions);
-
-      return {
-        url: toPathString(localVarUrlObj),
-        options: localVarRequestOptions,
-      };
-    },
-    /**
-         * Create a unique OpenFGA store which will be used to store authorization models and relationship tuples.
-         * @summary Create a store
-         * @param {CreateStoreRequest} body
-         * @param {*} [options] Override http request option.
-         * @throws { FgaError }
-         */
-    createStore: (body: CreateStoreRequest, options: any = {}): RequestArgs => {
-      // verify required parameter 'body' is not null or undefined
-      assertParamExists("createStore", "body", body);
-      const localVarPath = "/stores"
-            ;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-      let baseOptions;
-      if (configuration) {
-        baseOptions = configuration.baseOptions;
-      }
-
-      const localVarRequestOptions = { method: "POST", ...baseOptions, ...options};
-      const localVarHeaderParameter = {} as any;
-      const localVarQueryParameter = {} as any;
-
-
-    
-      localVarHeaderParameter["Content-Type"] = "application/json";
-
-      setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
-      localVarRequestOptions.headers = {...localVarHeaderParameter, ...options.headers};
-      localVarRequestOptions.data = serializeDataIfNeeded(body, localVarRequestOptions);
-
-      return {
-        url: toPathString(localVarUrlObj),
-        options: localVarRequestOptions,
-      };
-    },
-    /**
-         * Delete an OpenFGA store. This does not delete the data associated with the store, like tuples or authorization models.
-         * @summary Delete a store
-         * @param {string} storeId
-         * @param {*} [options] Override http request option.
-         * @throws { FgaError }
-         */
-    deleteStore: (storeId: string, options: any = {}): RequestArgs => {
-      // verify required parameter 'storeId' is not null or undefined
-      assertParamExists("deleteStore", "storeId", storeId);
-      const localVarPath = "/stores/{store_id}"
-        .replace(`{${"store_id"}}`, encodeURIComponent(String(storeId)));
-      // use dummy base URL string because the URL constructor only accepts absolute URLs.
-      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-      let baseOptions;
-      if (configuration) {
-        baseOptions = configuration.baseOptions;
-      }
-
-      const localVarRequestOptions = { method: "DELETE", ...baseOptions, ...options};
-      const localVarHeaderParameter = {} as any;
-      const localVarQueryParameter = {} as any;
-
-
-    
-      setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
-      localVarRequestOptions.headers = {...localVarHeaderParameter, ...options.headers};
-
-      return {
-        url: toPathString(localVarUrlObj),
-        options: localVarRequestOptions,
-      };
-    },
-    /**
-         * The Expand API will return all users and usersets that have certain relationship with an object in a certain store. This is different from the `/stores/{store_id}/read` API in that both users and computed usersets are returned. Body parameters `tuple_key.object` and `tuple_key.relation` are all required. A `contextual_tuples` object may also be included in the body of the request. This object contains one field `tuple_keys`, which is an array of tuple keys. Each of these tuples may have an associated `condition`. The response will return a tree whose leaves are the specific users and usersets. Union, intersection and difference operator are located in the intermediate nodes.  ## Example To expand all users that have the `reader` relationship with object `document:2021-budget`, use the Expand API with the following request body ```json {   \"tuple_key\": {     \"object\": \"document:2021-budget\",     \"relation\": \"reader\"   },   \"authorization_model_id\": \"01G50QVV17PECNVAHX1GG4Y5NC\" } ``` OpenFGA\'s response will be a userset tree of the users and usersets that have read access to the document. ```json {   \"tree\":{     \"root\":{       \"type\":\"document:2021-budget#reader\",       \"union\":{         \"nodes\":[           {             \"type\":\"document:2021-budget#reader\",             \"leaf\":{               \"users\":{                 \"users\":[                   \"user:bob\"                 ]               }             }           },           {             \"type\":\"document:2021-budget#reader\",             \"leaf\":{               \"computed\":{                 \"userset\":\"document:2021-budget#writer\"               }             }           }         ]       }     }   } } ``` The caller can then call expand API for the `writer` relationship for the `document:2021-budget`. ### Expand Request with Contextual Tuples  Given the model ```python model     schema 1.1  type user  type folder     relations         define owner: [user]  type document     relations         define parent: [folder]         define viewer: [user] or writer         define writer: [user] or owner from parent ``` and the initial tuples ```json [{     \"user\": \"user:bob\",     \"relation\": \"owner\",     \"object\": \"folder:1\" }] ```  To expand all `writers` of `document:1` when `document:1` is put in `folder:1`, the first call could be  ```json {   \"tuple_key\": {     \"object\": \"document:1\",     \"relation\": \"writer\"   },   \"contextual_tuples\": {     \"tuple_keys\": [       {         \"user\": \"folder:1\",         \"relation\": \"parent\",         \"object\": \"document:1\"       }     ]   } } ``` this returns: ```json {   \"tree\": {     \"root\": {       \"name\": \"document:1#writer\",       \"union\": {         \"nodes\": [           {             \"name\": \"document:1#writer\",             \"leaf\": {               \"users\": {                 \"users\": []               }             }           },           {             \"name\": \"document:1#writer\",             \"leaf\": {               \"tupleToUserset\": {                 \"tupleset\": \"document:1#parent\",                 \"computed\": [                   {                     \"userset\": \"folder:1#owner\"                   }                 ]               }             }           }         ]       }     }   } } ``` This tells us that the `owner` of `folder:1` may also be a writer. So our next call could be to find the `owners` of `folder:1` ```json {   \"tuple_key\": {     \"object\": \"folder:1\",     \"relation\": \"owner\"   } } ``` which gives ```json {   \"tree\": {     \"root\": {       \"name\": \"folder:1#owner\",       \"leaf\": {         \"users\": {           \"users\": [             \"user:bob\"           ]         }       }     }   } } ``` 
-         * @summary Expand all relationships in userset tree format, and following userset rewrite rules.  Useful to reason about and debug a certain relationship
-         * @param {string} storeId
-         * @param {ExpandRequest} body
-         * @param {*} [options] Override http request option.
-         * @throws { FgaError }
-         */
-    expand: (storeId: string, body: ExpandRequest, options: any = {}): RequestArgs => {
-      // verify required parameter 'storeId' is not null or undefined
-      assertParamExists("expand", "storeId", storeId);
-      // verify required parameter 'body' is not null or undefined
-      assertParamExists("expand", "body", body);
-      const localVarPath = "/stores/{store_id}/expand"
-        .replace(`{${"store_id"}}`, encodeURIComponent(String(storeId)));
-      // use dummy base URL string because the URL constructor only accepts absolute URLs.
-      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-      let baseOptions;
-      if (configuration) {
-        baseOptions = configuration.baseOptions;
-      }
-
-      const localVarRequestOptions = { method: "POST", ...baseOptions, ...options};
-      const localVarHeaderParameter = {} as any;
-      const localVarQueryParameter = {} as any;
-
-
-    
-      localVarHeaderParameter["Content-Type"] = "application/json";
-
-      setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
-      localVarRequestOptions.headers = {...localVarHeaderParameter, ...options.headers};
-      localVarRequestOptions.data = serializeDataIfNeeded(body, localVarRequestOptions);
-
-      return {
-        url: toPathString(localVarUrlObj),
-        options: localVarRequestOptions,
-      };
-    },
-    /**
-         * Returns an OpenFGA store by its identifier
-         * @summary Get a store
-         * @param {string} storeId
-         * @param {*} [options] Override http request option.
-         * @throws { FgaError }
-         */
-    getStore: (storeId: string, options: any = {}): RequestArgs => {
-      // verify required parameter 'storeId' is not null or undefined
-      assertParamExists("getStore", "storeId", storeId);
-      const localVarPath = "/stores/{store_id}"
-        .replace(`{${"store_id"}}`, encodeURIComponent(String(storeId)));
-      // use dummy base URL string because the URL constructor only accepts absolute URLs.
-      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-      let baseOptions;
-      if (configuration) {
-        baseOptions = configuration.baseOptions;
-      }
-
-      const localVarRequestOptions = { method: "GET", ...baseOptions, ...options};
-      const localVarHeaderParameter = {} as any;
-      const localVarQueryParameter = {} as any;
-
-
-    
-      setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
-      localVarRequestOptions.headers = {...localVarHeaderParameter, ...options.headers};
-
-      return {
-        url: toPathString(localVarUrlObj),
-        options: localVarRequestOptions,
-      };
-    },
-    /**
-         * The ListObjects API returns a list of all the objects of the given type that the user has a relation with.  To arrive at a result, the API uses: an authorization model, explicit tuples written through the Write API, contextual tuples present in the request, and implicit tuples that exist by virtue of applying set theory (such as `document:2021-budget#viewer@document:2021-budget#viewer`; the set of users who are viewers of `document:2021-budget` are the set of users who are the viewers of `document:2021-budget`). An `authorization_model_id` may be specified in the body. If it is not specified, the latest authorization model ID will be used. It is strongly recommended to specify authorization model id for better performance. You may also specify `contextual_tuples` that will be treated as regular tuples. Each of these tuples may have an associated `condition`. You may also provide a `context` object that will be used to evaluate the conditioned tuples in the system. It is strongly recommended to provide a value for all the input parameters of all the conditions, to ensure that all tuples be evaluated correctly. By default, the Check API caches results for a short time to optimize performance. You may specify a value of `HIGHER_CONSISTENCY` for the optional `consistency` parameter in the body to inform the server that higher conisistency is preferred at the expense of increased latency. Consideration should be given to the increased latency if requesting higher consistency. The response will contain the related objects in an array in the \"objects\" field of the response and they will be strings in the object format `<type>:<id>` (e.g. \"document:roadmap\"). The number of objects in the response array will be limited by the execution timeout specified in the flag OPENFGA_LIST_OBJECTS_DEADLINE and by the upper bound specified in the flag OPENFGA_LIST_OBJECTS_MAX_RESULTS, whichever is hit first. The objects given will not be sorted, and therefore two identical calls can give a given different set of objects.
-         * @summary List all objects of the given type that the user has a relation with
-         * @param {string} storeId
-         * @param {ListObjectsRequest} body
-         * @param {*} [options] Override http request option.
-         * @throws { FgaError }
-         */
-    listObjects: (storeId: string, body: ListObjectsRequest, options: any = {}): RequestArgs => {
-      // verify required parameter 'storeId' is not null or undefined
-      assertParamExists("listObjects", "storeId", storeId);
-      // verify required parameter 'body' is not null or undefined
-      assertParamExists("listObjects", "body", body);
-      const localVarPath = "/stores/{store_id}/list-objects"
-        .replace(`{${"store_id"}}`, encodeURIComponent(String(storeId)));
-      // use dummy base URL string because the URL constructor only accepts absolute URLs.
-      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-      let baseOptions;
-      if (configuration) {
-        baseOptions = configuration.baseOptions;
-      }
-
-      const localVarRequestOptions = { method: "POST", ...baseOptions, ...options};
-      const localVarHeaderParameter = {} as any;
-      const localVarQueryParameter = {} as any;
-
-
-    
-      localVarHeaderParameter["Content-Type"] = "application/json";
-
-      setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
-      localVarRequestOptions.headers = {...localVarHeaderParameter, ...options.headers};
-      localVarRequestOptions.data = serializeDataIfNeeded(body, localVarRequestOptions);
-
-      return {
-        url: toPathString(localVarUrlObj),
-        options: localVarRequestOptions,
-      };
-    },
-    /**
-         * The Streamed ListObjects API is very similar to the ListObjects API, with two differences:  
-         * 1. Instead of collecting all objects before returning a response, it streams them to the client as they are collected.  
-         * 2. The number of results returned is only limited by the execution timeout specified in the flag OPENFGA_LIST_OBJECTS_DEADLINE.  
-         * @summary Stream all objects of the given type that the user has a relation with
-         * @param {string} storeId
-         * @param {ListObjectsRequest} body
-         * @param {*} [options] Override http request option.
-         * @throws { FgaError }
-         */
-    streamedListObjects: (storeId: string, body: ListObjectsRequest, options: any = {}): RequestArgs => {
-      // verify required parameter 'storeId' is not null or undefined
-      assertParamExists("streamedListObjects", "storeId", storeId);
-      // verify required parameter 'body' is not null or undefined
-      assertParamExists("streamedListObjects", "body", body);
-      const localVarPath = "/stores/{store_id}/streamed-list-objects"
-        .replace(`{${"store_id"}}`, encodeURIComponent(String(storeId)));
-      // use dummy base URL string because the URL constructor only accepts absolute URLs.
-      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-      let baseOptions;
-      if (configuration) {
-        baseOptions = configuration.baseOptions;
-      }
-
-      const localVarRequestOptions = { method: "POST", ...baseOptions, ...options };
-      const localVarHeaderParameter = {} as any;
-      const localVarQueryParameter = {} as any;
-
-      localVarHeaderParameter["Content-Type"] = "application/json";
-
-      setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
-      localVarRequestOptions.headers = { ...localVarHeaderParameter, ...options.headers };
-      localVarRequestOptions.data = serializeDataIfNeeded(body, localVarRequestOptions);
-
-      return {
-        url: toPathString(localVarUrlObj),
-        options: localVarRequestOptions,
-      };
-    },
-    /**
-         * Returns a paginated list of OpenFGA stores and a continuation token to get additional stores. The continuation token will be empty if there are no more stores. 
-         * @summary List all stores
-         * @param {number} [pageSize]
-         * @param {string} [continuationToken]
-         * @param {string} [name] The name parameter instructs the API to only include results that match that name.Multiple results may be returned. Only exact matches will be returned; substring matches and regexes will not be evaluated
-         * @param {*} [options] Override http request option.
-         * @throws { FgaError }
-         */
-    listStores: (pageSize?: number, continuationToken?: string, name?: string, options: any = {}): RequestArgs => {
-      const localVarPath = "/stores"
-            ;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-      let baseOptions;
-      if (configuration) {
-        baseOptions = configuration.baseOptions;
-      }
-
-      const localVarRequestOptions = { method: "GET", ...baseOptions, ...options};
-      const localVarHeaderParameter = {} as any;
-      const localVarQueryParameter = {} as any;
-
-      if (pageSize !== undefined) {
-        localVarQueryParameter["page_size"] = pageSize;
-      }
-
-      if (continuationToken !== undefined) {
-        localVarQueryParameter["continuation_token"] = continuationToken;
-      }
-
-      if (name !== undefined) {
-        localVarQueryParameter["name"] = name;
-      }
-
-
-    
-      setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
-      localVarRequestOptions.headers = {...localVarHeaderParameter, ...options.headers};
-
-      return {
-        url: toPathString(localVarUrlObj),
-        options: localVarRequestOptions,
-      };
-    },
-    /**
-         * The ListUsers API returns a list of all the users of a specific type that have a relation to a given object.  To arrive at a result, the API uses: an authorization model, explicit tuples written through the Write API, contextual tuples present in the request, and implicit tuples that exist by virtue of applying set theory (such as `document:2021-budget#viewer@document:2021-budget#viewer`; the set of users who are viewers of `document:2021-budget` are the set of users who are the viewers of `document:2021-budget`). An `authorization_model_id` may be specified in the body. If it is not specified, the latest authorization model ID will be used. It is strongly recommended to specify authorization model id for better performance. You may also specify `contextual_tuples` that will be treated as regular tuples. Each of these tuples may have an associated `condition`. You may also provide a `context` object that will be used to evaluate the conditioned tuples in the system. It is strongly recommended to provide a value for all the input parameters of all the conditions, to ensure that all tuples be evaluated correctly. The response will contain the related users in an array in the \"users\" field of the response. These results may include specific objects, usersets  or type-bound public access. Each of these types of results is encoded in its own type and not represented as a string.In cases where a type-bound public access result is returned (e.g. `user:*`), it cannot be inferred that all subjects of that type have a relation to the object; it is possible that negations exist and checks should still be queried on individual subjects to ensure access to that document.The number of users in the response array will be limited by the execution timeout specified in the flag OPENFGA_LIST_USERS_DEADLINE and by the upper bound specified in the flag OPENFGA_LIST_USERS_MAX_RESULTS, whichever is hit first. The returned users will not be sorted, and therefore two identical calls may yield different sets of users.
-         * @summary List the users matching the provided filter who have a certain relation to a particular type.
-         * @param {string} storeId
-         * @param {ListUsersRequest} body
-         * @param {*} [options] Override http request option.
-         * @throws { FgaError }
-         */
-    listUsers: (storeId: string, body: ListUsersRequest, options: any = {}): RequestArgs => {
-      // verify required parameter 'storeId' is not null or undefined
-      assertParamExists("listUsers", "storeId", storeId);
-      // verify required parameter 'body' is not null or undefined
-      assertParamExists("listUsers", "body", body);
-      const localVarPath = "/stores/{store_id}/list-users"
-        .replace(`{${"store_id"}}`, encodeURIComponent(String(storeId)));
-      // use dummy base URL string because the URL constructor only accepts absolute URLs.
-      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-      let baseOptions;
-      if (configuration) {
-        baseOptions = configuration.baseOptions;
-      }
-
-      const localVarRequestOptions = { method: "POST", ...baseOptions, ...options};
-      const localVarHeaderParameter = {} as any;
-      const localVarQueryParameter = {} as any;
-
-
-    
-      localVarHeaderParameter["Content-Type"] = "application/json";
-
-      setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
-      localVarRequestOptions.headers = {...localVarHeaderParameter, ...options.headers};
-      localVarRequestOptions.data = serializeDataIfNeeded(body, localVarRequestOptions);
-
-      return {
-        url: toPathString(localVarUrlObj),
-        options: localVarRequestOptions,
-      };
-    },
-    /**
-         * The Read API will return the tuples for a certain store that match a query filter specified in the body of the request.  The API doesn\'t guarantee order by any field.  It is different from the `/stores/{store_id}/expand` API in that it only returns relationship tuples that are stored in the system and satisfy the query.  In the body: 1. `tuple_key` is optional. If not specified, it will return all tuples in the store. 2. `tuple_key.object` is mandatory if `tuple_key` is specified. It can be a full object (e.g., `type:object_id`) or type only (e.g., `type:`). 3. `tuple_key.user` is mandatory if tuple_key is specified in the case the `tuple_key.object` is a type only. If tuple_key.user is specified, it needs to be a full object (e.g., `type:user_id`). ## Examples ### Query for all objects in a type definition To query for all objects that `user:bob` has `reader` relationship in the `document` type definition, call read API with body of ```json {  \"tuple_key\": {      \"user\": \"user:bob\",      \"relation\": \"reader\",      \"object\": \"document:\"   } } ``` The API will return tuples and a continuation token, something like ```json {   \"tuples\": [     {       \"key\": {         \"user\": \"user:bob\",         \"relation\": \"reader\",         \"object\": \"document:2021-budget\"       },       \"timestamp\": \"2021-10-06T15:32:11.128Z\"     }   ],   \"continuation_token\": \"eyJwayI6IkxBVEVTVF9OU0NPTkZJR19hdXRoMHN0b3JlIiwic2siOiIxem1qbXF3MWZLZExTcUoyN01MdTdqTjh0cWgifQ==\" } ``` This means that `user:bob` has a `reader` relationship with 1 document `document:2021-budget`. Note that this API, unlike the List Objects API, does not evaluate the tuples in the store. The continuation token will be empty if there are no more tuples to query. ### Query for all stored relationship tuples that have a particular relation and object To query for all users that have `reader` relationship with `document:2021-budget`, call read API with body of  ```json {   \"tuple_key\": {      \"object\": \"document:2021-budget\",      \"relation\": \"reader\"    } } ``` The API will return something like  ```json {   \"tuples\": [     {       \"key\": {         \"user\": \"user:bob\",         \"relation\": \"reader\",         \"object\": \"document:2021-budget\"       },       \"timestamp\": \"2021-10-06T15:32:11.128Z\"     }   ],   \"continuation_token\": \"eyJwayI6IkxBVEVTVF9OU0NPTkZJR19hdXRoMHN0b3JlIiwic2siOiIxem1qbXF3MWZLZExTcUoyN01MdTdqTjh0cWgifQ==\" } ``` This means that `document:2021-budget` has 1 `reader` (`user:bob`).  Note that, even if the model said that all `writers` are also `readers`, the API will not return writers such as `user:anne` because it only returns tuples and does not evaluate them. ### Query for all users with all relationships for a particular document To query for all users that have any relationship with `document:2021-budget`, call read API with body of  ```json {   \"tuple_key\": {       \"object\": \"document:2021-budget\"    } } ``` The API will return something like  ```json {   \"tuples\": [     {       \"key\": {         \"user\": \"user:anne\",         \"relation\": \"writer\",         \"object\": \"document:2021-budget\"       },       \"timestamp\": \"2021-10-05T13:42:12.356Z\"     },     {       \"key\": {         \"user\": \"user:bob\",         \"relation\": \"reader\",         \"object\": \"document:2021-budget\"       },       \"timestamp\": \"2021-10-06T15:32:11.128Z\"     }   ],   \"continuation_token\": \"eyJwayI6IkxBVEVTVF9OU0NPTkZJR19hdXRoMHN0b3JlIiwic2siOiIxem1qbXF3MWZLZExTcUoyN01MdTdqTjh0cWgifQ==\" } ``` This means that `document:2021-budget` has 1 `reader` (`user:bob`) and 1 `writer` (`user:anne`). 
-         * @summary Get tuples from the store that matches a query, without following userset rewrite rules
-         * @param {string} storeId
-         * @param {ReadRequest} body
-         * @param {*} [options] Override http request option.
-         * @throws { FgaError }
-         */
-    read: (storeId: string, body: ReadRequest, options: any = {}): RequestArgs => {
-      // verify required parameter 'storeId' is not null or undefined
-      assertParamExists("read", "storeId", storeId);
-      // verify required parameter 'body' is not null or undefined
-      assertParamExists("read", "body", body);
-      const localVarPath = "/stores/{store_id}/read"
-        .replace(`{${"store_id"}}`, encodeURIComponent(String(storeId)));
-      // use dummy base URL string because the URL constructor only accepts absolute URLs.
-      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-      let baseOptions;
-      if (configuration) {
-        baseOptions = configuration.baseOptions;
-      }
-
-      const localVarRequestOptions = { method: "POST", ...baseOptions, ...options};
-      const localVarHeaderParameter = {} as any;
-      const localVarQueryParameter = {} as any;
-
-
-    
-      localVarHeaderParameter["Content-Type"] = "application/json";
-
-      setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
-      localVarRequestOptions.headers = {...localVarHeaderParameter, ...options.headers};
-      localVarRequestOptions.data = serializeDataIfNeeded(body, localVarRequestOptions);
-
-      return {
-        url: toPathString(localVarUrlObj),
-        options: localVarRequestOptions,
-      };
-    },
-    /**
-         * The ReadAssertions API will return, for a given authorization model id, all the assertions stored for it. 
-         * @summary Read assertions for an authorization model ID
-         * @param {string} storeId
-         * @param {string} authorizationModelId
-         * @param {*} [options] Override http request option.
-         * @throws { FgaError }
-         */
-    readAssertions: (storeId: string, authorizationModelId: string, options: any = {}): RequestArgs => {
-      // verify required parameter 'storeId' is not null or undefined
-      assertParamExists("readAssertions", "storeId", storeId);
-      // verify required parameter 'authorizationModelId' is not null or undefined
-      assertParamExists("readAssertions", "authorizationModelId", authorizationModelId);
-      const localVarPath = "/stores/{store_id}/assertions/{authorization_model_id}"
-        .replace(`{${"store_id"}}`, encodeURIComponent(String(storeId))).replace(`{${"authorization_model_id"}}`, encodeURIComponent(String(authorizationModelId)));
-      // use dummy base URL string because the URL constructor only accepts absolute URLs.
-      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-      let baseOptions;
-      if (configuration) {
-        baseOptions = configuration.baseOptions;
-      }
-
-      const localVarRequestOptions = { method: "GET", ...baseOptions, ...options};
-      const localVarHeaderParameter = {} as any;
-      const localVarQueryParameter = {} as any;
-
-
-    
-      setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
-      localVarRequestOptions.headers = {...localVarHeaderParameter, ...options.headers};
-
-      return {
-        url: toPathString(localVarUrlObj),
-        options: localVarRequestOptions,
-      };
-    },
-    /**
-         * The ReadAuthorizationModel API returns an authorization model by its identifier. The response will return the authorization model for the particular version.  ## Example To retrieve the authorization model with ID `01G5JAVJ41T49E9TT3SKVS7X1J` for the store, call the GET authorization-models by ID API with `01G5JAVJ41T49E9TT3SKVS7X1J` as the `id` path parameter.  The API will return: ```json {   \"authorization_model\":{     \"id\":\"01G5JAVJ41T49E9TT3SKVS7X1J\",     \"type_definitions\":[       {         \"type\":\"user\"       },       {         \"type\":\"document\",         \"relations\":{           \"reader\":{             \"union\":{               \"child\":[                 {                   \"this\":{}                 },                 {                   \"computedUserset\":{                     \"object\":\"\",                     \"relation\":\"writer\"                   }                 }               ]             }           },           \"writer\":{             \"this\":{}           }         }       }     ]   } } ``` In the above example, there are 2 types (`user` and `document`). The `document` type has 2 relations (`writer` and `reader`).
-         * @summary Return a particular version of an authorization model
-         * @param {string} storeId
-         * @param {string} id
-         * @param {*} [options] Override http request option.
-         * @throws { FgaError }
-         */
-    readAuthorizationModel: (storeId: string, id: string, options: any = {}): RequestArgs => {
-      // verify required parameter 'storeId' is not null or undefined
-      assertParamExists("readAuthorizationModel", "storeId", storeId);
-      // verify required parameter 'id' is not null or undefined
-      assertParamExists("readAuthorizationModel", "id", id);
-      const localVarPath = "/stores/{store_id}/authorization-models/{id}"
-        .replace(`{${"store_id"}}`, encodeURIComponent(String(storeId))).replace(`{${"id"}}`, encodeURIComponent(String(id)));
-      // use dummy base URL string because the URL constructor only accepts absolute URLs.
-      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-      let baseOptions;
-      if (configuration) {
-        baseOptions = configuration.baseOptions;
-      }
-
-      const localVarRequestOptions = { method: "GET", ...baseOptions, ...options};
-      const localVarHeaderParameter = {} as any;
-      const localVarQueryParameter = {} as any;
-
-
-    
-      setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
-      localVarRequestOptions.headers = {...localVarHeaderParameter, ...options.headers};
-
-      return {
-        url: toPathString(localVarUrlObj),
-        options: localVarRequestOptions,
-      };
-    },
-    /**
-         * The ReadAuthorizationModels API will return all the authorization models for a certain store. OpenFGA\'s response will contain an array of all authorization models, sorted in descending order of creation.  ## Example Assume that a store\'s authorization model has been configured twice. To get all the authorization models that have been created in this store, call GET authorization-models. The API will return a response that looks like: ```json {   \"authorization_models\": [     {       \"id\": \"01G50QVV17PECNVAHX1GG4Y5NC\",       \"type_definitions\": [...]     },     {       \"id\": \"01G4ZW8F4A07AKQ8RHSVG9RW04\",       \"type_definitions\": [...]     },   ],   \"continuation_token\": \"eyJwayI6IkxBVEVTVF9OU0NPTkZJR19hdXRoMHN0b3JlIiwic2siOiIxem1qbXF3MWZLZExTcUoyN01MdTdqTjh0cWgifQ==\" } ``` If there are no more authorization models available, the `continuation_token` field will be empty ```json {   \"authorization_models\": [     {       \"id\": \"01G50QVV17PECNVAHX1GG4Y5NC\",       \"type_definitions\": [...]     },     {       \"id\": \"01G4ZW8F4A07AKQ8RHSVG9RW04\",       \"type_definitions\": [...]     },   ],   \"continuation_token\": \"\" } ``` 
-         * @summary Return all the authorization models for a particular store
-         * @param {string} storeId
-         * @param {number} [pageSize]
-         * @param {string} [continuationToken]
-         * @param {*} [options] Override http request option.
-         * @throws { FgaError }
-         */
-    readAuthorizationModels: (storeId: string, pageSize?: number, continuationToken?: string, options: any = {}): RequestArgs => {
-      // verify required parameter 'storeId' is not null or undefined
-      assertParamExists("readAuthorizationModels", "storeId", storeId);
-      const localVarPath = "/stores/{store_id}/authorization-models"
-        .replace(`{${"store_id"}}`, encodeURIComponent(String(storeId)));
-      // use dummy base URL string because the URL constructor only accepts absolute URLs.
-      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-      let baseOptions;
-      if (configuration) {
-        baseOptions = configuration.baseOptions;
-      }
-
-      const localVarRequestOptions = { method: "GET", ...baseOptions, ...options};
-      const localVarHeaderParameter = {} as any;
-      const localVarQueryParameter = {} as any;
-
-      if (pageSize !== undefined) {
-        localVarQueryParameter["page_size"] = pageSize;
-      }
-
-      if (continuationToken !== undefined) {
-        localVarQueryParameter["continuation_token"] = continuationToken;
-      }
-
-
-    
-      setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
-      localVarRequestOptions.headers = {...localVarHeaderParameter, ...options.headers};
-
-      return {
-        url: toPathString(localVarUrlObj),
-        options: localVarRequestOptions,
-      };
-    },
-    /**
-         * The ReadChanges API will return a paginated list of tuple changes (additions and deletions) that occurred in a given store, sorted by ascending time. The response will include a continuation token that is used to get the next set of changes. If there are no changes after the provided continuation token, the same token will be returned in order for it to be used when new changes are recorded. If the store never had any tuples added or removed, this token will be empty. You can use the `type` parameter to only get the list of tuple changes that affect objects of that type. When reading a write tuple change, if it was conditioned, the condition will be returned. When reading a delete tuple change, the condition will NOT be returned regardless of whether it was originally conditioned or not. 
-         * @summary Return a list of all the tuple changes
-         * @param {string} storeId
-         * @param {string} [type]
-         * @param {number} [pageSize]
-         * @param {string} [continuationToken]
-         * @param {string} [startTime] Start date and time of changes to read. Format: ISO 8601 timestamp (e.g., 2022-01-01T00:00:00Z) If a continuation_token is provided along side start_time, the continuation_token will take precedence over start_time.
-         * @param {*} [options] Override http request option.
-         * @throws { FgaError }
-         */
-    readChanges: (storeId: string, type?: string, pageSize?: number, continuationToken?: string, startTime?: string, options: any = {}): RequestArgs => {
-      // verify required parameter 'storeId' is not null or undefined
-      assertParamExists("readChanges", "storeId", storeId);
-      const localVarPath = "/stores/{store_id}/changes"
-        .replace(`{${"store_id"}}`, encodeURIComponent(String(storeId)));
-      // use dummy base URL string because the URL constructor only accepts absolute URLs.
-      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-      let baseOptions;
-      if (configuration) {
-        baseOptions = configuration.baseOptions;
-      }
-
-      const localVarRequestOptions = { method: "GET", ...baseOptions, ...options};
-      const localVarHeaderParameter = {} as any;
-      const localVarQueryParameter = {} as any;
-
-      if (type !== undefined) {
-        localVarQueryParameter["type"] = type;
-      }
-
-      if (pageSize !== undefined) {
-        localVarQueryParameter["page_size"] = pageSize;
-      }
-
-      if (continuationToken !== undefined) {
-        localVarQueryParameter["continuation_token"] = continuationToken;
-      }
-
-      if (startTime !== undefined) {
-        localVarQueryParameter["start_time"] = (startTime as any instanceof Date) ?
-          (startTime as any).toISOString() :
-          startTime;
-      }
-
-
-    
-      setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
-      localVarRequestOptions.headers = {...localVarHeaderParameter, ...options.headers};
-
-      return {
-        url: toPathString(localVarUrlObj),
-        options: localVarRequestOptions,
-      };
-    },
-    /**
-         * The Write API will transactionally update the tuples for a certain store. Tuples and type definitions allow OpenFGA to determine whether a relationship exists between an object and an user. In the body, `writes` adds new tuples and `deletes` removes existing tuples. When deleting a tuple, any `condition` specified with it is ignored. The API is not idempotent by default: if, later on, you try to add the same tuple key (even if the `condition` is different), or if you try to delete a non-existing tuple, it will throw an error. To allow writes when an identical tuple already exists in the database, set `\"on_duplicate\": \"ignore\"` on the `writes` object. To allow deletes when a tuple was already removed from the database, set `\"on_missing\": \"ignore\"` on the `deletes` object. If a Write request contains both idempotent (ignore) and non-idempotent (error) operations, the most restrictive action (error) will take precedence. If a condition fails for a sub-request with an error flag, the entire transaction will be rolled back. This gives developers explicit control over the atomicity of the requests. The API will not allow you to write tuples such as `document:2021-budget#viewer@document:2021-budget#viewer`, because they are implicit. An `authorization_model_id` may be specified in the body. If it is, it will be used to assert that each written tuple (not deleted) is valid for the model specified. If it is not specified, the latest authorization model ID will be used. ## Example ### Adding relationships To add `user:anne` as a `writer` for `document:2021-budget`, call write API with the following  ```json {   \"writes\": {     \"tuple_keys\": [       {         \"user\": \"user:anne\",         \"relation\": \"writer\",         \"object\": \"document:2021-budget\"       }     ],     \"on_duplicate\": \"ignore\"   },   \"authorization_model_id\": \"01G50QVV17PECNVAHX1GG4Y5NC\" } ``` ### Removing relationships To remove `user:bob` as a `reader` for `document:2021-budget`, call write API with the following  ```json {   \"deletes\": {     \"tuple_keys\": [       {         \"user\": \"user:bob\",         \"relation\": \"reader\",         \"object\": \"document:2021-budget\"       }     ],     \"on_missing\": \"ignore\"   } } ``` 
-         * @summary Add or delete tuples from the store
-         * @param {string} storeId
-         * @param {WriteRequest} body
-         * @param {*} [options] Override http request option.
-         * @throws { FgaError }
-         */
-    write: (storeId: string, body: WriteRequest, options: any = {}): RequestArgs => {
-      // verify required parameter 'storeId' is not null or undefined
-      assertParamExists("write", "storeId", storeId);
-      // verify required parameter 'body' is not null or undefined
-      assertParamExists("write", "body", body);
-      const localVarPath = "/stores/{store_id}/write"
-        .replace(`{${"store_id"}}`, encodeURIComponent(String(storeId)));
-      // use dummy base URL string because the URL constructor only accepts absolute URLs.
-      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-      let baseOptions;
-      if (configuration) {
-        baseOptions = configuration.baseOptions;
-      }
-
-      const localVarRequestOptions = { method: "POST", ...baseOptions, ...options};
-      const localVarHeaderParameter = {} as any;
-      const localVarQueryParameter = {} as any;
-
-
-    
-      localVarHeaderParameter["Content-Type"] = "application/json";
-
-      setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
-      localVarRequestOptions.headers = {...localVarHeaderParameter, ...options.headers};
-      localVarRequestOptions.data = serializeDataIfNeeded(body, localVarRequestOptions);
-
-      return {
-        url: toPathString(localVarUrlObj),
-        options: localVarRequestOptions,
-      };
-    },
-    /**
-         * The WriteAssertions API will upsert new assertions for an authorization model id, or overwrite the existing ones. An assertion is an object that contains a tuple key, the expectation of whether a call to the Check API of that tuple key will return true or false, and optionally a list of contextual tuples.
-         * @summary Upsert assertions for an authorization model ID
-         * @param {string} storeId
-         * @param {string} authorizationModelId
-         * @param {WriteAssertionsRequest} body
-         * @param {*} [options] Override http request option.
-         * @throws { FgaError }
-         */
-    writeAssertions: (storeId: string, authorizationModelId: string, body: WriteAssertionsRequest, options: any = {}): RequestArgs => {
-      // verify required parameter 'storeId' is not null or undefined
-      assertParamExists("writeAssertions", "storeId", storeId);
-      // verify required parameter 'authorizationModelId' is not null or undefined
-      assertParamExists("writeAssertions", "authorizationModelId", authorizationModelId);
-      // verify required parameter 'body' is not null or undefined
-      assertParamExists("writeAssertions", "body", body);
-      const localVarPath = "/stores/{store_id}/assertions/{authorization_model_id}"
-        .replace(`{${"store_id"}}`, encodeURIComponent(String(storeId))).replace(`{${"authorization_model_id"}}`, encodeURIComponent(String(authorizationModelId)));
-      // use dummy base URL string because the URL constructor only accepts absolute URLs.
-      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-      let baseOptions;
-      if (configuration) {
-        baseOptions = configuration.baseOptions;
-      }
-
-      const localVarRequestOptions = { method: "PUT", ...baseOptions, ...options};
-      const localVarHeaderParameter = {} as any;
-      const localVarQueryParameter = {} as any;
-
-
-    
-      localVarHeaderParameter["Content-Type"] = "application/json";
-
-      setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
-      localVarRequestOptions.headers = {...localVarHeaderParameter, ...options.headers};
-      localVarRequestOptions.data = serializeDataIfNeeded(body, localVarRequestOptions);
-
-      return {
-        url: toPathString(localVarUrlObj),
-        options: localVarRequestOptions,
-      };
-    },
-    /**
-         * The WriteAuthorizationModel API will add a new authorization model to a store. Each item in the `type_definitions` array is a type definition as specified in the field `type_definition`. The response will return the authorization model\'s ID in the `id` field.  ## Example To add an authorization model with `user` and `document` type definitions, call POST authorization-models API with the body:  ```json {   \"type_definitions\":[     {       \"type\":\"user\"     },     {       \"type\":\"document\",       \"relations\":{         \"reader\":{           \"union\":{             \"child\":[               {                 \"this\":{}               },               {                 \"computedUserset\":{                   \"object\":\"\",                   \"relation\":\"writer\"                 }               }             ]           }         },         \"writer\":{           \"this\":{}         }       }     }   ] } ``` OpenFGA\'s response will include the version id for this authorization model, which will look like  ``` {\"authorization_model_id\": \"01G50QVV17PECNVAHX1GG4Y5NC\"} ``` 
-         * @summary Create a new authorization model
-         * @param {string} storeId
-         * @param {WriteAuthorizationModelRequest} body
-         * @param {*} [options] Override http request option.
-         * @throws { FgaError }
-         */
-    writeAuthorizationModel: (storeId: string, body: WriteAuthorizationModelRequest, options: any = {}): RequestArgs => {
-      // verify required parameter 'storeId' is not null or undefined
-      assertParamExists("writeAuthorizationModel", "storeId", storeId);
-      // verify required parameter 'body' is not null or undefined
-      assertParamExists("writeAuthorizationModel", "body", body);
-      const localVarPath = "/stores/{store_id}/authorization-models"
-        .replace(`{${"store_id"}}`, encodeURIComponent(String(storeId)));
-      // use dummy base URL string because the URL constructor only accepts absolute URLs.
-      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-      let baseOptions;
-      if (configuration) {
-        baseOptions = configuration.baseOptions;
-      }
-
-      const localVarRequestOptions = { method: "POST", ...baseOptions, ...options};
-      const localVarHeaderParameter = {} as any;
-      const localVarQueryParameter = {} as any;
-
-
-    
-      localVarHeaderParameter["Content-Type"] = "application/json";
-
-      setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
-      localVarRequestOptions.headers = {...localVarHeaderParameter, ...options.headers};
-      localVarRequestOptions.data = serializeDataIfNeeded(body, localVarRequestOptions);
-
-      return {
-        url: toPathString(localVarUrlObj),
-        options: localVarRequestOptions,
-      };
-    },
-    /**
-     * Make a raw HTTP request to an arbitrary API endpoint.
-     * This method provides an escape hatch for calling new or experimental endpoints
-     * that may not yet have dedicated SDK methods.
-     * @summary Make a raw HTTP request
-     * @param {'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH'} method - HTTP method
-     * @param {string} path - API path with optional template parameters (e.g., '/stores/{store_id}/my-endpoint')
-     * @param {any} [body] - Optional request body
-     * @param {Record<string, any>} [queryParams] - Optional query parameters
-     * @param {Record<string, string>} [pathParams] - Optional path parameters to replace template variables
-     * @param {*} [options] Override http request option.
-     * @throws { FgaError }
-     */
-    apiExecutor: (method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH", path: string, body?: any, queryParams?: Record<string, any>, pathParams?: Record<string, string>, options: any = {}): RequestArgs => {
-      // Build path by replacing template parameters with URL-encoded values
-      let localVarPath = path;
-      if (pathParams) {
-        for (const [key, value] of Object.entries(pathParams)) {
-          // Use split/join to replace ALL occurrences of the parameter
-          localVarPath = localVarPath.split(`{${key}}`).join(encodeURIComponent(value));
-        }
-      }
-
-      // Validate that all path parameters have been replaced
-      if (localVarPath.includes("{") && localVarPath.includes("}")) {
-        const unresolvedMatch = localVarPath.match(/\{([^}]+)\}/);
-        if (unresolvedMatch) {
-          throw new FgaValidationError(unresolvedMatch[1], `Path parameter '${unresolvedMatch[1]}' was not provided for path: ${path}`);
-        }
-      }
-
-      // use dummy base URL string because the URL constructor only accepts absolute URLs.
-      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-      let baseOptions;
-      if (configuration) {
-        baseOptions = configuration.baseOptions;
-      }
-
-      const localVarRequestOptions = { method: method, ...baseOptions, ...options };
-      const localVarHeaderParameter = {} as any;
-      const localVarQueryParameter = {} as any;
-
-      // Add query parameters if provided
-      if (queryParams) {
-        for (const [key, value] of Object.entries(queryParams)) {
-          if (value !== undefined) {
-            localVarQueryParameter[key] = value;
-          }
-        }
-      }
-
-      // Set Content-Type for requests with body
-      if (body !== undefined && (method === "POST" || method === "PUT" || method === "PATCH")) {
-        localVarHeaderParameter["Content-Type"] = "application/json";
-      }
-
-      setSearchParams(localVarUrlObj, localVarQueryParameter, options.query);
-      localVarRequestOptions.headers = { ...localVarHeaderParameter, ...options.headers };
-
-      if (body !== undefined) {
-        localVarRequestOptions.data = serializeDataIfNeeded(body, localVarRequestOptions);
-      }
-
-      return {
-        url: toPathString(localVarUrlObj),
-        options: localVarRequestOptions,
-      };
-    },
+    url: toPathString(requestUrl),
+    options: requestOptions,
   };
-};
+}
 
 /**
  * OpenFgaApi - functional programming interface
  * @export
  */
 export const OpenFgaApiFp = function(configuration: Configuration, credentials: Credentials) {
-  const localVarAxiosParamCreator = OpenFgaApiAxiosParamCreator(configuration, credentials);
+  async function runApiExecutor<T extends object | void = object>(
+    request: RequestBuilderParams,
+    options?: RequestBuilderOptions
+  ): Promise<(axios?: AxiosInstance) => PromiseResult<T>> {
+    const localVarAxiosArgs = RequestBuilder(request, { ...configuration.baseOptions, ...options });
+    return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials, {
+      [TelemetryAttribute.FgaClientRequestMethod]: request.operationName,
+      [TelemetryAttribute.FgaClientRequestStoreId]: request.pathParams?.["store_id"] ?? "",
+      ...TelemetryAttributes.fromRequestBody(request.body),
+    });
+  }
+
+  async function runStreamingApiExecutor(
+    request: RequestBuilderParams,
+    options?: RequestBuilderOptions,
+  ): Promise<(axios?: AxiosInstance) => Promise<any>> {
+    const localVarAxiosArgs = RequestBuilder(request, { ...configuration.baseOptions, ...options });
+    return createStreamingRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials, {
+      [TelemetryAttribute.FgaClientRequestMethod]: request.operationName,
+      [TelemetryAttribute.FgaClientRequestStoreId]: request.pathParams?.["store_id"] ?? "",
+      ...TelemetryAttributes.fromRequestBody(request.body),
+    });
+  }
+
   return {
     /**
-         * The `BatchCheck` API functions nearly identically to `Check`, but instead of checking a single user-object relationship BatchCheck accepts a list of relationships to check and returns a map containing `BatchCheckItem` response for each check it received.  An associated `correlation_id` is required for each check in the batch. This ID is used to correlate a check to the appropriate response. It is a string consisting of only alphanumeric characters or hyphens with a maximum length of 36 characters. This `correlation_id` is used to map the result of each check to the item which was checked, so it must be unique for each item in the batch. We recommend using a UUID or ULID as the `correlation_id`, but you can use whatever unique identifier you need as long  as it matches this regex pattern: `^[\\w\\d-]{1,36}$`  NOTE: The maximum number of checks that can be passed in the `BatchCheck` API is configurable via the [OPENFGA_MAX_CHECKS_PER_BATCH_CHECK](https://openfga.dev/docs/getting-started/setup-openfga/configuration#OPENFGA_MAX_CHECKS_PER_BATCH_CHECK) environment variable. If `BatchCheck` is called using the SDK, the SDK can split the batch check requests for you.  For more details on how `Check` functions, see the docs for `/check`.  ### Examples #### A BatchCheckRequest ```json {   \"checks\": [      {        \"tuple_key\": {          \"object\": \"document:2021-budget\"          \"relation\": \"reader\",          \"user\": \"user:anne\",        },        \"contextual_tuples\": {...}        \"context\": {}        \"correlation_id\": \"01JA8PM3QM7VBPGB8KMPK8SBD5\"      },      {        \"tuple_key\": {          \"object\": \"document:2021-budget\"          \"relation\": \"reader\",          \"user\": \"user:bob\",        },        \"contextual_tuples\": {...}        \"context\": {}        \"correlation_id\": \"01JA8PMM6A90NV5ET0F28CYSZQ\"      }    ] } ```  Below is a possible response to the above request. Note that the result map\'s keys are the `correlation_id` values from the checked items in the request: ```json {    \"result\": {      \"01JA8PMM6A90NV5ET0F28CYSZQ\": {        \"allowed\": false,         \"error\": {\"message\": \"\"}      },      \"01JA8PM3QM7VBPGB8KMPK8SBD5\": {        \"allowed\": true,         \"error\": {\"message\": \"\"}      } } ``` 
+         * The `BatchCheck` API functions nearly identically to `Check`, but instead of checking a single user-object relationship BatchCheck accepts a list of relationships to check and returns a map containing `BatchCheckItem` response for each check it received.  An associated `correlation_id` is required for each check in the batch. This ID is used to correlate a check to the appropriate response. It is a string consisting of only alphanumeric characters or hyphens with a maximum length of 36 characters. This `correlation_id` is used to map the result of each check to the item which was checked, so it must be unique for each item in the batch. We recommend using a UUID or ULID as the `correlation_id`, but you can use whatever unique identifier you need as long  as it matches this regex pattern: `^[\\w\\d-]{1,36}$`  NOTE: The maximum number of checks that can be passed in the `BatchCheck` API is configurable via the [OPENFGA_MAX_CHECKS_PER_BATCH_CHECK](https://openfga.dev/docs/getting-started/setup-openfga/configuration#OPENFGA_MAX_CHECKS_PER_BATCH_CHECK) environment variable. If `BatchCheck` is called using the SDK, the SDK can split the batch check requests for you.  For more details on how `Check` functions, see the docs for `/check`.  ### Examples #### A BatchCheckRequest ```json {   \"checks\": [      {        \"tuple_key\": {          \"object\": \"document:2021-budget\"          \"relation\": \"reader\",          \"user\": \"user:anne\",        },        \"contextual_tuples\": {...}        \"context\": {}        \"correlation_id\": \"01JA8PM3QM7VBPGB8KMPK8SBD5\"      },      {        \"tuple_key\": {          \"object\": \"document:2021-budget\"          \"relation\": \"reader\",          \"user\": \"user:bob\",        },        \"contextual_tuples\": {...}        \"context\": {}        \"correlation_id\": \"01JA8PMM6A90NV5ET0F28CYSZQ\"      }    ] } ```  Below is a possible response to the above request. Note that the result map\'s keys are the `correlation_id` values from the checked items in the request: ```json {    \"result\": {      \"01JA8PMM6A90NV5ET0F28CYSZQ\": {        \"allowed\": false,         \"error\": {\"message\": \"\"}      },      \"01JA8PM3QM7VBPGB8KMPK8SBD5\": {        \"allowed\": true,         \"error\": {\"message\": \"\"}      } } ```
          * @summary Send a list of `check` operations in a single request
          * @param {string} storeId
          * @param {BatchCheckRequest} body
@@ -924,12 +265,15 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @throws { FgaError }
          */
     async batchCheck(storeId: string, body: BatchCheckRequest, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<BatchCheckResponse>> {
-      const localVarAxiosArgs = localVarAxiosParamCreator.batchCheck(storeId, body, options);
-      return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials, {
-        [TelemetryAttribute.FgaClientRequestMethod]: "BatchCheck",
-        [TelemetryAttribute.FgaClientRequestStoreId]: storeId ?? "",
-        ...TelemetryAttributes.fromRequestBody(body)
-      });
+      assertParamExists("batchCheck", "storeId", storeId);
+      assertParamExists("batchCheck", "body", body);
+      return runApiExecutor<BatchCheckResponse>({
+        operationName: "BatchCheck",
+        method: "POST",
+        path: "/stores/{store_id}/batch-check",
+        pathParams: { store_id: storeId },
+        body,
+      }, options);
     },
     /**
          * The Check API returns whether a given user has a relationship with a given object in a given store. The `user` field of the request can be a specific target, such as `user:anne`, or a userset (set of users) such as `group:marketing#member` or a type-bound public access `user:*`. To arrive at a result, the API uses: an authorization model, explicit tuples written through the Write API, contextual tuples present in the request, and implicit tuples that exist by virtue of applying set theory (such as `document:2021-budget#viewer@document:2021-budget#viewer`; the set of users who are viewers of `document:2021-budget` are the set of users who are the viewers of `document:2021-budget`). A `contextual_tuples` object may also be included in the body of the request. This object contains one field `tuple_keys`, which is an array of tuple keys. Each of these tuples may have an associated `condition`. You may also provide an `authorization_model_id` in the body. This will be used to assert that the input `tuple_key` is valid for the model specified. If not specified, the assertion will be made against the latest authorization model ID. It is strongly recommended to specify authorization model id for better performance. You may also provide a `context` object that will be used to evaluate the conditioned tuples in the system. It is strongly recommended to provide a value for all the input parameters of all the conditions, to ensure that all tuples be evaluated correctly. By default, the Check API caches results for a short time to optimize performance. You may specify a value of `HIGHER_CONSISTENCY` for the optional `consistency` parameter in the body to inform the server that higher conisistency is preferred at the expense of increased latency. Consideration should be given to the increased latency if requesting higher consistency. The response will return whether the relationship exists in the field `allowed`.  Some exceptions apply, but in general, if a Check API responds with `{allowed: true}`, then you can expect the equivalent ListObjects query to return the object, and viceversa.  For example, if `Check(user:anne, reader, document:2021-budget)` responds with `{allowed: true}`, then `ListObjects(user:anne, reader, document)` may include `document:2021-budget` in the response. ## Examples ### Querying with contextual tuples In order to check if user `user:anne` of type `user` has a `reader` relationship with object `document:2021-budget` given the following contextual tuple ```json {   \"user\": \"user:anne\",   \"relation\": \"member\",   \"object\": \"time_slot:office_hours\" } ``` the Check API can be used with the following request body: ```json {   \"tuple_key\": {     \"user\": \"user:anne\",     \"relation\": \"reader\",     \"object\": \"document:2021-budget\"   },   \"contextual_tuples\": {     \"tuple_keys\": [       {         \"user\": \"user:anne\",         \"relation\": \"member\",         \"object\": \"time_slot:office_hours\"       }     ]   },   \"authorization_model_id\": \"01G50QVV17PECNVAHX1GG4Y5NC\" } ``` ### Querying usersets Some Checks will always return `true`, even without any tuples. For example, for the following authorization model ```python model   schema 1.1 type user type document   relations     define reader: [user] ``` the following query ```json {   \"tuple_key\": {      \"user\": \"document:2021-budget#reader\",      \"relation\": \"reader\",      \"object\": \"document:2021-budget\"   } } ``` will always return `{ \"allowed\": true }`. This is because usersets are self-defining: the userset `document:2021-budget#reader` will always have the `reader` relation with `document:2021-budget`. ### Querying usersets with difference in the model A Check for a userset can yield results that must be treated carefully if the model involves difference. For example, for the following authorization model ```python model   schema 1.1 type user type group   relations     define member: [user] type document   relations     define blocked: [user]     define reader: [group#member] but not blocked ``` the following query ```json {   \"tuple_key\": {      \"user\": \"group:finance#member\",      \"relation\": \"reader\",      \"object\": \"document:2021-budget\"   },   \"contextual_tuples\": {     \"tuple_keys\": [       {         \"user\": \"user:anne\",         \"relation\": \"member\",         \"object\": \"group:finance\"       },       {         \"user\": \"group:finance#member\",         \"relation\": \"reader\",         \"object\": \"document:2021-budget\"       },       {         \"user\": \"user:anne\",         \"relation\": \"blocked\",         \"object\": \"document:2021-budget\"       }     ]   }, } ``` will return `{ \"allowed\": true }`, even though a specific user of the userset `group:finance#member` does not have the `reader` relationship with the given object. ### Requesting higher consistency By default, the Check API caches results for a short time to optimize performance. You may request higher consistency to inform the server that higher consistency should be preferred at the expense of increased latency. Care should be taken when requesting higher consistency due to the increased latency. ```json {   \"tuple_key\": {      \"user\": \"group:finance#member\",      \"relation\": \"reader\",      \"object\": \"document:2021-budget\"   },   \"consistency\": \"HIGHER_CONSISTENCY\" } ``` 
@@ -940,12 +284,15 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @throws { FgaError }
          */
     async check(storeId: string, body: CheckRequest, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<CheckResponse>> {
-      const localVarAxiosArgs = localVarAxiosParamCreator.check(storeId, body, options);
-      return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials, {
-        [TelemetryAttribute.FgaClientRequestMethod]: "Check",
-        [TelemetryAttribute.FgaClientRequestStoreId]: storeId ?? "",
-        ...TelemetryAttributes.fromRequestBody(body)
-      });
+      assertParamExists("check", "storeId", storeId);
+      assertParamExists("check", "body", body);
+      return runApiExecutor<CheckResponse>({
+        operationName: "Check",
+        method: "POST",
+        path: "/stores/{store_id}/check",
+        pathParams: { store_id: storeId },
+        body,
+      }, options);
     },
     /**
          * Create a unique OpenFGA store which will be used to store authorization models and relationship tuples.
@@ -955,11 +302,13 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @throws { FgaError }
          */
     async createStore(body: CreateStoreRequest, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<CreateStoreResponse>> {
-      const localVarAxiosArgs = localVarAxiosParamCreator.createStore(body, options);
-      return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials, {
-        [TelemetryAttribute.FgaClientRequestMethod]: "CreateStore",
-        ...TelemetryAttributes.fromRequestBody(body)
-      });
+      assertParamExists("createStore", "body", body);
+      return runApiExecutor<CreateStoreResponse>({
+        operationName: "CreateStore",
+        method: "POST",
+        path: "/stores",
+        body,
+      }, options);
     },
     /**
          * Delete an OpenFGA store. This does not delete the data associated with the store, like tuples or authorization models.
@@ -969,11 +318,13 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @throws { FgaError }
          */
     async deleteStore(storeId: string, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<void>> {
-      const localVarAxiosArgs = localVarAxiosParamCreator.deleteStore(storeId, options);
-      return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials, {
-        [TelemetryAttribute.FgaClientRequestMethod]: "DeleteStore",
-        [TelemetryAttribute.FgaClientRequestStoreId]: storeId ?? "",
-      });
+      assertParamExists("deleteStore", "storeId", storeId);
+      return runApiExecutor<void>({
+        operationName: "DeleteStore",
+        method: "DELETE",
+        path: "/stores/{store_id}",
+        pathParams: { store_id: storeId },
+      }, options);
     },
     /**
          * The Expand API will return all users and usersets that have certain relationship with an object in a certain store. This is different from the `/stores/{store_id}/read` API in that both users and computed usersets are returned. Body parameters `tuple_key.object` and `tuple_key.relation` are all required. A `contextual_tuples` object may also be included in the body of the request. This object contains one field `tuple_keys`, which is an array of tuple keys. Each of these tuples may have an associated `condition`. The response will return a tree whose leaves are the specific users and usersets. Union, intersection and difference operator are located in the intermediate nodes.  ## Example To expand all users that have the `reader` relationship with object `document:2021-budget`, use the Expand API with the following request body ```json {   \"tuple_key\": {     \"object\": \"document:2021-budget\",     \"relation\": \"reader\"   },   \"authorization_model_id\": \"01G50QVV17PECNVAHX1GG4Y5NC\" } ``` OpenFGA\'s response will be a userset tree of the users and usersets that have read access to the document. ```json {   \"tree\":{     \"root\":{       \"type\":\"document:2021-budget#reader\",       \"union\":{         \"nodes\":[           {             \"type\":\"document:2021-budget#reader\",             \"leaf\":{               \"users\":{                 \"users\":[                   \"user:bob\"                 ]               }             }           },           {             \"type\":\"document:2021-budget#reader\",             \"leaf\":{               \"computed\":{                 \"userset\":\"document:2021-budget#writer\"               }             }           }         ]       }     }   } } ``` The caller can then call expand API for the `writer` relationship for the `document:2021-budget`. ### Expand Request with Contextual Tuples  Given the model ```python model     schema 1.1  type user  type folder     relations         define owner: [user]  type document     relations         define parent: [folder]         define viewer: [user] or writer         define writer: [user] or owner from parent ``` and the initial tuples ```json [{     \"user\": \"user:bob\",     \"relation\": \"owner\",     \"object\": \"folder:1\" }] ```  To expand all `writers` of `document:1` when `document:1` is put in `folder:1`, the first call could be  ```json {   \"tuple_key\": {     \"object\": \"document:1\",     \"relation\": \"writer\"   },   \"contextual_tuples\": {     \"tuple_keys\": [       {         \"user\": \"folder:1\",         \"relation\": \"parent\",         \"object\": \"document:1\"       }     ]   } } ``` this returns: ```json {   \"tree\": {     \"root\": {       \"name\": \"document:1#writer\",       \"union\": {         \"nodes\": [           {             \"name\": \"document:1#writer\",             \"leaf\": {               \"users\": {                 \"users\": []               }             }           },           {             \"name\": \"document:1#writer\",             \"leaf\": {               \"tupleToUserset\": {                 \"tupleset\": \"document:1#parent\",                 \"computed\": [                   {                     \"userset\": \"folder:1#owner\"                   }                 ]               }             }           }         ]       }     }   } } ``` This tells us that the `owner` of `folder:1` may also be a writer. So our next call could be to find the `owners` of `folder:1` ```json {   \"tuple_key\": {     \"object\": \"folder:1\",     \"relation\": \"owner\"   } } ``` which gives ```json {   \"tree\": {     \"root\": {       \"name\": \"folder:1#owner\",       \"leaf\": {         \"users\": {           \"users\": [             \"user:bob\"           ]         }       }     }   } } ``` 
@@ -984,12 +335,15 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @throws { FgaError }
          */
     async expand(storeId: string, body: ExpandRequest, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<ExpandResponse>> {
-      const localVarAxiosArgs = localVarAxiosParamCreator.expand(storeId, body, options);
-      return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials, {
-        [TelemetryAttribute.FgaClientRequestMethod]: "Expand",
-        [TelemetryAttribute.FgaClientRequestStoreId]: storeId ?? "",
-        ...TelemetryAttributes.fromRequestBody(body)
-      });
+      assertParamExists("expand", "storeId", storeId);
+      assertParamExists("expand", "body", body);
+      return runApiExecutor<ExpandResponse>({
+        operationName: "Expand",
+        method: "POST",
+        path: "/stores/{store_id}/expand",
+        pathParams: { store_id: storeId },
+        body,
+      }, options);
     },
     /**
          * Returns an OpenFGA store by its identifier
@@ -999,11 +353,13 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @throws { FgaError }
          */
     async getStore(storeId: string, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<GetStoreResponse>> {
-      const localVarAxiosArgs = localVarAxiosParamCreator.getStore(storeId, options);
-      return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials, {
-        [TelemetryAttribute.FgaClientRequestMethod]: "GetStore",
-        [TelemetryAttribute.FgaClientRequestStoreId]: storeId ?? "",
-      });
+      assertParamExists("getStore", "storeId", storeId);
+      return runApiExecutor<GetStoreResponse>({
+        operationName: "GetStore",
+        method: "GET",
+        path: "/stores/{store_id}",
+        pathParams: { store_id: storeId },
+      }, options);
     },
     /**
          * The ListObjects API returns a list of all the objects of the given type that the user has a relation with.  To arrive at a result, the API uses: an authorization model, explicit tuples written through the Write API, contextual tuples present in the request, and implicit tuples that exist by virtue of applying set theory (such as `document:2021-budget#viewer@document:2021-budget#viewer`; the set of users who are viewers of `document:2021-budget` are the set of users who are the viewers of `document:2021-budget`). An `authorization_model_id` may be specified in the body. If it is not specified, the latest authorization model ID will be used. It is strongly recommended to specify authorization model id for better performance. You may also specify `contextual_tuples` that will be treated as regular tuples. Each of these tuples may have an associated `condition`. You may also provide a `context` object that will be used to evaluate the conditioned tuples in the system. It is strongly recommended to provide a value for all the input parameters of all the conditions, to ensure that all tuples be evaluated correctly. By default, the Check API caches results for a short time to optimize performance. You may specify a value of `HIGHER_CONSISTENCY` for the optional `consistency` parameter in the body to inform the server that higher conisistency is preferred at the expense of increased latency. Consideration should be given to the increased latency if requesting higher consistency. The response will contain the related objects in an array in the \"objects\" field of the response and they will be strings in the object format `<type>:<id>` (e.g. \"document:roadmap\"). The number of objects in the response array will be limited by the execution timeout specified in the flag OPENFGA_LIST_OBJECTS_DEADLINE and by the upper bound specified in the flag OPENFGA_LIST_OBJECTS_MAX_RESULTS, whichever is hit first. The objects given will not be sorted, and therefore two identical calls can give a given different set of objects.
@@ -1014,12 +370,15 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @throws { FgaError }
          */
     async listObjects(storeId: string, body: ListObjectsRequest, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<ListObjectsResponse>> {
-      const localVarAxiosArgs = localVarAxiosParamCreator.listObjects(storeId, body, options);
-      return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials, {
-        [TelemetryAttribute.FgaClientRequestMethod]: "ListObjects",
-        [TelemetryAttribute.FgaClientRequestStoreId]: storeId ?? "",
-        ...TelemetryAttributes.fromRequestBody(body)
-      });
+      assertParamExists("listObjects", "storeId", storeId);
+      assertParamExists("listObjects", "body", body);
+      return runApiExecutor<ListObjectsResponse>({
+        operationName: "ListObjects",
+        method: "POST",
+        path: "/stores/{store_id}/list-objects",
+        pathParams: { store_id: storeId },
+        body,
+      }, options);
     },
     /**
        * The Streamed ListObjects API is very similar to the ListObjects API, with two differences:
@@ -1032,10 +391,15 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
        * @throws { FgaError }
        */
     async streamedListObjects(storeId: string, body: ListObjectsRequest, options?: any): Promise<(axios?: AxiosInstance) => Promise<any>> {
-      const localVarAxiosArgs = localVarAxiosParamCreator.streamedListObjects(storeId, body, options);
-      return createStreamingRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials, {
-        [TelemetryAttribute.FgaClientRequestMethod]: "StreamedListObjects"
-      });
+      assertParamExists("streamedListObjects", "storeId", storeId);
+      assertParamExists("streamedListObjects", "body", body);
+      return runStreamingApiExecutor({
+        operationName: "StreamedListObjects",
+        method: "POST",
+        path: "/stores/{store_id}/streamed-list-objects",
+        pathParams: { store_id: storeId },
+        body,
+      }, options);
     },
     /**
          * Returns a paginated list of OpenFGA stores and a continuation token to get additional stores. The continuation token will be empty if there are no more stores. 
@@ -1047,10 +411,12 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @throws { FgaError }
          */
     async listStores(pageSize?: number, continuationToken?: string, name?: string, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<ListStoresResponse>> {
-      const localVarAxiosArgs = localVarAxiosParamCreator.listStores(pageSize, continuationToken, name, options);
-      return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials, {
-        [TelemetryAttribute.FgaClientRequestMethod]: "ListStores",
-      });
+      return runApiExecutor<ListStoresResponse>({
+        operationName: "ListStores",
+        method: "GET",
+        path: "/stores",
+        queryParams: { page_size: pageSize, continuation_token: continuationToken, name },
+      }, options);
     },
     /**
          * The ListUsers API returns a list of all the users of a specific type that have a relation to a given object.  To arrive at a result, the API uses: an authorization model, explicit tuples written through the Write API, contextual tuples present in the request, and implicit tuples that exist by virtue of applying set theory (such as `document:2021-budget#viewer@document:2021-budget#viewer`; the set of users who are viewers of `document:2021-budget` are the set of users who are the viewers of `document:2021-budget`). An `authorization_model_id` may be specified in the body. If it is not specified, the latest authorization model ID will be used. It is strongly recommended to specify authorization model id for better performance. You may also specify `contextual_tuples` that will be treated as regular tuples. Each of these tuples may have an associated `condition`. You may also provide a `context` object that will be used to evaluate the conditioned tuples in the system. It is strongly recommended to provide a value for all the input parameters of all the conditions, to ensure that all tuples be evaluated correctly. The response will contain the related users in an array in the \"users\" field of the response. These results may include specific objects, usersets  or type-bound public access. Each of these types of results is encoded in its own type and not represented as a string.In cases where a type-bound public access result is returned (e.g. `user:*`), it cannot be inferred that all subjects of that type have a relation to the object; it is possible that negations exist and checks should still be queried on individual subjects to ensure access to that document.The number of users in the response array will be limited by the execution timeout specified in the flag OPENFGA_LIST_USERS_DEADLINE and by the upper bound specified in the flag OPENFGA_LIST_USERS_MAX_RESULTS, whichever is hit first. The returned users will not be sorted, and therefore two identical calls may yield different sets of users.
@@ -1061,12 +427,15 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @throws { FgaError }
          */
     async listUsers(storeId: string, body: ListUsersRequest, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<ListUsersResponse>> {
-      const localVarAxiosArgs = localVarAxiosParamCreator.listUsers(storeId, body, options);
-      return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials, {
-        [TelemetryAttribute.FgaClientRequestMethod]: "ListUsers",
-        [TelemetryAttribute.FgaClientRequestStoreId]: storeId ?? "",
-        ...TelemetryAttributes.fromRequestBody(body)
-      });
+      assertParamExists("listUsers", "storeId", storeId);
+      assertParamExists("listUsers", "body", body);
+      return runApiExecutor<ListUsersResponse>({
+        operationName: "ListUsers",
+        method: "POST",
+        path: "/stores/{store_id}/list-users",
+        pathParams: { store_id: storeId },
+        body,
+      }, options);
     },
     /**
          * The Read API will return the tuples for a certain store that match a query filter specified in the body of the request.  The API doesn\'t guarantee order by any field.  It is different from the `/stores/{store_id}/expand` API in that it only returns relationship tuples that are stored in the system and satisfy the query.  In the body: 1. `tuple_key` is optional. If not specified, it will return all tuples in the store. 2. `tuple_key.object` is mandatory if `tuple_key` is specified. It can be a full object (e.g., `type:object_id`) or type only (e.g., `type:`). 3. `tuple_key.user` is mandatory if tuple_key is specified in the case the `tuple_key.object` is a type only. If tuple_key.user is specified, it needs to be a full object (e.g., `type:user_id`). ## Examples ### Query for all objects in a type definition To query for all objects that `user:bob` has `reader` relationship in the `document` type definition, call read API with body of ```json {  \"tuple_key\": {      \"user\": \"user:bob\",      \"relation\": \"reader\",      \"object\": \"document:\"   } } ``` The API will return tuples and a continuation token, something like ```json {   \"tuples\": [     {       \"key\": {         \"user\": \"user:bob\",         \"relation\": \"reader\",         \"object\": \"document:2021-budget\"       },       \"timestamp\": \"2021-10-06T15:32:11.128Z\"     }   ],   \"continuation_token\": \"eyJwayI6IkxBVEVTVF9OU0NPTkZJR19hdXRoMHN0b3JlIiwic2siOiIxem1qbXF3MWZLZExTcUoyN01MdTdqTjh0cWgifQ==\" } ``` This means that `user:bob` has a `reader` relationship with 1 document `document:2021-budget`. Note that this API, unlike the List Objects API, does not evaluate the tuples in the store. The continuation token will be empty if there are no more tuples to query. ### Query for all stored relationship tuples that have a particular relation and object To query for all users that have `reader` relationship with `document:2021-budget`, call read API with body of  ```json {   \"tuple_key\": {      \"object\": \"document:2021-budget\",      \"relation\": \"reader\"    } } ``` The API will return something like  ```json {   \"tuples\": [     {       \"key\": {         \"user\": \"user:bob\",         \"relation\": \"reader\",         \"object\": \"document:2021-budget\"       },       \"timestamp\": \"2021-10-06T15:32:11.128Z\"     }   ],   \"continuation_token\": \"eyJwayI6IkxBVEVTVF9OU0NPTkZJR19hdXRoMHN0b3JlIiwic2siOiIxem1qbXF3MWZLZExTcUoyN01MdTdqTjh0cWgifQ==\" } ``` This means that `document:2021-budget` has 1 `reader` (`user:bob`).  Note that, even if the model said that all `writers` are also `readers`, the API will not return writers such as `user:anne` because it only returns tuples and does not evaluate them. ### Query for all users with all relationships for a particular document To query for all users that have any relationship with `document:2021-budget`, call read API with body of  ```json {   \"tuple_key\": {       \"object\": \"document:2021-budget\"    } } ``` The API will return something like  ```json {   \"tuples\": [     {       \"key\": {         \"user\": \"user:anne\",         \"relation\": \"writer\",         \"object\": \"document:2021-budget\"       },       \"timestamp\": \"2021-10-05T13:42:12.356Z\"     },     {       \"key\": {         \"user\": \"user:bob\",         \"relation\": \"reader\",         \"object\": \"document:2021-budget\"       },       \"timestamp\": \"2021-10-06T15:32:11.128Z\"     }   ],   \"continuation_token\": \"eyJwayI6IkxBVEVTVF9OU0NPTkZJR19hdXRoMHN0b3JlIiwic2siOiIxem1qbXF3MWZLZExTcUoyN01MdTdqTjh0cWgifQ==\" } ``` This means that `document:2021-budget` has 1 `reader` (`user:bob`) and 1 `writer` (`user:anne`). 
@@ -1077,12 +446,15 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @throws { FgaError }
          */
     async read(storeId: string, body: ReadRequest, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<ReadResponse>> {
-      const localVarAxiosArgs = localVarAxiosParamCreator.read(storeId, body, options);
-      return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials, {
-        [TelemetryAttribute.FgaClientRequestMethod]: "Read",
-        [TelemetryAttribute.FgaClientRequestStoreId]: storeId ?? "",
-        ...TelemetryAttributes.fromRequestBody(body)
-      });
+      assertParamExists("read", "storeId", storeId);
+      assertParamExists("read", "body", body);
+      return runApiExecutor<ReadResponse>({
+        operationName: "Read",
+        method: "POST",
+        path: "/stores/{store_id}/read",
+        pathParams: { store_id: storeId },
+        body,
+      }, options);
     },
     /**
          * The ReadAssertions API will return, for a given authorization model id, all the assertions stored for it. 
@@ -1093,11 +465,14 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @throws { FgaError }
          */
     async readAssertions(storeId: string, authorizationModelId: string, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<ReadAssertionsResponse>> {
-      const localVarAxiosArgs = localVarAxiosParamCreator.readAssertions(storeId, authorizationModelId, options);
-      return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials, {
-        [TelemetryAttribute.FgaClientRequestMethod]: "ReadAssertions",
-        [TelemetryAttribute.FgaClientRequestStoreId]: storeId ?? "",
-      });
+      assertParamExists("readAssertions", "storeId", storeId);
+      assertParamExists("readAssertions", "authorizationModelId", authorizationModelId);
+      return runApiExecutor<ReadAssertionsResponse>({
+        operationName: "ReadAssertions",
+        method: "GET",
+        path: "/stores/{store_id}/assertions/{authorization_model_id}",
+        pathParams: { store_id: storeId, authorization_model_id: authorizationModelId },
+      }, options);
     },
     /**
          * The ReadAuthorizationModel API returns an authorization model by its identifier. The response will return the authorization model for the particular version.  ## Example To retrieve the authorization model with ID `01G5JAVJ41T49E9TT3SKVS7X1J` for the store, call the GET authorization-models by ID API with `01G5JAVJ41T49E9TT3SKVS7X1J` as the `id` path parameter.  The API will return: ```json {   \"authorization_model\":{     \"id\":\"01G5JAVJ41T49E9TT3SKVS7X1J\",     \"type_definitions\":[       {         \"type\":\"user\"       },       {         \"type\":\"document\",         \"relations\":{           \"reader\":{             \"union\":{               \"child\":[                 {                   \"this\":{}                 },                 {                   \"computedUserset\":{                     \"object\":\"\",                     \"relation\":\"writer\"                   }                 }               ]             }           },           \"writer\":{             \"this\":{}           }         }       }     ]   } } ``` In the above example, there are 2 types (`user` and `document`). The `document` type has 2 relations (`writer` and `reader`).
@@ -1108,11 +483,14 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @throws { FgaError }
          */
     async readAuthorizationModel(storeId: string, id: string, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<ReadAuthorizationModelResponse>> {
-      const localVarAxiosArgs = localVarAxiosParamCreator.readAuthorizationModel(storeId, id, options);
-      return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials, {
-        [TelemetryAttribute.FgaClientRequestMethod]: "ReadAuthorizationModel",
-        [TelemetryAttribute.FgaClientRequestStoreId]: storeId ?? "",
-      });
+      assertParamExists("readAuthorizationModel", "storeId", storeId);
+      assertParamExists("readAuthorizationModel", "id", id);
+      return runApiExecutor<ReadAuthorizationModelResponse>({
+        operationName: "ReadAuthorizationModel",
+        method: "GET",
+        path: "/stores/{store_id}/authorization-models/{id}",
+        pathParams: { store_id: storeId, id },
+      }, options);
     },
     /**
          * The ReadAuthorizationModels API will return all the authorization models for a certain store. OpenFGA\'s response will contain an array of all authorization models, sorted in descending order of creation.  ## Example Assume that a store\'s authorization model has been configured twice. To get all the authorization models that have been created in this store, call GET authorization-models. The API will return a response that looks like: ```json {   \"authorization_models\": [     {       \"id\": \"01G50QVV17PECNVAHX1GG4Y5NC\",       \"type_definitions\": [...]     },     {       \"id\": \"01G4ZW8F4A07AKQ8RHSVG9RW04\",       \"type_definitions\": [...]     },   ],   \"continuation_token\": \"eyJwayI6IkxBVEVTVF9OU0NPTkZJR19hdXRoMHN0b3JlIiwic2siOiIxem1qbXF3MWZLZExTcUoyN01MdTdqTjh0cWgifQ==\" } ``` If there are no more authorization models available, the `continuation_token` field will be empty ```json {   \"authorization_models\": [     {       \"id\": \"01G50QVV17PECNVAHX1GG4Y5NC\",       \"type_definitions\": [...]     },     {       \"id\": \"01G4ZW8F4A07AKQ8RHSVG9RW04\",       \"type_definitions\": [...]     },   ],   \"continuation_token\": \"\" } ``` 
@@ -1124,11 +502,14 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @throws { FgaError }
          */
     async readAuthorizationModels(storeId: string, pageSize?: number, continuationToken?: string, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<ReadAuthorizationModelsResponse>> {
-      const localVarAxiosArgs = localVarAxiosParamCreator.readAuthorizationModels(storeId, pageSize, continuationToken, options);
-      return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials, {
-        [TelemetryAttribute.FgaClientRequestMethod]: "ReadAuthorizationModels",
-        [TelemetryAttribute.FgaClientRequestStoreId]: storeId ?? "",
-      });
+      assertParamExists("readAuthorizationModels", "storeId", storeId);
+      return runApiExecutor<ReadAuthorizationModelsResponse>({
+        operationName: "ReadAuthorizationModels",
+        method: "GET",
+        path: "/stores/{store_id}/authorization-models",
+        pathParams: { store_id: storeId },
+        queryParams: { page_size: pageSize, continuation_token: continuationToken },
+      }, options);
     },
     /**
          * The ReadChanges API will return a paginated list of tuple changes (additions and deletions) that occurred in a given store, sorted by ascending time. The response will include a continuation token that is used to get the next set of changes. If there are no changes after the provided continuation token, the same token will be returned in order for it to be used when new changes are recorded. If the store never had any tuples added or removed, this token will be empty. You can use the `type` parameter to only get the list of tuple changes that affect objects of that type. When reading a write tuple change, if it was conditioned, the condition will be returned. When reading a delete tuple change, the condition will NOT be returned regardless of whether it was originally conditioned or not. 
@@ -1142,11 +523,14 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @throws { FgaError }
          */
     async readChanges(storeId: string, type?: string, pageSize?: number, continuationToken?: string, startTime?: string, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<ReadChangesResponse>> {
-      const localVarAxiosArgs = localVarAxiosParamCreator.readChanges(storeId, type, pageSize, continuationToken, startTime, options);
-      return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials, {
-        [TelemetryAttribute.FgaClientRequestMethod]: "ReadChanges",
-        [TelemetryAttribute.FgaClientRequestStoreId]: storeId ?? "",
-      });
+      assertParamExists("readChanges", "storeId", storeId);
+      return runApiExecutor<ReadChangesResponse>({
+        operationName: "ReadChanges",
+        method: "GET",
+        path: "/stores/{store_id}/changes",
+        pathParams: { store_id: storeId },
+        queryParams: { type, page_size: pageSize, continuation_token: continuationToken, start_time: startTime },
+      }, options);
     },
     /**
          * The Write API will transactionally update the tuples for a certain store. Tuples and type definitions allow OpenFGA to determine whether a relationship exists between an object and an user. In the body, `writes` adds new tuples and `deletes` removes existing tuples. When deleting a tuple, any `condition` specified with it is ignored. The API is not idempotent by default: if, later on, you try to add the same tuple key (even if the `condition` is different), or if you try to delete a non-existing tuple, it will throw an error. To allow writes when an identical tuple already exists in the database, set `\"on_duplicate\": \"ignore\"` on the `writes` object. To allow deletes when a tuple was already removed from the database, set `\"on_missing\": \"ignore\"` on the `deletes` object. If a Write request contains both idempotent (ignore) and non-idempotent (error) operations, the most restrictive action (error) will take precedence. If a condition fails for a sub-request with an error flag, the entire transaction will be rolled back. This gives developers explicit control over the atomicity of the requests. The API will not allow you to write tuples such as `document:2021-budget#viewer@document:2021-budget#viewer`, because they are implicit. An `authorization_model_id` may be specified in the body. If it is, it will be used to assert that each written tuple (not deleted) is valid for the model specified. If it is not specified, the latest authorization model ID will be used. ## Example ### Adding relationships To add `user:anne` as a `writer` for `document:2021-budget`, call write API with the following  ```json {   \"writes\": {     \"tuple_keys\": [       {         \"user\": \"user:anne\",         \"relation\": \"writer\",         \"object\": \"document:2021-budget\"       }     ],     \"on_duplicate\": \"ignore\"   },   \"authorization_model_id\": \"01G50QVV17PECNVAHX1GG4Y5NC\" } ``` ### Removing relationships To remove `user:bob` as a `reader` for `document:2021-budget`, call write API with the following  ```json {   \"deletes\": {     \"tuple_keys\": [       {         \"user\": \"user:bob\",         \"relation\": \"reader\",         \"object\": \"document:2021-budget\"       }     ],     \"on_missing\": \"ignore\"   } } ``` 
@@ -1157,12 +541,15 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @throws { FgaError }
          */
     async write(storeId: string, body: WriteRequest, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<object>> {
-      const localVarAxiosArgs = localVarAxiosParamCreator.write(storeId, body, options);
-      return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials, {
-        [TelemetryAttribute.FgaClientRequestMethod]: "Write",
-        [TelemetryAttribute.FgaClientRequestStoreId]: storeId ?? "",
-        ...TelemetryAttributes.fromRequestBody(body)
-      });
+      assertParamExists("write", "storeId", storeId);
+      assertParamExists("write", "body", body);
+      return runApiExecutor<object>({
+        operationName: "Write",
+        method: "POST",
+        path: "/stores/{store_id}/write",
+        pathParams: { store_id: storeId },
+        body,
+      }, options);
     },
     /**
          * The WriteAssertions API will upsert new assertions for an authorization model id, or overwrite the existing ones. An assertion is an object that contains a tuple key, the expectation of whether a call to the Check API of that tuple key will return true or false, and optionally a list of contextual tuples.
@@ -1174,12 +561,16 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @throws { FgaError }
          */
     async writeAssertions(storeId: string, authorizationModelId: string, body: WriteAssertionsRequest, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<void>> {
-      const localVarAxiosArgs = localVarAxiosParamCreator.writeAssertions(storeId, authorizationModelId, body, options);
-      return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials, {
-        [TelemetryAttribute.FgaClientRequestMethod]: "WriteAssertions",
-        [TelemetryAttribute.FgaClientRequestStoreId]: storeId ?? "",
-        ...TelemetryAttributes.fromRequestBody(body)
-      });
+      assertParamExists("writeAssertions", "storeId", storeId);
+      assertParamExists("writeAssertions", "authorizationModelId", authorizationModelId);
+      assertParamExists("writeAssertions", "body", body);
+      return runApiExecutor<void>({
+        operationName: "WriteAssertions",
+        method: "PUT",
+        path: "/stores/{store_id}/assertions/{authorization_model_id}",
+        pathParams: { store_id: storeId, authorization_model_id: authorizationModelId },
+        body,
+      }, options);
     },
     /**
          * The WriteAuthorizationModel API will add a new authorization model to a store. Each item in the `type_definitions` array is a type definition as specified in the field `type_definition`. The response will return the authorization model\'s ID in the `id` field.  ## Example To add an authorization model with `user` and `document` type definitions, call POST authorization-models API with the body:  ```json {   \"type_definitions\":[     {       \"type\":\"user\"     },     {       \"type\":\"document\",       \"relations\":{         \"reader\":{           \"union\":{             \"child\":[               {                 \"this\":{}               },               {                 \"computedUserset\":{                   \"object\":\"\",                   \"relation\":\"writer\"                 }               }             ]           }         },         \"writer\":{           \"this\":{}         }       }     }   ] } ``` OpenFGA\'s response will include the version id for this authorization model, which will look like  ``` {\"authorization_model_id\": \"01G50QVV17PECNVAHX1GG4Y5NC\"} ``` 
@@ -1190,32 +581,39 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @throws { FgaError }
          */
     async writeAuthorizationModel(storeId: string, body: WriteAuthorizationModelRequest, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<WriteAuthorizationModelResponse>> {
-      const localVarAxiosArgs = localVarAxiosParamCreator.writeAuthorizationModel(storeId, body, options);
-      return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials, {
-        [TelemetryAttribute.FgaClientRequestMethod]: "WriteAuthorizationModel",
-        [TelemetryAttribute.FgaClientRequestStoreId]: storeId ?? "",
-        ...TelemetryAttributes.fromRequestBody(body)
-      });
+      assertParamExists("writeAuthorizationModel", "storeId", storeId);
+      assertParamExists("writeAuthorizationModel", "body", body);
+      return runApiExecutor<WriteAuthorizationModelResponse>({
+        operationName: "WriteAuthorizationModel",
+        method: "POST",
+        path: "/stores/{store_id}/authorization-models",
+        pathParams: { store_id: storeId },
+        body,
+      }, options);
     },
     /**
          * Make a raw HTTP request to an arbitrary API endpoint.
          * This method provides an escape hatch for calling new or experimental endpoints
          * that may not yet have dedicated SDK methods.
          * @summary Make a raw HTTP request
-         * @param {'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH'} method - HTTP method
-         * @param {string} path - API path with optional template parameters (e.g., '/stores/{store_id}/my-endpoint')
-         * @param {any} [body] - Optional request body
-         * @param {Record<string, any>} [queryParams] - Optional query parameters
-         * @param {Record<string, string>} [pathParams] - Optional path parameters to replace template variables
-         * @param {string} [operationName] - Optional operation name for telemetry (defaults to "ApiExecutor")
-         * @param {*} [options] Override http request option.
+         * @param {RequestBuilderParams} request - The request parameters
+         * @param {RequestBuilderOptions} [options] Override http request option.
          * @throws { FgaError }
          */
-    async apiExecutor(method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH", path: string, body?: any, queryParams?: Record<string, any>, pathParams?: Record<string, string>, operationName?: string, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<any>> {
-      const localVarAxiosArgs = localVarAxiosParamCreator.apiExecutor(method, path, body, queryParams, pathParams, options);
-      return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials, {
-        [TelemetryAttribute.FgaClientRequestMethod]: operationName || "ApiExecutor",
-      });
+    async apiExecutor<T extends object | void = object>(request: RequestBuilderParams, options?: RequestBuilderOptions): Promise<(axios?: AxiosInstance) => PromiseResult<T>> {
+      return runApiExecutor<T>(request, options);
+    },
+    /**
+         * Make a raw HTTP request to an arbitrary Streaming API endpoint.
+         * This method provides an escape hatch for calling new or experimental endpoints
+         * that may not yet have dedicated SDK methods.
+         * @summary Make a raw HTTP request
+         * @param {RequestBuilderParams} request - The request parameters
+         * @param {RequestBuilderOptions} [options] Override http request option.
+         * @throws { FgaError }
+         */
+    async streamingApiExecutor(request: RequestBuilderParams, options?: RequestBuilderOptions): Promise<(axios?: AxiosInstance) => PromiseResult<any>> {
+      return runStreamingApiExecutor(request, options);
     },
   };
 };
@@ -1435,17 +833,12 @@ export const OpenFgaApiFactory = function (configuration: Configuration, credent
          * This method provides an escape hatch for calling new or experimental endpoints
          * that may not yet have dedicated SDK methods.
          * @summary Make a raw HTTP request
-         * @param {'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH'} method - HTTP method
-         * @param {string} path - API path with optional template parameters (e.g., '/stores/{store_id}/my-endpoint')
-         * @param {any} [body] - Optional request body
-         * @param {Record<string, any>} [queryParams] - Optional query parameters
-         * @param {Record<string, string>} [pathParams] - Optional path parameters to replace template variables
-         * @param {string} [operationName] - Optional operation name for telemetry (defaults to "ApiExecutor")
+         * @param {RequestBuilderParams} request - The request parameters
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    apiExecutor(method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH", path: string, body?: any, queryParams?: Record<string, any>, pathParams?: Record<string, string>, operationName?: string, options?: any): PromiseResult<any> {
-      return localVarFp.apiExecutor(method, path, body, queryParams, pathParams, operationName, options).then((request) => request(axios));
+    apiExecutor<T extends object | void = object>(request: RequestBuilderParams, options?: any): PromiseResult<T> {
+      return localVarFp.apiExecutor<T>(request, options).then((request) => request(axios));
     },
   };
 };
@@ -1700,18 +1093,27 @@ export class OpenFgaApi extends BaseAPI {
      * This method provides an escape hatch for calling new or experimental endpoints
      * that may not yet have dedicated SDK methods.
      * @summary Make a raw HTTP request
-     * @param {'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH'} method - HTTP method
-     * @param {string} path - API path with optional template parameters (e.g., '/stores/{store_id}/my-endpoint')
-     * @param {any} [body] - Optional request body
-     * @param {Record<string, any>} [queryParams] - Optional query parameters
-     * @param {Record<string, string>} [pathParams] - Optional path parameters to replace template variables
-     * @param {string} [operationName] - Optional operation name for telemetry (defaults to "ApiExecutor")
-     * @param {*} [options] Override http request option.
+     * @param {RequestBuilderParams} request - The request parameters
+     * @param {RequestBuilderOptions} [options] Override http request option.
      * @throws { FgaError }
      * @memberof OpenFgaApi
      */
-  public apiExecutor(method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH", path: string, body?: any, queryParams?: Record<string, any>, pathParams?: Record<string, string>, operationName?: string, options?: any): Promise<CallResult<any>> {
-    return OpenFgaApiFp(this.configuration, this.credentials).apiExecutor(method, path, body, queryParams, pathParams, operationName, options).then((request) => request(this.axios));
+  public apiExecutor<T extends object | void = object>(request: RequestBuilderParams, options?: any): Promise<CallResult<T>> {
+    return OpenFgaApiFp(this.configuration, this.credentials).apiExecutor<T>(request, options).then((request) => request(this.axios));
+  }
+
+  /**
+     * Make a raw HTTP request to an arbitrary streaming API endpoint.
+     * This method provides an escape hatch for calling new or experimental endpoints
+     * that may not yet have dedicated SDK methods.
+     * @summary Make a raw HTTP request
+     * @param {RequestBuilderParams} request - The request parameters
+     * @param {RequestBuilderOptions} [options] Override http request option.
+     * @throws { FgaError }
+     * @memberof OpenFgaApi
+     */
+  public streamingApiExecutor(request: RequestBuilderParams, options?: RequestBuilderOptions): Promise<CallResult<any>> {
+    return OpenFgaApiFp(this.configuration, this.credentials).streamingApiExecutor(request, options).then((request) => request(this.axios));
   }
 }
 
