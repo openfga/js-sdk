@@ -885,7 +885,9 @@ const response = await fgaClient.writeAssertions([{
 
 ### Calling Other Endpoints
 
-In certain cases you may want to call other APIs not yet wrapped by the SDK. You can do so by using the `apiExecutor` method available on the `OpenFgaClient`. The `apiExecutor` method allows you to make raw HTTP calls to any OpenFGA endpoint by specifying the HTTP method, path, body, query parameters, and path parameters, while still honoring the client configuration (authentication, telemetry, retries, and error handling).
+In certain cases you may want to call other APIs not yet wrapped by the SDK. You can do so by using the `executeApiRequest` method available on the `OpenFgaClient`. It allows you to make raw HTTP calls to any OpenFGA endpoint by specifying the HTTP method, path, body, query parameters, and path parameters, while still honoring the client configuration (authentication, telemetry, retries, and error handling).
+
+For streaming endpoints, use `executeStreamedApiRequest` instead.
 
 This is useful when:
 - You want to call a new endpoint that is not yet supported by the SDK
@@ -903,7 +905,7 @@ const fgaClient = new OpenFgaClient({
 });
 
 // Call a custom endpoint using path parameters
-const response = await fgaClient.apiExecutor({
+const response = await fgaClient.executeApiRequest({
   operationName: 'CustomEndpoint',        // For telemetry/logging
   method: 'POST',
   path: '/stores/{store_id}/custom-endpoint',
@@ -925,7 +927,7 @@ console.log('Response:', response);
 
 ```javascript
 // Get a list of stores with query parameters
-const stores = await fgaClient.apiExecutor({
+const stores = await fgaClient.executeApiRequest({
   operationName: 'ListStores',
   method: 'GET',
   path: '/stores',
@@ -943,7 +945,7 @@ console.log('Stores:', stores);
 Path parameters are specified in the path using `{param_name}` syntax and are replaced with URL-encoded values from the `pathParams` object:
 
 ```javascript
-const response = await fgaClient.apiExecutor({
+const response = await fgaClient.executeApiRequest({
   operationName: 'GetAuthorizationModel',
   method: 'GET',
   path: '/stores/{store_id}/authorization-models/{model_id}',
