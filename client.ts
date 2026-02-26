@@ -1,9 +1,8 @@
 import { AxiosResponse, AxiosInstance } from "axios";
 import asyncPool = require("tiny-async-pool");
 
-import { OpenFgaApi, HttpMethod, RequestBuilderParams, RequestBuilder, RequestBuilderOptions } from "./api";
+import { OpenFgaApi, HttpMethod, RequestBuilderParams, RequestBuilderOptions } from "./api";
 export type { HttpMethod, RequestBuilderParams, RequestBuilderOptions };
-export { RequestBuilder };
 import {
   Assertion,
   BatchCheckItem,
