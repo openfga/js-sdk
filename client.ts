@@ -998,7 +998,7 @@ export class OpenFgaClient extends BaseAPI {
 
 
   /**
-   * apiExecutor lets you send any HTTP request directly to an OpenFGA API endpoint.
+   * executeApiRequest lets you send any HTTP request directly to an OpenFGA API endpoint.
    * It’s useful when you need to call a new or experimental API that doesn’t yet have a built-in method in the SDK.
    * You still get the benefits of the SDK, like authentication, configuration, and consistent error handling.
    *
@@ -1017,7 +1017,7 @@ export class OpenFgaClient extends BaseAPI {
    * @throws { FgaError }
    *
    * @example
-   * const response = await client.apiExecutor<{ allowed: boolean }>({
+   * const response = await client.executeApiRequest<{ allowed: boolean }>({
    *   operationName: ‘CustomCheck’,
    *   method: ‘POST’,
    *   path: ‘/stores/{store_id}/custom-endpoint’,
@@ -1026,15 +1026,15 @@ export class OpenFgaClient extends BaseAPI {
    *   headers: { ‘X-Custom-Header’: ‘value’ },
    * });
    */
-  async apiExecutor<T extends object | void = object>(
+  async executeApiRequest<T extends object | void = object>(
     request: RequestBuilderParams,
     options: ClientRequestOpts = {}
   ): PromiseResult<T> {
-    return this.api.apiExecutor<T>(request, options);
+    return this.api.executeApiRequest<T>(request, options);
   }
 
   /**
-   * streamingApiExecutor lets you send any HTTP request directly to an OpenFGA API streaming endpoint.
+   * executeStreamedApiRequest lets you send any HTTP request directly to an OpenFGA API streaming endpoint.
    * It’s useful when you need to call a new or experimental API that doesn’t yet have a built-in method in the SDK.
    * You still get the benefits of the SDK, like authentication, configuration, and consistent error handling.
    *
@@ -1053,7 +1053,7 @@ export class OpenFgaClient extends BaseAPI {
    * @throws { FgaError }
    *
    * @example
-   * const response = await client.streamingApiExecutor({
+   * const response = await client.executeStreamedApiRequest({
    *   operationName: ‘CustomCheck’,
    *   method: ‘POST’,
    *   path: ‘/stores/{store_id}/custom-endpoint’,
@@ -1062,10 +1062,10 @@ export class OpenFgaClient extends BaseAPI {
    *   headers: { ‘X-Custom-Header’: ‘value’ },
    * });
    */
-  async streamingApiExecutor(
+  async executeStreamedApiRequest(
     request: RequestBuilderParams,
     options: ClientRequestOpts = {}
   ): PromiseResult<any> {
-    return this.api.apiExecutor(request, options);
+    return this.api.executeStreamedApiRequest(request, options);
   }
 }

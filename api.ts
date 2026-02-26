@@ -231,31 +231,7 @@ export function RequestBuilder(request: RequestBuilderParams, options: RequestBu
  * @export
  */
 export const OpenFgaApiFp = function(configuration: Configuration, credentials: Credentials) {
-  async function runApiExecutor<T extends object | void = object>(
-    request: RequestBuilderParams,
-    options?: RequestBuilderOptions
-  ): Promise<(axios?: AxiosInstance) => PromiseResult<T>> {
-    const localVarAxiosArgs = RequestBuilder(request, { ...configuration.baseOptions, ...options });
-    return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials, {
-      [TelemetryAttribute.FgaClientRequestMethod]: request.operationName,
-      [TelemetryAttribute.FgaClientRequestStoreId]: request.pathParams?.["store_id"] ?? "",
-      ...TelemetryAttributes.fromRequestBody(request.body),
-    });
-  }
-
-  async function runStreamingApiExecutor(
-    request: RequestBuilderParams,
-    options?: RequestBuilderOptions,
-  ): Promise<(axios?: AxiosInstance) => Promise<any>> {
-    const localVarAxiosArgs = RequestBuilder(request, { ...configuration.baseOptions, ...options });
-    return createStreamingRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials, {
-      [TelemetryAttribute.FgaClientRequestMethod]: request.operationName,
-      [TelemetryAttribute.FgaClientRequestStoreId]: request.pathParams?.["store_id"] ?? "",
-      ...TelemetryAttributes.fromRequestBody(request.body),
-    });
-  }
-
-  return {
+  const api = {
     /**
          * The `BatchCheck` API functions nearly identically to `Check`, but instead of checking a single user-object relationship BatchCheck accepts a list of relationships to check and returns a map containing `BatchCheckItem` response for each check it received.  An associated `correlation_id` is required for each check in the batch. This ID is used to correlate a check to the appropriate response. It is a string consisting of only alphanumeric characters or hyphens with a maximum length of 36 characters. This `correlation_id` is used to map the result of each check to the item which was checked, so it must be unique for each item in the batch. We recommend using a UUID or ULID as the `correlation_id`, but you can use whatever unique identifier you need as long  as it matches this regex pattern: `^[\\w\\d-]{1,36}$`  NOTE: The maximum number of checks that can be passed in the `BatchCheck` API is configurable via the [OPENFGA_MAX_CHECKS_PER_BATCH_CHECK](https://openfga.dev/docs/getting-started/setup-openfga/configuration#OPENFGA_MAX_CHECKS_PER_BATCH_CHECK) environment variable. If `BatchCheck` is called using the SDK, the SDK can split the batch check requests for you.  For more details on how `Check` functions, see the docs for `/check`.  ### Examples #### A BatchCheckRequest ```json {   \"checks\": [      {        \"tuple_key\": {          \"object\": \"document:2021-budget\"          \"relation\": \"reader\",          \"user\": \"user:anne\",        },        \"contextual_tuples\": {...}        \"context\": {}        \"correlation_id\": \"01JA8PM3QM7VBPGB8KMPK8SBD5\"      },      {        \"tuple_key\": {          \"object\": \"document:2021-budget\"          \"relation\": \"reader\",          \"user\": \"user:bob\",        },        \"contextual_tuples\": {...}        \"context\": {}        \"correlation_id\": \"01JA8PMM6A90NV5ET0F28CYSZQ\"      }    ] } ```  Below is a possible response to the above request. Note that the result map\'s keys are the `correlation_id` values from the checked items in the request: ```json {    \"result\": {      \"01JA8PMM6A90NV5ET0F28CYSZQ\": {        \"allowed\": false,         \"error\": {\"message\": \"\"}      },      \"01JA8PM3QM7VBPGB8KMPK8SBD5\": {        \"allowed\": true,         \"error\": {\"message\": \"\"}      } } ```
          * @summary Send a list of `check` operations in a single request
@@ -267,7 +243,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
     async batchCheck(storeId: string, body: BatchCheckRequest, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<BatchCheckResponse>> {
       assertParamExists("batchCheck", "storeId", storeId);
       assertParamExists("batchCheck", "body", body);
-      return runApiExecutor<BatchCheckResponse>({
+      return api.executeApiRequest<BatchCheckResponse>({
         operationName: "BatchCheck",
         method: "POST",
         path: "/stores/{store_id}/batch-check",
@@ -286,7 +262,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
     async check(storeId: string, body: CheckRequest, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<CheckResponse>> {
       assertParamExists("check", "storeId", storeId);
       assertParamExists("check", "body", body);
-      return runApiExecutor<CheckResponse>({
+      return api.executeApiRequest<CheckResponse>({
         operationName: "Check",
         method: "POST",
         path: "/stores/{store_id}/check",
@@ -303,7 +279,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          */
     async createStore(body: CreateStoreRequest, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<CreateStoreResponse>> {
       assertParamExists("createStore", "body", body);
-      return runApiExecutor<CreateStoreResponse>({
+      return api.executeApiRequest<CreateStoreResponse>({
         operationName: "CreateStore",
         method: "POST",
         path: "/stores",
@@ -319,7 +295,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          */
     async deleteStore(storeId: string, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<void>> {
       assertParamExists("deleteStore", "storeId", storeId);
-      return runApiExecutor<void>({
+      return api.executeApiRequest<void>({
         operationName: "DeleteStore",
         method: "DELETE",
         path: "/stores/{store_id}",
@@ -337,7 +313,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
     async expand(storeId: string, body: ExpandRequest, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<ExpandResponse>> {
       assertParamExists("expand", "storeId", storeId);
       assertParamExists("expand", "body", body);
-      return runApiExecutor<ExpandResponse>({
+      return api.executeApiRequest<ExpandResponse>({
         operationName: "Expand",
         method: "POST",
         path: "/stores/{store_id}/expand",
@@ -354,7 +330,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          */
     async getStore(storeId: string, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<GetStoreResponse>> {
       assertParamExists("getStore", "storeId", storeId);
-      return runApiExecutor<GetStoreResponse>({
+      return api.executeApiRequest<GetStoreResponse>({
         operationName: "GetStore",
         method: "GET",
         path: "/stores/{store_id}",
@@ -372,7 +348,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
     async listObjects(storeId: string, body: ListObjectsRequest, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<ListObjectsResponse>> {
       assertParamExists("listObjects", "storeId", storeId);
       assertParamExists("listObjects", "body", body);
-      return runApiExecutor<ListObjectsResponse>({
+      return api.executeApiRequest<ListObjectsResponse>({
         operationName: "ListObjects",
         method: "POST",
         path: "/stores/{store_id}/list-objects",
@@ -393,7 +369,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
     async streamedListObjects(storeId: string, body: ListObjectsRequest, options?: any): Promise<(axios?: AxiosInstance) => Promise<any>> {
       assertParamExists("streamedListObjects", "storeId", storeId);
       assertParamExists("streamedListObjects", "body", body);
-      return runStreamingApiExecutor({
+      return api.executeStreamedApiRequest({
         operationName: "StreamedListObjects",
         method: "POST",
         path: "/stores/{store_id}/streamed-list-objects",
@@ -411,7 +387,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @throws { FgaError }
          */
     async listStores(pageSize?: number, continuationToken?: string, name?: string, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<ListStoresResponse>> {
-      return runApiExecutor<ListStoresResponse>({
+      return api.executeApiRequest<ListStoresResponse>({
         operationName: "ListStores",
         method: "GET",
         path: "/stores",
@@ -429,7 +405,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
     async listUsers(storeId: string, body: ListUsersRequest, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<ListUsersResponse>> {
       assertParamExists("listUsers", "storeId", storeId);
       assertParamExists("listUsers", "body", body);
-      return runApiExecutor<ListUsersResponse>({
+      return api.executeApiRequest<ListUsersResponse>({
         operationName: "ListUsers",
         method: "POST",
         path: "/stores/{store_id}/list-users",
@@ -448,7 +424,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
     async read(storeId: string, body: ReadRequest, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<ReadResponse>> {
       assertParamExists("read", "storeId", storeId);
       assertParamExists("read", "body", body);
-      return runApiExecutor<ReadResponse>({
+      return api.executeApiRequest<ReadResponse>({
         operationName: "Read",
         method: "POST",
         path: "/stores/{store_id}/read",
@@ -467,7 +443,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
     async readAssertions(storeId: string, authorizationModelId: string, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<ReadAssertionsResponse>> {
       assertParamExists("readAssertions", "storeId", storeId);
       assertParamExists("readAssertions", "authorizationModelId", authorizationModelId);
-      return runApiExecutor<ReadAssertionsResponse>({
+      return api.executeApiRequest<ReadAssertionsResponse>({
         operationName: "ReadAssertions",
         method: "GET",
         path: "/stores/{store_id}/assertions/{authorization_model_id}",
@@ -485,7 +461,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
     async readAuthorizationModel(storeId: string, id: string, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<ReadAuthorizationModelResponse>> {
       assertParamExists("readAuthorizationModel", "storeId", storeId);
       assertParamExists("readAuthorizationModel", "id", id);
-      return runApiExecutor<ReadAuthorizationModelResponse>({
+      return api.executeApiRequest<ReadAuthorizationModelResponse>({
         operationName: "ReadAuthorizationModel",
         method: "GET",
         path: "/stores/{store_id}/authorization-models/{id}",
@@ -503,7 +479,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          */
     async readAuthorizationModels(storeId: string, pageSize?: number, continuationToken?: string, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<ReadAuthorizationModelsResponse>> {
       assertParamExists("readAuthorizationModels", "storeId", storeId);
-      return runApiExecutor<ReadAuthorizationModelsResponse>({
+      return api.executeApiRequest<ReadAuthorizationModelsResponse>({
         operationName: "ReadAuthorizationModels",
         method: "GET",
         path: "/stores/{store_id}/authorization-models",
@@ -524,7 +500,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          */
     async readChanges(storeId: string, type?: string, pageSize?: number, continuationToken?: string, startTime?: string, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<ReadChangesResponse>> {
       assertParamExists("readChanges", "storeId", storeId);
-      return runApiExecutor<ReadChangesResponse>({
+      return api.executeApiRequest<ReadChangesResponse>({
         operationName: "ReadChanges",
         method: "GET",
         path: "/stores/{store_id}/changes",
@@ -543,7 +519,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
     async write(storeId: string, body: WriteRequest, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<object>> {
       assertParamExists("write", "storeId", storeId);
       assertParamExists("write", "body", body);
-      return runApiExecutor<object>({
+      return api.executeApiRequest<object>({
         operationName: "Write",
         method: "POST",
         path: "/stores/{store_id}/write",
@@ -564,7 +540,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
       assertParamExists("writeAssertions", "storeId", storeId);
       assertParamExists("writeAssertions", "authorizationModelId", authorizationModelId);
       assertParamExists("writeAssertions", "body", body);
-      return runApiExecutor<void>({
+      return api.executeApiRequest<void>({
         operationName: "WriteAssertions",
         method: "PUT",
         path: "/stores/{store_id}/assertions/{authorization_model_id}",
@@ -583,7 +559,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
     async writeAuthorizationModel(storeId: string, body: WriteAuthorizationModelRequest, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<WriteAuthorizationModelResponse>> {
       assertParamExists("writeAuthorizationModel", "storeId", storeId);
       assertParamExists("writeAuthorizationModel", "body", body);
-      return runApiExecutor<WriteAuthorizationModelResponse>({
+      return api.executeApiRequest<WriteAuthorizationModelResponse>({
         operationName: "WriteAuthorizationModel",
         method: "POST",
         path: "/stores/{store_id}/authorization-models",
@@ -600,22 +576,24 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @param {RequestBuilderOptions} [options] Override http request option.
          * @throws { FgaError }
          */
-    async apiExecutor<T extends object | void = object>(request: RequestBuilderParams, options?: RequestBuilderOptions): Promise<(axios?: AxiosInstance) => PromiseResult<T>> {
-      return runApiExecutor<T>(request, options);
+    async executeApiRequest<T extends object | void = object>(request: RequestBuilderParams, options?: RequestBuilderOptions): Promise<(axios?: AxiosInstance) => PromiseResult<T>> {
+      const localVarAxiosArgs = RequestBuilder(request, { ...configuration.baseOptions, ...options });
+      return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials, {
+        [TelemetryAttribute.FgaClientRequestMethod]: request.operationName,
+        [TelemetryAttribute.FgaClientRequestStoreId]: request.pathParams?.["store_id"] ?? "",
+        ...TelemetryAttributes.fromRequestBody(request.body),
+      });
     },
-    /**
-         * Make a raw HTTP request to an arbitrary Streaming API endpoint.
-         * This method provides an escape hatch for calling new or experimental endpoints
-         * that may not yet have dedicated SDK methods.
-         * @summary Make a raw HTTP request
-         * @param {RequestBuilderParams} request - The request parameters
-         * @param {RequestBuilderOptions} [options] Override http request option.
-         * @throws { FgaError }
-         */
-    async streamingApiExecutor(request: RequestBuilderParams, options?: RequestBuilderOptions): Promise<(axios?: AxiosInstance) => PromiseResult<any>> {
-      return runStreamingApiExecutor(request, options);
+    async executeStreamedApiRequest(request: RequestBuilderParams, options?: RequestBuilderOptions): Promise<(axios?: AxiosInstance) => PromiseResult<any>> {
+      const localVarAxiosArgs = RequestBuilder(request, { ...configuration.baseOptions, ...options });
+      return createStreamingRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials, {
+        [TelemetryAttribute.FgaClientRequestMethod]: request.operationName,
+        [TelemetryAttribute.FgaClientRequestStoreId]: request.pathParams?.["store_id"] ?? "",
+        ...TelemetryAttributes.fromRequestBody(request.body),
+      });
     },
   };
+  return api;
 };
 
 /**
@@ -837,8 +815,11 @@ export const OpenFgaApiFactory = function (configuration: Configuration, credent
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    apiExecutor<T extends object | void = object>(request: RequestBuilderParams, options?: any): PromiseResult<T> {
-      return localVarFp.apiExecutor<T>(request, options).then((request) => request(axios));
+    executeApiRequest<T extends object | void = object>(request: RequestBuilderParams, options?: any): PromiseResult<T> {
+      return localVarFp.executeApiRequest<T>(request, options).then((request) => request(axios));
+    },
+    executeStreamedApiRequest(request: RequestBuilderParams, options?: any): Promise<any> {
+      return localVarFp.executeStreamedApiRequest(request, options).then((request) => request(axios));
     },
   };
 };
@@ -1098,8 +1079,8 @@ export class OpenFgaApi extends BaseAPI {
      * @throws { FgaError }
      * @memberof OpenFgaApi
      */
-  public apiExecutor<T extends object | void = object>(request: RequestBuilderParams, options?: any): Promise<CallResult<T>> {
-    return OpenFgaApiFp(this.configuration, this.credentials).apiExecutor<T>(request, options).then((request) => request(this.axios));
+  public executeApiRequest<T extends object | void = object>(request: RequestBuilderParams, options?: any): Promise<CallResult<T>> {
+    return OpenFgaApiFp(this.configuration, this.credentials).executeApiRequest<T>(request, options).then((request) => request(this.axios));
   }
 
   /**
@@ -1112,8 +1093,8 @@ export class OpenFgaApi extends BaseAPI {
      * @throws { FgaError }
      * @memberof OpenFgaApi
      */
-  public streamingApiExecutor(request: RequestBuilderParams, options?: RequestBuilderOptions): Promise<CallResult<any>> {
-    return OpenFgaApiFp(this.configuration, this.credentials).streamingApiExecutor(request, options).then((request) => request(this.axios));
+  public executeStreamedApiRequest(request: RequestBuilderParams, options?: any): Promise<CallResult<any>> {
+    return OpenFgaApiFp(this.configuration, this.credentials).executeStreamedApiRequest(request, options).then((request) => request(this.axios));
   }
 }
 
