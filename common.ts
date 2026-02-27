@@ -10,7 +10,8 @@ import {
   FgaApiNotFoundError,
   FgaApiRateLimitExceededError,
   FgaApiValidationError,
-  FgaError
+  FgaError,
+  FgaValidationError,
 } from "./errors";
 import { setNotEnumerableProperty } from "./utils";
 import { TelemetryAttribute, TelemetryAttributes } from "./telemetry/attributes";
@@ -410,6 +411,121 @@ export const createRequestFunction = function (axiosArgs: RequestArgs, axiosInst
     return result;
   };
 };
+
+/**
+ * HTTP methods supported by executeApiRequest
+ */
+export type HttpMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
+
+/**
+ * Request parameters for executeApiRequest
+ */
+export interface RequestBuilderParams {
+  /**
+   * Operation name for telemetry and logging (e.g., "CustomCheck", "CustomEndpoint").
+   * Used for observability when calling new or experimental endpoints.
+   */
+  operationName: string;
+  /** HTTP method */
+  method: HttpMethod;
+  /**
+   * API path with optional template parameters.
+   * Template parameters should be in the format {param_name} and will be replaced
+   * with URL-encoded values from pathParams.
+   * Example: '/stores/{store_id}/custom-endpoint'
+   */
+  path: string;
+  /**
+   * Path parameters to replace template variables in the path.
+   * Values will be URL-encoded automatically.
+   * Example: { store_id: "abc123" } will replace {store_id} in the path.
+   */
+  pathParams?: Record<string, string>;
+  /** Optional request body for POST/PUT/PATCH requests */
+  body?: unknown;
+  /** Optional query parameters */
+  queryParams?: Record<string, unknown>;
+  /** Optional custom request headers */
+  headers?: Record<string, string>;
+}
+
+/**
+ * Options for RequestBuilder — typically the merge of configuration.baseOptions and per-call overrides.
+ * SDK-enforced headers (Accept, Content-Type for JSON bodies) always take precedence over these.
+ */
+export interface RequestBuilderOptions {
+  /** Custom request headers. */
+  headers?: Record<string, string>;
+  /** Extra query parameters appended to the URL. */
+  query?: Record<string, unknown>;
+  /** Any other axios request config properties (e.g. timeout, auth). */
+  [key: string]: unknown;
+}
+
+/**
+ * Builds the axios RequestArgs for an arbitrary API call.
+ *
+ * @param request - The request parameters
+ * @param options - Request options (merge configuration.baseOptions and per-call overrides before passing)
+ * @throws { FgaError }
+ */
+export function RequestBuilder(request: RequestBuilderParams, options: RequestBuilderOptions = {}): RequestArgs {
+  // Build path by replacing template parameters with URL-encoded values
+  let requestPathTemplate = request.path;
+  if (request.pathParams) {
+    for (const [key, value] of Object.entries(request.pathParams)) {
+      requestPathTemplate = requestPathTemplate.split(`{${key}}`).join(encodeURIComponent(value));
+    }
+  }
+
+  // Validate that all path parameters have been replaced
+  const openBrace = requestPathTemplate.indexOf("{");
+  if (openBrace !== -1) {
+    const closeBrace = requestPathTemplate.indexOf("}", openBrace + 1);
+    if (closeBrace !== -1) {
+      const paramName = requestPathTemplate.slice(openBrace + 1, closeBrace);
+      throw new FgaValidationError(paramName, `Path parameter '${paramName}' was not provided for path: ${request.path}`);
+    }
+  }
+
+  const requestUrl = new URL(requestPathTemplate, DUMMY_BASE_URL);
+  const requestOptions: RequestBuilderOptions = { method: request.method, ...options };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const queryParams = {} as any;
+
+  if (request.queryParams) {
+    for (const [key, value] of Object.entries(request.queryParams)) {
+      if (typeof value == "undefined") {
+        continue;
+      }
+
+      // Convert Date objects in query parameters to ISO strings
+      // to allow Dates passed in to be accepted by readChanges.
+      if (value instanceof Date) {
+        queryParams[key] = value.toISOString();
+      } else {
+        queryParams[key] = value;
+      }
+    }
+  }
+
+  setSearchParams(requestUrl, queryParams, options.query);
+  // For now - we always enforce Accept and content-type headers
+  requestOptions.headers = { ...request.headers, ...options.headers };
+  requestOptions.headers["Accept"] = "application/json";
+  if (request.body !== undefined && (request.method === "POST" || request.method === "PUT" || request.method === "PATCH")) {
+    requestOptions.headers["Content-Type"] = "application/json";
+  }
+
+  if (request.body !== undefined) {
+    requestOptions.data = serializeDataIfNeeded(request.body, requestOptions);
+  }
+
+  return {
+    url: toPathString(requestUrl),
+    options: requestOptions,
+  };
+}
 
 /**
  * creates an axios streaming request function that returns the raw response stream
