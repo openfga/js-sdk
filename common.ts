@@ -479,10 +479,12 @@ export function RequestBuilder(request: RequestBuilderParams, options: RequestBu
   }
 
   // Validate that all path parameters have been replaced
-  if (requestPathTemplate.includes("{") && requestPathTemplate.includes("}")) {
-    const unresolvedMatch = requestPathTemplate.match(/\{([^}]+)\}/);
-    if (unresolvedMatch) {
-      throw new FgaValidationError(unresolvedMatch[1], `Path parameter '${unresolvedMatch[1]}' was not provided for path: ${request.path}`);
+  const openBrace = requestPathTemplate.indexOf("{");
+  if (openBrace !== -1) {
+    const closeBrace = requestPathTemplate.indexOf("}", openBrace + 1);
+    if (closeBrace !== -1) {
+      const paramName = requestPathTemplate.slice(openBrace + 1, closeBrace);
+      throw new FgaValidationError(paramName, `Path parameter '${paramName}' was not provided for path: ${request.path}`);
     }
   }
 
