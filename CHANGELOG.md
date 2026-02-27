@@ -3,7 +3,7 @@
 
 ## [Unreleased](https://github.com/openfga/js-sdk/compare/v0.9.2...HEAD)
 
-- feat: add `executeApiRequest` and `executeStreamedApiRequest` methods to `OpenFgaClient` for calling arbitrary API endpoints with full SDK support (authentication, retries, telemetry, error handling). See [documentation](https://github.com/openfga/js-sdk##calling-other-endpoints) for more.
+- feat: add `executeApiRequest` and `executeStreamedApiRequest` methods to `OpenFgaClient` for calling arbitrary API endpoints with full SDK support (authentication, retries, telemetry, error handling). See [documentation](https://github.com/openfga/js-sdk#calling-other-endpoints) for more.
 
 ## v0.9.2
 
