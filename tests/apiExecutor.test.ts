@@ -9,7 +9,7 @@ import {
 import { CredentialsMethod } from "../credentials";
 import { baseConfig, defaultConfiguration, OPENFGA_STORE_ID } from "./helpers/default-config";
 
-describe("OpenFgaClient.apiExecutor", () => {
+describe("OpenFgaClient.executeApiRequest", () => {
     const basePath = defaultConfiguration.getBasePath();
     const testConfig: UserClientConfigurationParams = {
         ...baseConfig,
@@ -40,7 +40,8 @@ describe("OpenFgaClient.apiExecutor", () => {
                 .get("/stores")
                 .reply(200, responseData);
 
-            const result = await fgaClient.apiExecutor({
+            const result = await fgaClient.executeApiRequest<any>({
+                operationName: "ListStores",
                 method: "GET",
                 path: "/stores",
             });
@@ -57,7 +58,8 @@ describe("OpenFgaClient.apiExecutor", () => {
                 .query({ page_size: 10, name: "test" })
                 .reply(200, responseData);
 
-            const result = await fgaClient.apiExecutor({
+            const result = await fgaClient.executeApiRequest<any>({
+                operationName: "ListStores",
                 method: "GET",
                 path: "/stores",
                 queryParams: { page_size: 10, name: "test" },
@@ -74,7 +76,8 @@ describe("OpenFgaClient.apiExecutor", () => {
                 .get("/stores")
                 .reply(200, responseData);
 
-            const result = await fgaClient.apiExecutor({
+            const result = await fgaClient.executeApiRequest({
+                operationName: "ListStores",
                 method: "GET",
                 path: "/stores",
             });
@@ -94,7 +97,8 @@ describe("OpenFgaClient.apiExecutor", () => {
                 .post("/stores", requestBody)
                 .reply(201, responseData);
 
-            const result = await fgaClient.apiExecutor({
+            const result = await fgaClient.executeApiRequest<any>({
+                operationName: "CreateStore",
                 method: "POST",
                 path: "/stores",
                 body: requestBody,
@@ -115,13 +119,35 @@ describe("OpenFgaClient.apiExecutor", () => {
                 .post("/stores", requestBody)
                 .reply(200, {});
 
-            await fgaClient.apiExecutor({
+            await fgaClient.executeApiRequest({
+                operationName: "CreateStore",
                 method: "POST",
                 path: "/stores",
                 body: requestBody,
             });
 
             // If we get here without error, the Content-Type header was correctly applied
+            expect(true).toBe(true);
+        });
+
+        it("should set Accept header for all requests", async () => {
+            const fgaClient = new OpenFgaClient(testConfig);
+
+            nock(basePath, {
+                reqheaders: {
+                    "Accept": "application/json",
+                },
+            })
+                .get("/stores")
+                .reply(200, {});
+
+            await fgaClient.executeApiRequest({
+                operationName: "ListStores",
+                method: "GET",
+                path: "/stores",
+            });
+
+            // If we get here without error, the Accept header was correctly applied
             expect(true).toBe(true);
         });
     });
@@ -135,7 +161,8 @@ describe("OpenFgaClient.apiExecutor", () => {
                 .put(`/stores/${OPENFGA_STORE_ID}`, requestBody)
                 .reply(200, { success: true });
 
-            const result = await fgaClient.apiExecutor({
+            const result = await fgaClient.executeApiRequest<any>({
+                operationName: "UpdateStore",
                 method: "PUT",
                 path: `/stores/${OPENFGA_STORE_ID}`,
                 body: requestBody,
@@ -153,7 +180,8 @@ describe("OpenFgaClient.apiExecutor", () => {
                 .delete(`/stores/${OPENFGA_STORE_ID}`)
                 .reply(204, {});
 
-            const result = await fgaClient.apiExecutor({
+            const result = await fgaClient.executeApiRequest({
+                operationName: "DeleteStore",
                 method: "DELETE",
                 path: `/stores/${OPENFGA_STORE_ID}`,
             });
@@ -171,7 +199,8 @@ describe("OpenFgaClient.apiExecutor", () => {
                 .patch(`/stores/${OPENFGA_STORE_ID}`, requestBody)
                 .reply(200, { success: true });
 
-            const result = await fgaClient.apiExecutor({
+            const result = await fgaClient.executeApiRequest<any>({
+                operationName: "PatchStore",
                 method: "PATCH",
                 path: `/stores/${OPENFGA_STORE_ID}`,
                 body: requestBody,
@@ -182,7 +211,7 @@ describe("OpenFgaClient.apiExecutor", () => {
     });
 
     describe("custom headers", () => {
-        it("should include custom headers in requests", async () => {
+        it("should include headers from request params", async () => {
             const fgaClient = new OpenFgaClient(testConfig);
 
             nock(basePath, {
@@ -193,8 +222,31 @@ describe("OpenFgaClient.apiExecutor", () => {
                 .get("/stores")
                 .reply(200, {});
 
-            await fgaClient.apiExecutor(
+            await fgaClient.executeApiRequest({
+                operationName: "ListStores",
+                method: "GET",
+                path: "/stores",
+                headers: { "X-Custom-Header": "custom-value" },
+            });
+
+            // If we get here without error, the custom header was correctly applied
+            expect(true).toBe(true);
+        });
+
+        it("should include headers from options (backward compatible)", async () => {
+            const fgaClient = new OpenFgaClient(testConfig);
+
+            nock(basePath, {
+                reqheaders: {
+                    "X-Custom-Header": "custom-value",
+                },
+            })
+                .get("/stores")
+                .reply(200, {});
+
+            await fgaClient.executeApiRequest(
                 {
+                    operationName: "ListStores",
                     method: "GET",
                     path: "/stores",
                 },
@@ -204,6 +256,32 @@ describe("OpenFgaClient.apiExecutor", () => {
             );
 
             // If we get here without error, the custom header was correctly applied
+            expect(true).toBe(true);
+        });
+
+        it("should let options.headers override request.headers for the same key", async () => {
+            const fgaClient = new OpenFgaClient(testConfig);
+
+            nock(basePath, {
+                reqheaders: {
+                    "X-Version": "options-wins",
+                },
+            })
+                .get("/stores")
+                .reply(200, {});
+
+            await fgaClient.executeApiRequest(
+                {
+                    operationName: "ListStores",
+                    method: "GET",
+                    path: "/stores",
+                    headers: { "X-Version": "request-value" },
+                },
+                {
+                    headers: { "X-Version": "options-wins" },
+                }
+            );
+
             expect(true).toBe(true);
         });
     });
@@ -220,7 +298,8 @@ describe("OpenFgaClient.apiExecutor", () => {
                 });
 
             await expect(
-                fgaClient.apiExecutor({
+                fgaClient.executeApiRequest({
+                    operationName: "GetNonexistent",
                     method: "GET",
                     path: "/nonexistent-endpoint",
                 })
@@ -238,7 +317,8 @@ describe("OpenFgaClient.apiExecutor", () => {
                 });
 
             await expect(
-                fgaClient.apiExecutor({
+                fgaClient.executeApiRequest({
+                    operationName: "CreateStore",
                     method: "POST",
                     path: "/stores",
                     body: { invalid: "data" },
@@ -250,7 +330,7 @@ describe("OpenFgaClient.apiExecutor", () => {
 
 });
 
-describe("OpenFgaClient.apiExecutor - path parameters", () => {
+describe("OpenFgaClient.executeApiRequest - path parameters", () => {
     const basePath = defaultConfiguration.getBasePath();
     const testConfig: UserClientConfigurationParams = {
         ...baseConfig,
@@ -282,7 +362,8 @@ describe("OpenFgaClient.apiExecutor - path parameters", () => {
                 .get(`/stores/${storeId}`)
                 .reply(200, responseData);
 
-            const result = await fgaClient.apiExecutor({
+            const result = await fgaClient.executeApiRequest<any>({
+                operationName: "GetStore",
                 method: "GET",
                 path: "/stores/{store_id}",
                 pathParams: { store_id: storeId },
@@ -301,7 +382,8 @@ describe("OpenFgaClient.apiExecutor - path parameters", () => {
                 .get(`/stores/${storeId}/authorization-models/${modelId}`)
                 .reply(200, responseData);
 
-            const result = await fgaClient.apiExecutor({
+            const result = await fgaClient.executeApiRequest<any>({
+                operationName: "GetAuthorizationModel",
                 method: "GET",
                 path: "/stores/{store_id}/authorization-models/{model_id}",
                 pathParams: { store_id: storeId, model_id: modelId },
@@ -319,7 +401,8 @@ describe("OpenFgaClient.apiExecutor - path parameters", () => {
                 .get(`/stores/${encodedStoreId}`)
                 .reply(200, { id: storeId });
 
-            const result = await fgaClient.apiExecutor({
+            const result = await fgaClient.executeApiRequest<any>({
+                operationName: "GetStore",
                 method: "GET",
                 path: "/stores/{store_id}",
                 pathParams: { store_id: storeId },
@@ -338,7 +421,8 @@ describe("OpenFgaClient.apiExecutor - path parameters", () => {
                 .get(new RegExp(`/items/${encodedId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`))
                 .reply(200, { id: id });
 
-            const result = await fgaClient.apiExecutor({
+            const result = await fgaClient.executeApiRequest<any>({
+                operationName: "GetItem",
                 method: "GET",
                 path: "/items/{id}",
                 pathParams: { id: id },
@@ -357,7 +441,8 @@ describe("OpenFgaClient.apiExecutor - path parameters", () => {
                 .get(new RegExp(`/users/${encodedName}`))
                 .reply(200, { name: name });
 
-            const result = await fgaClient.apiExecutor({
+            const result = await fgaClient.executeApiRequest<any>({
+                operationName: "GetUser",
                 method: "GET",
                 path: "/users/{name}",
                 pathParams: { name: name },
@@ -374,7 +459,8 @@ describe("OpenFgaClient.apiExecutor - path parameters", () => {
                 .get(`/stores/${storeId}`)
                 .reply(200, { id: storeId });
 
-            const result = await fgaClient.apiExecutor({
+            const result = await fgaClient.executeApiRequest<any>({
+                operationName: "GetStore",
                 method: "GET",
                 path: "/stores/{store_id}",
                 pathParams: {
@@ -394,7 +480,8 @@ describe("OpenFgaClient.apiExecutor - path parameters", () => {
                 .get(`/stores/${id}/check/${id}`)
                 .reply(200, { id: id });
 
-            const result = await fgaClient.apiExecutor({
+            const result = await fgaClient.executeApiRequest<any>({
+                operationName: "CustomCheck",
                 method: "GET",
                 path: "/stores/{id}/check/{id}",
                 pathParams: { id: id },
@@ -410,7 +497,8 @@ describe("OpenFgaClient.apiExecutor - path parameters", () => {
                 .get("/stores/")
                 .reply(200, { id: "" });
 
-            const result = await fgaClient.apiExecutor({
+            const result = await fgaClient.executeApiRequest<any>({
+                operationName: "GetStore",
                 method: "GET",
                 path: "/stores/{store_id}",
                 pathParams: { store_id: "" },
@@ -426,7 +514,8 @@ describe("OpenFgaClient.apiExecutor - path parameters", () => {
                 .get("/stores")
                 .reply(200, { stores: [] });
 
-            const result = await fgaClient.apiExecutor({
+            const result = await fgaClient.executeApiRequest<any>({
+                operationName: "ListStores",
                 method: "GET",
                 path: "/stores",
             });
@@ -438,7 +527,8 @@ describe("OpenFgaClient.apiExecutor - path parameters", () => {
             const fgaClient = new OpenFgaClient(testConfig);
 
             await expect(
-                fgaClient.apiExecutor({
+                fgaClient.executeApiRequest({
+                    operationName: "CustomCheck",
                     method: "GET",
                     path: "/stores/{store_id}/check",
                     // pathParams intentionally omitted
@@ -450,7 +540,8 @@ describe("OpenFgaClient.apiExecutor - path parameters", () => {
             const fgaClient = new OpenFgaClient(testConfig);
 
             await expect(
-                fgaClient.apiExecutor({
+                fgaClient.executeApiRequest({
+                    operationName: "GetAuthorizationModel",
                     method: "GET",
                     path: "/stores/{store_id}/authorization-models/{model_id}",
                     pathParams: { store_id: "abc" }, // model_id is missing
@@ -468,7 +559,7 @@ describe("OpenFgaClient.apiExecutor - path parameters", () => {
                 .reply(200, { stores: [] });
 
             // Should complete without error when operationName is provided
-            const result = await fgaClient.apiExecutor({
+            const result = await fgaClient.executeApiRequest<any>({
                 operationName: "CustomListStores",
                 method: "GET",
                 path: "/stores",
@@ -477,14 +568,15 @@ describe("OpenFgaClient.apiExecutor - path parameters", () => {
             expect(result.stores).toEqual([]);
         });
 
-        it("should work without operationName (backward compatible)", async () => {
+        it("should use the provided operationName for the request", async () => {
             const fgaClient = new OpenFgaClient(testConfig);
 
             nock(basePath)
                 .get("/stores")
                 .reply(200, { stores: [] });
 
-            const result = await fgaClient.apiExecutor({
+            const result = await fgaClient.executeApiRequest<any>({
+                operationName: "ListStores",
                 method: "GET",
                 path: "/stores",
             });

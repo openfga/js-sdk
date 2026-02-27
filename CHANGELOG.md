@@ -5,12 +5,13 @@
 
 - chore!: drop support for Node.js v16 & 18. We recommend updating to a node-runtime that is [supported upstream](https://nodejs.org/en/about/previous-releases) - currently 20 (maintenance), 22 (maintenance), 24 (LTS) and 25 (current).
   The minimum supported version of Node.js is now v20. This is in line with our [stated supported environments](./SUPPORTED_RUNTIMES.md)
+- feat: add `executeApiRequest` and `executeStreamedApiRequest` methods to `OpenFgaClient` for calling arbitrary API endpoints with full SDK support (authentication, retries, telemetry, error handling). See [documentation](https://github.com/openfga/js-sdk#calling-other-endpoints) for more.
 
 ## v0.9.2
 
 ### [v0.9.2](https://github.com/openfga/js-sdk/compare/v0.9.1...v0.9.2) (2026-02-10)
 
-- feat: add support for [streamedListObjects](https://openfga.dev/api/service#/Relationship%20Queries/StreamedListObjects). See [documentation](#streamed-list-objects)
+- feat: add support for [streamedListObjects](https://openfga.dev/api/service#/Relationship%20Queries/StreamedListObjects). See [documentation](https://github.com/openfga/js-sdk#streamed-list-objects)
 - chore: remove node url dependency blocking browser usage (#300)
 - feat: Report a per-http call metric (#303)
 
