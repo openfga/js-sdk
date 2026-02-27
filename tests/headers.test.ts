@@ -484,6 +484,7 @@ describe("Header Functionality Tests", () => {
 
           // SDK enforces Content-Type and Accept for JSON APIs
           expect(headers["content-type"]).toBe("application/json");
+          expect(headers["accept"]).toBe("application/json");
 
           // Custom headers are passed through
           expect(headers["x-custom"]).toBe("definitely-works");
