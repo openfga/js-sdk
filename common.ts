@@ -495,7 +495,15 @@ export function RequestBuilder(request: RequestBuilderParams, options: RequestBu
 
   if (request.queryParams) {
     for (const [key, value] of Object.entries(request.queryParams)) {
-      if (value !== undefined) {
+      if (typeof value == "undefined") {
+        continue;
+      }
+
+      // Convert Date objects in query parameters to ISO strings
+      // to allow Dates passed in to be accepted by readChanges.
+      if (value instanceof Date) {
+        queryParams[key] = value.toISOString();
+      } else {
         queryParams[key] = value;
       }
     }
