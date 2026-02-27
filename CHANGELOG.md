@@ -5,7 +5,7 @@
 
 ## v0.9.3
 
-### [v0.9.3](https://github.com/openfga/js-sdk/compare/v0.9.2...v0.9.3) (2026-02-25)
+### [v0.9.3](https://github.com/openfga/js-sdk/compare/v0.9.2...v0.9.3) (2026-02-27)
 
 - feat: Add APIExecutor for calling arbitrary API endpoints (#298), thanks @Abishek-Newar
 - fix: use current SDK version in telemetry meter (#335)
