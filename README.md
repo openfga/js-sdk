@@ -84,6 +84,10 @@ Using [yarn](https://yarnpkg.com):
 yarn add @openfga/sdk
 ```
 
+#### Supported Node.js Versions
+
+For details on the supported Node.js versions and our support policy, see [SUPPORTED_RUNTIMES.md](./SUPPORTED_RUNTIMES.md).
+
 ## Getting Started
 
 ### Initializing the API Client
