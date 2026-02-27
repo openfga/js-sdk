@@ -11,7 +11,6 @@
 - fix: use current SDK version in telemetry meter (#335)
 - fix: disable httprequestduration metric by default to avoid high cardinality (#344)
 - fix: apply expiry buffer before reusing cached tokens (#331)
-
 - chore!: drop support for Node.js v16 & 18. We recommend updating to a node-runtime that is [supported upstream](https://nodejs.org/en/about/previous-releases) - currently 20 (maintenance), 22 (maintenance), 24 (LTS) and 25 (current).
   The minimum supported version of Node.js is now v20. This is in line with our [stated supported environments](./SUPPORTED_RUNTIMES.md)
 - feat: add `executeApiRequest` and `executeStreamedApiRequest` methods to `OpenFgaClient` for calling arbitrary API endpoints with full SDK support (authentication, retries, telemetry, error handling). See [documentation](https://github.com/openfga/js-sdk#calling-other-endpoints) for more.
