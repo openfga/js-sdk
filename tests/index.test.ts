@@ -684,8 +684,8 @@ describe("OpenFGA SDK", function () {
         ).rejects.toThrow(FgaApiAuthenticationError);
       });
     });
-    describe("non-Axios errors should be thrown immediately without retry", () => {
-      it("should throw FgaError immediately for non-Axios errors", async () => {
+    describe("non-network errors should be thrown immediately without retry", () => {
+      it("should throw FgaError immediately for non-network errors", async () => {
         const tupleKey = {
           user: "user:xyz",
           relation: "viewer",
@@ -699,24 +699,24 @@ describe("OpenFGA SDK", function () {
 
         nocks.tokenExchange(OPENFGA_API_TOKEN_ISSUER, "test-token");
 
-        // Mock axios to throw a non-Axios error
-        const originalAxios = (fgaApi as any).axios;
+        // Mock fetch to throw a non-network error
+        const originalFetch = (fgaApi as any).httpClient.fetch;
         let callCount = 0;
-        (fgaApi as any).axios = async () => {
+        (fgaApi as any).httpClient.fetch = async () => {
           callCount++;
-          const nonAxiosError = new Error("Non-Axios error");
-          throw nonAxiosError;
+          const nonNetworkError = new Error("Non-network error");
+          throw nonNetworkError;
         };
 
         await expect(
           fgaApi.check(baseConfig.storeId!, { tuple_key: tupleKey })
-        ).rejects.toThrow("Non-Axios error");
+        ).rejects.toThrow("Non-network error");
 
         // Should not retry - only called once
         expect(callCount).toBe(1);
 
-        // Restore original axios
-        (fgaApi as any).axios = originalAxios;
+        // Restore original fetch
+        (fgaApi as any).httpClient.fetch = originalFetch;
       });
     });
 

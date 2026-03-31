@@ -3,6 +3,12 @@
 
 ## [Unreleased](https://github.com/openfga/js-sdk/compare/v0.9.4...HEAD)
 
+- feat!: replace axios with native `fetch` for cross-platform support (Node.js, browsers, Deno, Cloudflare Workers, Vercel Edge).
+  - **BREAKING**: `AxiosResponse` is no longer exposed on `$response`. The new type is `FgaResponse<T>` (with `status`, `statusText`, `headers`, `data`).
+  - **BREAKING**: `AxiosInstance` injection is replaced by the `HttpClient` interface (`{ fetch, defaultHeaders, defaultTimeout }`).
+  - Timeouts now use `AbortSignal.timeout()`.
+- chore: all `options?: any` parameters in the API layer are now properly typed as `RequestBuilderOptions`.
+
 ## v0.9.4
 
 ### [v0.9.4](https://github.com/openfga/js-sdk/compare/v0.9.3...v0.9.4) (2026-03-31)

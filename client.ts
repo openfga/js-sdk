@@ -1,7 +1,7 @@
-import { AxiosResponse, AxiosInstance } from "axios";
 import asyncPool = require("tiny-async-pool");
 
 import { OpenFgaApi, HttpMethod, RequestBuilderParams, RequestBuilderOptions } from "./api";
+import type { FgaResponse, HttpClient } from "./common";
 export type { HttpMethod, RequestBuilderParams, RequestBuilderOptions };
 import {
   Assertion,
@@ -132,7 +132,7 @@ export type ClientBatchCheckSingleClientResponse = {
   _request: ClientCheckRequest;
 } & ({
   allowed: boolean;
-  $response: AxiosResponse<CheckResponse>;
+  $response: FgaResponse<CheckResponse>;
 } | {
   allowed: undefined;
   error: Error;
@@ -268,8 +268,8 @@ export class OpenFgaClient extends BaseAPI {
   public storeId?: string;
   protected configuration: ClientConfiguration;
 
-  constructor(configuration: ClientConfiguration | UserClientConfigurationParams, protected axios?: AxiosInstance) {
-    super(configuration, axios);
+  constructor(configuration: ClientConfiguration | UserClientConfigurationParams, httpClient?: HttpClient) {
+    super(configuration, httpClient);
 
     if (configuration instanceof ClientConfiguration) {
       this.configuration = configuration;
@@ -277,7 +277,7 @@ export class OpenFgaClient extends BaseAPI {
       this.configuration = new ClientConfiguration(configuration);
     }
     this.configuration.isValid();
-    this.api = new OpenFgaApi(this.configuration, axios);
+    this.api = new OpenFgaApi(this.configuration, httpClient);
     this.storeId = configuration.storeId;
     this.authorizationModelId = configuration.authorizationModelId;
   }
@@ -854,7 +854,7 @@ export class OpenFgaClient extends BaseAPI {
   /**
    * StreamedListObjects - Stream all objects of a particular type that the user has a certain relation to (evaluates)
    * 
-   * Note: This method is Node.js only. Streams are supported via the axios API layer.
+   * Note: This method requires a runtime with ReadableStream support (Node.js 20+, browsers, Deno, etc.).
    * The response will be streamed as newline-delimited JSON objects.
    * 
    * @param {ClientListObjectsRequest} body
@@ -878,10 +878,10 @@ export class OpenFgaClient extends BaseAPI {
       consistency: options.consistency
     }, options);
 
-    // Unwrap axios CallResult to get the raw Node.js stream when needed
+    // The streaming function returns a ReadableStream (fetch response.body)
     const source = stream?.$response?.data ?? stream;
 
-    // Parse the Node.js stream
+    // Parse the stream (ReadableStream is AsyncIterable in Node 20+)
     try {
       for await (const item of parseNDJSONStream(source as any)) {
         if (item && item.result && item.result.object) {
@@ -890,7 +890,9 @@ export class OpenFgaClient extends BaseAPI {
       }
     } finally {
       // Ensure underlying HTTP connection closes if consumer stops early
-      if (source && typeof source.destroy === "function") {
+      if (source && typeof (source as ReadableStream).cancel === "function") {
+        try { await (source as ReadableStream).cancel(); } catch { }
+      } else if (source && typeof source.destroy === "function") {
         try { source.destroy(); } catch { }
       }
     }
