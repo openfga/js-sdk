@@ -7,7 +7,7 @@
 
 ### [v0.9.4](https://github.com/openfga/js-sdk/compare/v0.9.3...v0.9.4) (2026-03-31)
 
-- fix(deps): pin axios to 1.14.0 and fix brace-expansion audit vulnerability (#363)
+- fix(deps): pin axios to 1.14.0 and fix brace-expansion audit vulnerability (#363) - [details](https://socket.dev/blog/axios-npm-package-compromised)
 
 ## v0.9.3
 
