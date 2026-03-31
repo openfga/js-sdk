@@ -1,4 +1,4 @@
-import { Configuration } from "./configuration";
+import { Configuration, RetryParams } from "./configuration";
 import SdkConstants from "./constants";
 import type { Credentials } from "./credentials";
 import {
@@ -523,7 +523,7 @@ export const createRequestFunction = function (axiosArgs: RequestArgs, httpClien
     let attributes: StringIndexable = {};
 
     attributes = TelemetryAttributes.fromRequest({
-      userAgent: configuration.baseOptions?.headers["User-Agent"],
+      userAgent: configuration.baseOptions?.headers?.["User-Agent"],
       httpMethod: axiosArgs.options?.method,
       url,
       resendCount: wrappedResponse?.retries,
@@ -611,8 +611,19 @@ export interface RequestBuilderOptions {
   headers?: Record<string, string>;
   /** Extra query parameters appended to the URL. */
   query?: Record<string, unknown>;
-  /** Any other request config properties (e.g. timeout). */
-  [key: string]: unknown;
+  /** Request timeout in milliseconds. */
+  timeout?: number;
+  /** Retry configuration for this request. */
+  retryParams?: RetryParams;
+}
+
+/**
+ * Internal request options used inside RequestBuilder.
+ * Extends the public options with fields set by the SDK itself.
+ */
+interface InternalRequestOptions extends RequestBuilderOptions {
+  method?: string;
+  data?: string;
 }
 
 /**
@@ -642,7 +653,7 @@ export function RequestBuilder(request: RequestBuilderParams, options: RequestBu
   }
 
   const requestUrl = new URL(requestPathTemplate, DUMMY_BASE_URL);
-  const requestOptions: RequestBuilderOptions = { method: request.method, ...options };
+  const requestOptions: InternalRequestOptions = { method: request.method, ...options };
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const queryParams = {} as any;
 
@@ -718,7 +729,7 @@ export const createStreamingRequestFunction = function (axiosArgs: RequestArgs, 
     let attributes: StringIndexable = {};
 
     attributes = TelemetryAttributes.fromRequest({
-      userAgent: configuration.baseOptions?.headers["User-Agent"],
+      userAgent: configuration.baseOptions?.headers?.["User-Agent"],
       httpMethod: axiosArgs.options?.method,
       url,
       resendCount: wrappedResponse?.retries,

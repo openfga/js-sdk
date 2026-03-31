@@ -140,7 +140,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    async batchCheck(storeId: string, body: BatchCheckRequest, options?: any): Promise<(httpClient?: HttpClient) => PromiseResult<BatchCheckResponse>> {
+    async batchCheck(storeId: string, body: BatchCheckRequest, options?: RequestBuilderOptions): Promise<(httpClient?: HttpClient) => PromiseResult<BatchCheckResponse>> {
       assertParamExists("batchCheck", "storeId", storeId);
       assertParamExists("batchCheck", "body", body);
       return api.executeApiRequest<BatchCheckResponse>({
@@ -159,7 +159,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    async check(storeId: string, body: CheckRequest, options?: any): Promise<(httpClient?: HttpClient) => PromiseResult<CheckResponse>> {
+    async check(storeId: string, body: CheckRequest, options?: RequestBuilderOptions): Promise<(httpClient?: HttpClient) => PromiseResult<CheckResponse>> {
       assertParamExists("check", "storeId", storeId);
       assertParamExists("check", "body", body);
       return api.executeApiRequest<CheckResponse>({
@@ -177,7 +177,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    async createStore(body: CreateStoreRequest, options?: any): Promise<(httpClient?: HttpClient) => PromiseResult<CreateStoreResponse>> {
+    async createStore(body: CreateStoreRequest, options?: RequestBuilderOptions): Promise<(httpClient?: HttpClient) => PromiseResult<CreateStoreResponse>> {
       assertParamExists("createStore", "body", body);
       return api.executeApiRequest<CreateStoreResponse>({
         operationName: "CreateStore",
@@ -193,7 +193,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    async deleteStore(storeId: string, options?: any): Promise<(httpClient?: HttpClient) => PromiseResult<void>> {
+    async deleteStore(storeId: string, options?: RequestBuilderOptions): Promise<(httpClient?: HttpClient) => PromiseResult<void>> {
       assertParamExists("deleteStore", "storeId", storeId);
       return api.executeApiRequest<void>({
         operationName: "DeleteStore",
@@ -210,7 +210,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    async expand(storeId: string, body: ExpandRequest, options?: any): Promise<(httpClient?: HttpClient) => PromiseResult<ExpandResponse>> {
+    async expand(storeId: string, body: ExpandRequest, options?: RequestBuilderOptions): Promise<(httpClient?: HttpClient) => PromiseResult<ExpandResponse>> {
       assertParamExists("expand", "storeId", storeId);
       assertParamExists("expand", "body", body);
       return api.executeApiRequest<ExpandResponse>({
@@ -228,7 +228,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    async getStore(storeId: string, options?: any): Promise<(httpClient?: HttpClient) => PromiseResult<GetStoreResponse>> {
+    async getStore(storeId: string, options?: RequestBuilderOptions): Promise<(httpClient?: HttpClient) => PromiseResult<GetStoreResponse>> {
       assertParamExists("getStore", "storeId", storeId);
       return api.executeApiRequest<GetStoreResponse>({
         operationName: "GetStore",
@@ -245,7 +245,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    async listObjects(storeId: string, body: ListObjectsRequest, options?: any): Promise<(httpClient?: HttpClient) => PromiseResult<ListObjectsResponse>> {
+    async listObjects(storeId: string, body: ListObjectsRequest, options?: RequestBuilderOptions): Promise<(httpClient?: HttpClient) => PromiseResult<ListObjectsResponse>> {
       assertParamExists("listObjects", "storeId", storeId);
       assertParamExists("listObjects", "body", body);
       return api.executeApiRequest<ListObjectsResponse>({
@@ -266,7 +266,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
        * @param {*} [options] Override http request option.
        * @throws { FgaError }
        */
-    async streamedListObjects(storeId: string, body: ListObjectsRequest, options?: any): Promise<(httpClient?: HttpClient) => Promise<any>> {
+    async streamedListObjects(storeId: string, body: ListObjectsRequest, options?: RequestBuilderOptions): Promise<(httpClient?: HttpClient) => Promise<any>> {
       assertParamExists("streamedListObjects", "storeId", storeId);
       assertParamExists("streamedListObjects", "body", body);
       return api.executeStreamedApiRequest({
@@ -286,7 +286,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    async listStores(pageSize?: number, continuationToken?: string, name?: string, options?: any): Promise<(httpClient?: HttpClient) => PromiseResult<ListStoresResponse>> {
+    async listStores(pageSize?: number, continuationToken?: string, name?: string, options?: RequestBuilderOptions): Promise<(httpClient?: HttpClient) => PromiseResult<ListStoresResponse>> {
       return api.executeApiRequest<ListStoresResponse>({
         operationName: "ListStores",
         method: "GET",
@@ -302,7 +302,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    async listUsers(storeId: string, body: ListUsersRequest, options?: any): Promise<(httpClient?: HttpClient) => PromiseResult<ListUsersResponse>> {
+    async listUsers(storeId: string, body: ListUsersRequest, options?: RequestBuilderOptions): Promise<(httpClient?: HttpClient) => PromiseResult<ListUsersResponse>> {
       assertParamExists("listUsers", "storeId", storeId);
       assertParamExists("listUsers", "body", body);
       return api.executeApiRequest<ListUsersResponse>({
@@ -321,7 +321,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    async read(storeId: string, body: ReadRequest, options?: any): Promise<(httpClient?: HttpClient) => PromiseResult<ReadResponse>> {
+    async read(storeId: string, body: ReadRequest, options?: RequestBuilderOptions): Promise<(httpClient?: HttpClient) => PromiseResult<ReadResponse>> {
       assertParamExists("read", "storeId", storeId);
       assertParamExists("read", "body", body);
       return api.executeApiRequest<ReadResponse>({
@@ -340,7 +340,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    async readAssertions(storeId: string, authorizationModelId: string, options?: any): Promise<(httpClient?: HttpClient) => PromiseResult<ReadAssertionsResponse>> {
+    async readAssertions(storeId: string, authorizationModelId: string, options?: RequestBuilderOptions): Promise<(httpClient?: HttpClient) => PromiseResult<ReadAssertionsResponse>> {
       assertParamExists("readAssertions", "storeId", storeId);
       assertParamExists("readAssertions", "authorizationModelId", authorizationModelId);
       return api.executeApiRequest<ReadAssertionsResponse>({
@@ -358,7 +358,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    async readAuthorizationModel(storeId: string, id: string, options?: any): Promise<(httpClient?: HttpClient) => PromiseResult<ReadAuthorizationModelResponse>> {
+    async readAuthorizationModel(storeId: string, id: string, options?: RequestBuilderOptions): Promise<(httpClient?: HttpClient) => PromiseResult<ReadAuthorizationModelResponse>> {
       assertParamExists("readAuthorizationModel", "storeId", storeId);
       assertParamExists("readAuthorizationModel", "id", id);
       return api.executeApiRequest<ReadAuthorizationModelResponse>({
@@ -377,7 +377,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    async readAuthorizationModels(storeId: string, pageSize?: number, continuationToken?: string, options?: any): Promise<(httpClient?: HttpClient) => PromiseResult<ReadAuthorizationModelsResponse>> {
+    async readAuthorizationModels(storeId: string, pageSize?: number, continuationToken?: string, options?: RequestBuilderOptions): Promise<(httpClient?: HttpClient) => PromiseResult<ReadAuthorizationModelsResponse>> {
       assertParamExists("readAuthorizationModels", "storeId", storeId);
       return api.executeApiRequest<ReadAuthorizationModelsResponse>({
         operationName: "ReadAuthorizationModels",
@@ -398,7 +398,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    async readChanges(storeId: string, type?: string, pageSize?: number, continuationToken?: string, startTime?: string, options?: any): Promise<(httpClient?: HttpClient) => PromiseResult<ReadChangesResponse>> {
+    async readChanges(storeId: string, type?: string, pageSize?: number, continuationToken?: string, startTime?: string, options?: RequestBuilderOptions): Promise<(httpClient?: HttpClient) => PromiseResult<ReadChangesResponse>> {
       assertParamExists("readChanges", "storeId", storeId);
       return api.executeApiRequest<ReadChangesResponse>({
         operationName: "ReadChanges",
@@ -416,7 +416,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    async write(storeId: string, body: WriteRequest, options?: any): Promise<(httpClient?: HttpClient) => PromiseResult<object>> {
+    async write(storeId: string, body: WriteRequest, options?: RequestBuilderOptions): Promise<(httpClient?: HttpClient) => PromiseResult<object>> {
       assertParamExists("write", "storeId", storeId);
       assertParamExists("write", "body", body);
       return api.executeApiRequest<object>({
@@ -436,7 +436,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    async writeAssertions(storeId: string, authorizationModelId: string, body: WriteAssertionsRequest, options?: any): Promise<(httpClient?: HttpClient) => PromiseResult<void>> {
+    async writeAssertions(storeId: string, authorizationModelId: string, body: WriteAssertionsRequest, options?: RequestBuilderOptions): Promise<(httpClient?: HttpClient) => PromiseResult<void>> {
       assertParamExists("writeAssertions", "storeId", storeId);
       assertParamExists("writeAssertions", "authorizationModelId", authorizationModelId);
       assertParamExists("writeAssertions", "body", body);
@@ -456,7 +456,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    async writeAuthorizationModel(storeId: string, body: WriteAuthorizationModelRequest, options?: any): Promise<(httpClient?: HttpClient) => PromiseResult<WriteAuthorizationModelResponse>> {
+    async writeAuthorizationModel(storeId: string, body: WriteAuthorizationModelRequest, options?: RequestBuilderOptions): Promise<(httpClient?: HttpClient) => PromiseResult<WriteAuthorizationModelResponse>> {
       assertParamExists("writeAuthorizationModel", "storeId", storeId);
       assertParamExists("writeAuthorizationModel", "body", body);
       return api.executeApiRequest<WriteAuthorizationModelResponse>({
@@ -511,7 +511,7 @@ export const OpenFgaApiFactory = function (configuration: Configuration, credent
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    batchCheck(storeId: string, body: BatchCheckRequest, options?: any): PromiseResult<BatchCheckResponse> {
+    batchCheck(storeId: string, body: BatchCheckRequest, options?: RequestBuilderOptions): PromiseResult<BatchCheckResponse> {
       return localVarFp.batchCheck(storeId, body, options).then((request) => request(httpClient));
     },
     /**
@@ -522,7 +522,7 @@ export const OpenFgaApiFactory = function (configuration: Configuration, credent
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    check(storeId: string, body: CheckRequest, options?: any): PromiseResult<CheckResponse> {
+    check(storeId: string, body: CheckRequest, options?: RequestBuilderOptions): PromiseResult<CheckResponse> {
       return localVarFp.check(storeId, body, options).then((request) => request(httpClient));
     },
     /**
@@ -532,7 +532,7 @@ export const OpenFgaApiFactory = function (configuration: Configuration, credent
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    createStore(body: CreateStoreRequest, options?: any): PromiseResult<CreateStoreResponse> {
+    createStore(body: CreateStoreRequest, options?: RequestBuilderOptions): PromiseResult<CreateStoreResponse> {
       return localVarFp.createStore(body, options).then((request) => request(httpClient));
     },
     /**
@@ -542,7 +542,7 @@ export const OpenFgaApiFactory = function (configuration: Configuration, credent
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    deleteStore(storeId: string, options?: any): PromiseResult<void> {
+    deleteStore(storeId: string, options?: RequestBuilderOptions): PromiseResult<void> {
       return localVarFp.deleteStore(storeId, options).then((request) => request(httpClient));
     },
     /**
@@ -553,7 +553,7 @@ export const OpenFgaApiFactory = function (configuration: Configuration, credent
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    expand(storeId: string, body: ExpandRequest, options?: any): PromiseResult<ExpandResponse> {
+    expand(storeId: string, body: ExpandRequest, options?: RequestBuilderOptions): PromiseResult<ExpandResponse> {
       return localVarFp.expand(storeId, body, options).then((request) => request(httpClient));
     },
     /**
@@ -563,7 +563,7 @@ export const OpenFgaApiFactory = function (configuration: Configuration, credent
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    getStore(storeId: string, options?: any): PromiseResult<GetStoreResponse> {
+    getStore(storeId: string, options?: RequestBuilderOptions): PromiseResult<GetStoreResponse> {
       return localVarFp.getStore(storeId, options).then((request) => request(httpClient));
     },
     /**
@@ -574,7 +574,7 @@ export const OpenFgaApiFactory = function (configuration: Configuration, credent
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    listObjects(storeId: string, body: ListObjectsRequest, options?: any): PromiseResult<ListObjectsResponse> {
+    listObjects(storeId: string, body: ListObjectsRequest, options?: RequestBuilderOptions): PromiseResult<ListObjectsResponse> {
       return localVarFp.listObjects(storeId, body, options).then((request) => request(httpClient));
     },
     /**
@@ -587,7 +587,7 @@ export const OpenFgaApiFactory = function (configuration: Configuration, credent
        * @param {*} [options] Override http request option.
        * @throws { FgaError }
        */
-    streamedListObjects(storeId: string, body: ListObjectsRequest, options?: any): Promise<any> {
+    streamedListObjects(storeId: string, body: ListObjectsRequest, options?: RequestBuilderOptions): Promise<any> {
       return localVarFp.streamedListObjects(storeId, body, options).then((request) => request(httpClient));
     },
     /**
@@ -599,7 +599,7 @@ export const OpenFgaApiFactory = function (configuration: Configuration, credent
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    listStores(pageSize?: number, continuationToken?: string, name?: string, options?: any): PromiseResult<ListStoresResponse> {
+    listStores(pageSize?: number, continuationToken?: string, name?: string, options?: RequestBuilderOptions): PromiseResult<ListStoresResponse> {
       return localVarFp.listStores(pageSize, continuationToken, name, options).then((request) => request(httpClient));
     },
     /**
@@ -610,7 +610,7 @@ export const OpenFgaApiFactory = function (configuration: Configuration, credent
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    listUsers(storeId: string, body: ListUsersRequest, options?: any): PromiseResult<ListUsersResponse> {
+    listUsers(storeId: string, body: ListUsersRequest, options?: RequestBuilderOptions): PromiseResult<ListUsersResponse> {
       return localVarFp.listUsers(storeId, body, options).then((request) => request(httpClient));
     },
     /**
@@ -621,7 +621,7 @@ export const OpenFgaApiFactory = function (configuration: Configuration, credent
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    read(storeId: string, body: ReadRequest, options?: any): PromiseResult<ReadResponse> {
+    read(storeId: string, body: ReadRequest, options?: RequestBuilderOptions): PromiseResult<ReadResponse> {
       return localVarFp.read(storeId, body, options).then((request) => request(httpClient));
     },
     /**
@@ -632,7 +632,7 @@ export const OpenFgaApiFactory = function (configuration: Configuration, credent
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    readAssertions(storeId: string, authorizationModelId: string, options?: any): PromiseResult<ReadAssertionsResponse> {
+    readAssertions(storeId: string, authorizationModelId: string, options?: RequestBuilderOptions): PromiseResult<ReadAssertionsResponse> {
       return localVarFp.readAssertions(storeId, authorizationModelId, options).then((request) => request(httpClient));
     },
     /**
@@ -643,7 +643,7 @@ export const OpenFgaApiFactory = function (configuration: Configuration, credent
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    readAuthorizationModel(storeId: string, id: string, options?: any): PromiseResult<ReadAuthorizationModelResponse> {
+    readAuthorizationModel(storeId: string, id: string, options?: RequestBuilderOptions): PromiseResult<ReadAuthorizationModelResponse> {
       return localVarFp.readAuthorizationModel(storeId, id, options).then((request) => request(httpClient));
     },
     /**
@@ -655,7 +655,7 @@ export const OpenFgaApiFactory = function (configuration: Configuration, credent
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    readAuthorizationModels(storeId: string, pageSize?: number, continuationToken?: string, options?: any): PromiseResult<ReadAuthorizationModelsResponse> {
+    readAuthorizationModels(storeId: string, pageSize?: number, continuationToken?: string, options?: RequestBuilderOptions): PromiseResult<ReadAuthorizationModelsResponse> {
       return localVarFp.readAuthorizationModels(storeId, pageSize, continuationToken, options).then((request) => request(httpClient));
     },
     /**
@@ -669,7 +669,7 @@ export const OpenFgaApiFactory = function (configuration: Configuration, credent
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    readChanges(storeId: string, type?: string, pageSize?: number, continuationToken?: string, startTime?: string, options?: any): PromiseResult<ReadChangesResponse> {
+    readChanges(storeId: string, type?: string, pageSize?: number, continuationToken?: string, startTime?: string, options?: RequestBuilderOptions): PromiseResult<ReadChangesResponse> {
       return localVarFp.readChanges(storeId, type, pageSize, continuationToken, startTime, options).then((request) => request(httpClient));
     },
     /**
@@ -680,7 +680,7 @@ export const OpenFgaApiFactory = function (configuration: Configuration, credent
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    write(storeId: string, body: WriteRequest, options?: any): PromiseResult<object> {
+    write(storeId: string, body: WriteRequest, options?: RequestBuilderOptions): PromiseResult<object> {
       return localVarFp.write(storeId, body, options).then((request) => request(httpClient));
     },
     /**
@@ -692,7 +692,7 @@ export const OpenFgaApiFactory = function (configuration: Configuration, credent
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    writeAssertions(storeId: string, authorizationModelId: string, body: WriteAssertionsRequest, options?: any): PromiseResult<void> {
+    writeAssertions(storeId: string, authorizationModelId: string, body: WriteAssertionsRequest, options?: RequestBuilderOptions): PromiseResult<void> {
       return localVarFp.writeAssertions(storeId, authorizationModelId, body, options).then((request) => request(httpClient));
     },
     /**
@@ -703,7 +703,7 @@ export const OpenFgaApiFactory = function (configuration: Configuration, credent
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    writeAuthorizationModel(storeId: string, body: WriteAuthorizationModelRequest, options?: any): PromiseResult<WriteAuthorizationModelResponse> {
+    writeAuthorizationModel(storeId: string, body: WriteAuthorizationModelRequest, options?: RequestBuilderOptions): PromiseResult<WriteAuthorizationModelResponse> {
       return localVarFp.writeAuthorizationModel(storeId, body, options).then((request) => request(httpClient));
     },
     /**
@@ -715,10 +715,10 @@ export const OpenFgaApiFactory = function (configuration: Configuration, credent
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    executeApiRequest<T extends object | void = object>(request: RequestBuilderParams, options?: any): PromiseResult<T> {
+    executeApiRequest<T extends object | void = object>(request: RequestBuilderParams, options?: RequestBuilderOptions): PromiseResult<T> {
       return localVarFp.executeApiRequest<T>(request, options).then((request) => request(httpClient));
     },
-    executeStreamedApiRequest(request: RequestBuilderParams, options?: any): Promise<any> {
+    executeStreamedApiRequest(request: RequestBuilderParams, options?: RequestBuilderOptions): Promise<any> {
       return localVarFp.executeStreamedApiRequest(request, options).then((request) => request(httpClient));
     },
   };
@@ -740,7 +740,7 @@ export class OpenFgaApi extends BaseAPI {
      * @throws { FgaError }
      * @memberof OpenFgaApi
      */
-  public batchCheck(storeId: string, body: BatchCheckRequest, options?: any): Promise<CallResult<BatchCheckResponse>> {
+  public batchCheck(storeId: string, body: BatchCheckRequest, options?: RequestBuilderOptions): Promise<CallResult<BatchCheckResponse>> {
     return OpenFgaApiFp(this.configuration, this.credentials).batchCheck(storeId, body, options).then((request) => request(this.httpClient));
   }
 
@@ -753,7 +753,7 @@ export class OpenFgaApi extends BaseAPI {
      * @throws { FgaError }
      * @memberof OpenFgaApi
      */
-  public check(storeId: string, body: CheckRequest, options?: any): Promise<CallResult<CheckResponse>> {
+  public check(storeId: string, body: CheckRequest, options?: RequestBuilderOptions): Promise<CallResult<CheckResponse>> {
     return OpenFgaApiFp(this.configuration, this.credentials).check(storeId, body, options).then((request) => request(this.httpClient));
   }
 
@@ -765,7 +765,7 @@ export class OpenFgaApi extends BaseAPI {
      * @throws { FgaError }
      * @memberof OpenFgaApi
      */
-  public createStore(body: CreateStoreRequest, options?: any): Promise<CallResult<CreateStoreResponse>> {
+  public createStore(body: CreateStoreRequest, options?: RequestBuilderOptions): Promise<CallResult<CreateStoreResponse>> {
     return OpenFgaApiFp(this.configuration, this.credentials).createStore(body, options).then((request) => request(this.httpClient));
   }
 
@@ -777,7 +777,7 @@ export class OpenFgaApi extends BaseAPI {
      * @throws { FgaError }
      * @memberof OpenFgaApi
      */
-  public deleteStore(storeId: string, options?: any): Promise<CallResult<void>> {
+  public deleteStore(storeId: string, options?: RequestBuilderOptions): Promise<CallResult<void>> {
     return OpenFgaApiFp(this.configuration, this.credentials).deleteStore(storeId, options).then((request) => request(this.httpClient));
   }
 
@@ -790,7 +790,7 @@ export class OpenFgaApi extends BaseAPI {
      * @throws { FgaError }
      * @memberof OpenFgaApi
      */
-  public expand(storeId: string, body: ExpandRequest, options?: any): Promise<CallResult<ExpandResponse>> {
+  public expand(storeId: string, body: ExpandRequest, options?: RequestBuilderOptions): Promise<CallResult<ExpandResponse>> {
     return OpenFgaApiFp(this.configuration, this.credentials).expand(storeId, body, options).then((request) => request(this.httpClient));
   }
 
@@ -802,7 +802,7 @@ export class OpenFgaApi extends BaseAPI {
      * @throws { FgaError }
      * @memberof OpenFgaApi
      */
-  public getStore(storeId: string, options?: any): Promise<CallResult<GetStoreResponse>> {
+  public getStore(storeId: string, options?: RequestBuilderOptions): Promise<CallResult<GetStoreResponse>> {
     return OpenFgaApiFp(this.configuration, this.credentials).getStore(storeId, options).then((request) => request(this.httpClient));
   }
 
@@ -815,7 +815,7 @@ export class OpenFgaApi extends BaseAPI {
      * @throws { FgaError }
      * @memberof OpenFgaApi
      */
-  public listObjects(storeId: string, body: ListObjectsRequest, options?: any): Promise<CallResult<ListObjectsResponse>> {
+  public listObjects(storeId: string, body: ListObjectsRequest, options?: RequestBuilderOptions): Promise<CallResult<ListObjectsResponse>> {
     return OpenFgaApiFp(this.configuration, this.credentials).listObjects(storeId, body, options).then((request) => request(this.httpClient));
   }
 
@@ -829,7 +829,7 @@ export class OpenFgaApi extends BaseAPI {
      * @param {*} [options] Override http request option.
      * @throws { FgaError }
      */
-  public streamedListObjects(storeId: string, body: ListObjectsRequest, options?: any): Promise<any> {
+  public streamedListObjects(storeId: string, body: ListObjectsRequest, options?: RequestBuilderOptions): Promise<any> {
     return OpenFgaApiFp(this.configuration, this.credentials).streamedListObjects(storeId, body, options).then((request) => request(this.httpClient));
   }
 
@@ -843,7 +843,7 @@ export class OpenFgaApi extends BaseAPI {
      * @throws { FgaError }
      * @memberof OpenFgaApi
      */
-  public listStores(pageSize?: number, continuationToken?: string, name?: string, options?: any): Promise<CallResult<ListStoresResponse>> {
+  public listStores(pageSize?: number, continuationToken?: string, name?: string, options?: RequestBuilderOptions): Promise<CallResult<ListStoresResponse>> {
     return OpenFgaApiFp(this.configuration, this.credentials).listStores(pageSize, continuationToken, name, options).then((request) => request(this.httpClient));
   }
 
@@ -856,7 +856,7 @@ export class OpenFgaApi extends BaseAPI {
      * @throws { FgaError }
      * @memberof OpenFgaApi
      */
-  public listUsers(storeId: string, body: ListUsersRequest, options?: any): Promise<CallResult<ListUsersResponse>> {
+  public listUsers(storeId: string, body: ListUsersRequest, options?: RequestBuilderOptions): Promise<CallResult<ListUsersResponse>> {
     return OpenFgaApiFp(this.configuration, this.credentials).listUsers(storeId, body, options).then((request) => request(this.httpClient));
   }
 
@@ -869,7 +869,7 @@ export class OpenFgaApi extends BaseAPI {
      * @throws { FgaError }
      * @memberof OpenFgaApi
      */
-  public read(storeId: string, body: ReadRequest, options?: any): Promise<CallResult<ReadResponse>> {
+  public read(storeId: string, body: ReadRequest, options?: RequestBuilderOptions): Promise<CallResult<ReadResponse>> {
     return OpenFgaApiFp(this.configuration, this.credentials).read(storeId, body, options).then((request) => request(this.httpClient));
   }
 
@@ -882,7 +882,7 @@ export class OpenFgaApi extends BaseAPI {
      * @throws { FgaError }
      * @memberof OpenFgaApi
      */
-  public readAssertions(storeId: string, authorizationModelId: string, options?: any): Promise<CallResult<ReadAssertionsResponse>> {
+  public readAssertions(storeId: string, authorizationModelId: string, options?: RequestBuilderOptions): Promise<CallResult<ReadAssertionsResponse>> {
     return OpenFgaApiFp(this.configuration, this.credentials).readAssertions(storeId, authorizationModelId, options).then((request) => request(this.httpClient));
   }
 
@@ -895,7 +895,7 @@ export class OpenFgaApi extends BaseAPI {
      * @throws { FgaError }
      * @memberof OpenFgaApi
      */
-  public readAuthorizationModel(storeId: string, id: string, options?: any): Promise<CallResult<ReadAuthorizationModelResponse>> {
+  public readAuthorizationModel(storeId: string, id: string, options?: RequestBuilderOptions): Promise<CallResult<ReadAuthorizationModelResponse>> {
     return OpenFgaApiFp(this.configuration, this.credentials).readAuthorizationModel(storeId, id, options).then((request) => request(this.httpClient));
   }
 
@@ -909,7 +909,7 @@ export class OpenFgaApi extends BaseAPI {
      * @throws { FgaError }
      * @memberof OpenFgaApi
      */
-  public readAuthorizationModels(storeId: string, pageSize?: number, continuationToken?: string, options?: any): Promise<CallResult<ReadAuthorizationModelsResponse>> {
+  public readAuthorizationModels(storeId: string, pageSize?: number, continuationToken?: string, options?: RequestBuilderOptions): Promise<CallResult<ReadAuthorizationModelsResponse>> {
     return OpenFgaApiFp(this.configuration, this.credentials).readAuthorizationModels(storeId, pageSize, continuationToken, options).then((request) => request(this.httpClient));
   }
 
@@ -925,7 +925,7 @@ export class OpenFgaApi extends BaseAPI {
      * @throws { FgaError }
      * @memberof OpenFgaApi
      */
-  public readChanges(storeId: string, type?: string, pageSize?: number, continuationToken?: string, startTime?: string, options?: any): Promise<CallResult<ReadChangesResponse>> {
+  public readChanges(storeId: string, type?: string, pageSize?: number, continuationToken?: string, startTime?: string, options?: RequestBuilderOptions): Promise<CallResult<ReadChangesResponse>> {
     return OpenFgaApiFp(this.configuration, this.credentials).readChanges(storeId, type, pageSize, continuationToken, startTime, options).then((request) => request(this.httpClient));
   }
 
@@ -938,7 +938,7 @@ export class OpenFgaApi extends BaseAPI {
      * @throws { FgaError }
      * @memberof OpenFgaApi
      */
-  public write(storeId: string, body: WriteRequest, options?: any): Promise<CallResult<object>> {
+  public write(storeId: string, body: WriteRequest, options?: RequestBuilderOptions): Promise<CallResult<object>> {
     return OpenFgaApiFp(this.configuration, this.credentials).write(storeId, body, options).then((request) => request(this.httpClient));
   }
 
@@ -952,7 +952,7 @@ export class OpenFgaApi extends BaseAPI {
      * @throws { FgaError }
      * @memberof OpenFgaApi
      */
-  public writeAssertions(storeId: string, authorizationModelId: string, body: WriteAssertionsRequest, options?: any): Promise<CallResult<void>> {
+  public writeAssertions(storeId: string, authorizationModelId: string, body: WriteAssertionsRequest, options?: RequestBuilderOptions): Promise<CallResult<void>> {
     return OpenFgaApiFp(this.configuration, this.credentials).writeAssertions(storeId, authorizationModelId, body, options).then((request) => request(this.httpClient));
   }
 
@@ -965,7 +965,7 @@ export class OpenFgaApi extends BaseAPI {
      * @throws { FgaError }
      * @memberof OpenFgaApi
      */
-  public writeAuthorizationModel(storeId: string, body: WriteAuthorizationModelRequest, options?: any): Promise<CallResult<WriteAuthorizationModelResponse>> {
+  public writeAuthorizationModel(storeId: string, body: WriteAuthorizationModelRequest, options?: RequestBuilderOptions): Promise<CallResult<WriteAuthorizationModelResponse>> {
     return OpenFgaApiFp(this.configuration, this.credentials).writeAuthorizationModel(storeId, body, options).then((request) => request(this.httpClient));
   }
 
@@ -979,7 +979,7 @@ export class OpenFgaApi extends BaseAPI {
      * @throws { FgaError }
      * @memberof OpenFgaApi
      */
-  public executeApiRequest<T extends object | void = object>(request: RequestBuilderParams, options?: any): Promise<CallResult<T>> {
+  public executeApiRequest<T extends object | void = object>(request: RequestBuilderParams, options?: RequestBuilderOptions): Promise<CallResult<T>> {
     return OpenFgaApiFp(this.configuration, this.credentials).executeApiRequest<T>(request, options).then((request) => request(this.httpClient));
   }
 
@@ -993,7 +993,7 @@ export class OpenFgaApi extends BaseAPI {
      * @throws { FgaError }
      * @memberof OpenFgaApi
      */
-  public executeStreamedApiRequest(request: RequestBuilderParams, options?: any): Promise<CallResult<any>> {
+  public executeStreamedApiRequest(request: RequestBuilderParams, options?: RequestBuilderOptions): Promise<CallResult<any>> {
     return OpenFgaApiFp(this.configuration, this.credentials).executeStreamedApiRequest(request, options).then((request) => request(this.httpClient));
   }
 }

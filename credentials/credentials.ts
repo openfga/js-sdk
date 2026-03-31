@@ -229,7 +229,7 @@ export class Credentials {
         let attributes = {};
 
         attributes = TelemetryAttributes.fromRequest({
-          userAgent: this.baseOptions?.headers["User-Agent"],
+          userAgent: this.baseOptions?.headers?.["User-Agent"],
           fgaMethod: "TokenExchange",
           url,
           resendCount: wrappedResponse?.retries,
