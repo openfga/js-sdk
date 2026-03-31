@@ -118,6 +118,58 @@ describe("fetch-based HTTP client", () => {
         expect(result!.response!.data).toBe("plain text body");
       });
 
+      it("should return text for text/json content type (not matched by isJsonMime)", async () => {
+        const client = mockHttpClient(async () =>
+          new Response(JSON.stringify({ key: "value" }), {
+            status: 200,
+            headers: { "content-type": "text/json" },
+          })
+        );
+
+        const result = await attemptHttpRequest(
+          { url: `${SdkConstants.TestApiUrl}/something`, method: "GET", headers: {} },
+          { maxRetry: 0, minWaitInMs: 100 },
+          client
+        );
+
+        // text/json is not recognized by isJsonMime, so it's returned as text
+        expect(result!.response!.data).toBe("{\"key\":\"value\"}");
+      });
+
+      it("should parse response as JSON for application/vnd.api+json content type", async () => {
+        const client = mockHttpClient(async () =>
+          new Response(JSON.stringify({ items: [1, 2] }), {
+            status: 200,
+            headers: { "content-type": "application/vnd.api+json" },
+          })
+        );
+
+        const result = await attemptHttpRequest(
+          { url: `${SdkConstants.TestApiUrl}/something`, method: "GET", headers: {} },
+          { maxRetry: 0, minWaitInMs: 100 },
+          client
+        );
+
+        expect(result!.response!.data).toEqual({ items: [1, 2] });
+      });
+
+      it("should parse response as JSON for application/json with charset parameter", async () => {
+        const client = mockHttpClient(async () =>
+          new Response(JSON.stringify({ ok: true }), {
+            status: 200,
+            headers: { "content-type": "application/json; charset=utf-8" },
+          })
+        );
+
+        const result = await attemptHttpRequest(
+          { url: `${SdkConstants.TestApiUrl}/something`, method: "GET", headers: {} },
+          { maxRetry: 0, minWaitInMs: 100 },
+          client
+        );
+
+        expect(result!.response!.data).toEqual({ ok: true });
+      });
+
       it("should return the raw body for stream responseType", async () => {
         const stream = new ReadableStream({
           start(controller) {
@@ -426,6 +478,29 @@ describe("fetch-based HTTP client", () => {
         expect(callCount).toBe(1);
       });
 
+      it("should include method, URL, and status in generic FgaApiError message for unmapped status", async () => {
+        const client = mockHttpClient(async () =>
+          mockResponse(501, {}, { statusText: "Not Implemented" })
+        );
+
+        try {
+          await attemptHttpRequest(
+            { url: `${SdkConstants.TestApiUrl}/stores/s1/check`, method: "POST", headers: {} },
+            { maxRetry: 0, minWaitInMs: 100 },
+            client
+          );
+          fail("should have thrown");
+        } catch (err: any) {
+          expect(err).toBeInstanceOf(FgaApiError);
+          // Should NOT be one of the specialized subclasses
+          expect(err.name).toBe("FgaApiError");
+          expect(err.message).toContain("POST");
+          expect(err.message).toContain(`${SdkConstants.TestApiUrl}/stores/s1/check`);
+          expect(err.message).toContain("501");
+          expect(err.message).toContain("Not Implemented");
+        }
+      });
+
       it("should populate error context fields from HTTP response", async () => {
         const client = mockHttpClient(async () =>
           mockResponse(400, { code: "validation_error", message: "invalid tuple" }, {
@@ -453,6 +528,51 @@ describe("fetch-based HTTP client", () => {
           expect(err.apiErrorMessage).toBe("invalid tuple");
           expect(err.requestId).toBe("req-abc-123");
           expect(err.responseData).toEqual({ code: "validation_error", message: "invalid tuple" });
+        }
+      });
+
+      it("should capture non-JSON error body as text instead of dropping it", async () => {
+        const client = mockHttpClient(async () =>
+          new Response("plain text error detail", {
+            status: 400,
+            statusText: "Bad Request",
+            headers: { "content-type": "text/plain" },
+          })
+        );
+
+        try {
+          await attemptHttpRequest(
+            { url: `${SdkConstants.TestApiUrl}/stores/s1/check`, method: "POST", headers: {} },
+            { maxRetry: 0, minWaitInMs: 100 },
+            client
+          );
+          fail("should have thrown");
+        } catch (err: any) {
+          expect(err).toBeInstanceOf(FgaApiValidationError);
+          expect(err.responseData).toBe("plain text error detail");
+        }
+      });
+
+      it("should parse JSON error body when content-type is application/json", async () => {
+        const client = mockHttpClient(async () =>
+          new Response(JSON.stringify({ code: "validation_error", message: "bad request" }), {
+            status: 400,
+            statusText: "Bad Request",
+            headers: { "content-type": "application/json" },
+          })
+        );
+
+        try {
+          await attemptHttpRequest(
+            { url: `${SdkConstants.TestApiUrl}/stores/s1/check`, method: "POST", headers: {} },
+            { maxRetry: 0, minWaitInMs: 100 },
+            client
+          );
+          fail("should have thrown");
+        } catch (err: any) {
+          expect(err).toBeInstanceOf(FgaApiValidationError);
+          expect(err.responseData).toEqual({ code: "validation_error", message: "bad request" });
+          expect(err.apiErrorMessage).toBe("bad request");
         }
       });
     });
@@ -567,6 +687,148 @@ describe("fetch-based HTTP client", () => {
         );
 
         expect(capturedBody).toBeUndefined();
+      });
+
+      it("should serialize object as form-urlencoded when content-type is application/x-www-form-urlencoded", async () => {
+        let capturedBody: string | undefined;
+        const client = mockHttpClient(async (_url, init) => {
+          capturedBody = init?.body as string;
+          return mockResponse(200, {});
+        });
+
+        await attemptHttpRequest(
+          {
+            url: `${SdkConstants.TestApiUrl}/oauth/token`,
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            data: { client_id: "my-id", client_secret: "my-secret", grant_type: "client_credentials" },
+          },
+          { maxRetry: 0, minWaitInMs: 100 },
+          client
+        );
+
+        expect(capturedBody).toBeDefined();
+        const params = new URLSearchParams(capturedBody!);
+        expect(params.get("client_id")).toBe("my-id");
+        expect(params.get("client_secret")).toBe("my-secret");
+        expect(params.get("grant_type")).toBe("client_credentials");
+      });
+
+      it("should serialize URLSearchParams as form-urlencoded when content-type is application/x-www-form-urlencoded", async () => {
+        let capturedBody: string | undefined;
+        const client = mockHttpClient(async (_url, init) => {
+          capturedBody = init?.body as string;
+          return mockResponse(200, {});
+        });
+
+        const formData = new URLSearchParams();
+        formData.append("client_id", "my-id");
+        formData.append("scope", "openid");
+
+        await attemptHttpRequest(
+          {
+            url: `${SdkConstants.TestApiUrl}/oauth/token`,
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            data: formData,
+          },
+          { maxRetry: 0, minWaitInMs: 100 },
+          client
+        );
+
+        expect(capturedBody).toBeDefined();
+        const params = new URLSearchParams(capturedBody!);
+        expect(params.get("client_id")).toBe("my-id");
+        expect(params.get("scope")).toBe("openid");
+      });
+
+      it("should skip null and undefined values in form-urlencoded serialization", async () => {
+        let capturedBody: string | undefined;
+        const client = mockHttpClient(async (_url, init) => {
+          capturedBody = init?.body as string;
+          return mockResponse(200, {});
+        });
+
+        await attemptHttpRequest(
+          {
+            url: `${SdkConstants.TestApiUrl}/oauth/token`,
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            data: { client_id: "my-id", optional_field: null, another: undefined, keep: "yes" },
+          },
+          { maxRetry: 0, minWaitInMs: 100 },
+          client
+        );
+
+        expect(capturedBody).toBeDefined();
+        const params = new URLSearchParams(capturedBody!);
+        expect(params.get("client_id")).toBe("my-id");
+        expect(params.get("keep")).toBe("yes");
+        expect(params.has("optional_field")).toBe(false);
+        expect(params.has("another")).toBe(false);
+      });
+
+      it("should JSON-stringify object body when content-type is text/json", async () => {
+        let capturedBody: string | undefined;
+        const client = mockHttpClient(async (_url, init) => {
+          capturedBody = init?.body as string;
+          return mockResponse(200, {});
+        });
+
+        await attemptHttpRequest(
+          {
+            url: `${SdkConstants.TestApiUrl}/check`,
+            method: "POST",
+            headers: { "Content-Type": "text/json" },
+            data: { key: "value" },
+          },
+          { maxRetry: 0, minWaitInMs: 100 },
+          client
+        );
+
+        expect(capturedBody).toBe("{\"key\":\"value\"}");
+      });
+
+      it("should JSON-stringify object body when content-type is application/vnd.api+json", async () => {
+        let capturedBody: string | undefined;
+        const client = mockHttpClient(async (_url, init) => {
+          capturedBody = init?.body as string;
+          return mockResponse(200, {});
+        });
+
+        await attemptHttpRequest(
+          {
+            url: `${SdkConstants.TestApiUrl}/check`,
+            method: "POST",
+            headers: { "Content-Type": "application/vnd.api+json" },
+            data: { key: "value" },
+          },
+          { maxRetry: 0, minWaitInMs: 100 },
+          client
+        );
+
+        expect(capturedBody).toBe("{\"key\":\"value\"}");
+      });
+
+      it("should default to JSON serialization when content-type is absent", async () => {
+        let capturedBody: string | undefined;
+        const client = mockHttpClient(async (_url, init) => {
+          capturedBody = init?.body as string;
+          return mockResponse(200, {});
+        });
+
+        await attemptHttpRequest(
+          {
+            url: `${SdkConstants.TestApiUrl}/check`,
+            method: "POST",
+            headers: {},
+            data: { key: "value" },
+          },
+          { maxRetry: 0, minWaitInMs: 100 },
+          client
+        );
+
+        expect(capturedBody).toBe("{\"key\":\"value\"}");
       });
     });
   });

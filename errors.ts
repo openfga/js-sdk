@@ -86,7 +86,11 @@ export class FgaApiError extends FgaError {
   public requestId?: string;
 
   constructor(err: HttpErrorContext | Error, msg?: string) {
-    super(msg ? msg : (err instanceof Error ? err : undefined));
+    super(msg ? msg : (err instanceof Error ? err : undefined),
+      !msg && !(err instanceof Error)
+        ? `FGA API Error: ${err.requestMethod ?? "Unknown Method"} ${err.requestUrl ?? "Unknown URL"} - ${err.status ?? "Unknown Status"}${err.statusText ? ` ${err.statusText}` : ""}`
+        : undefined
+    );
     if (err instanceof Error) {
       if (err.stack) this.stack = err.stack;
       return;

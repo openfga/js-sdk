@@ -484,7 +484,10 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
         ...TelemetryAttributes.fromRequestBody(request.body),
       });
     },
-    async executeStreamedApiRequest(request: RequestBuilderParams, options?: RequestBuilderOptions): Promise<(httpClient?: HttpClient) => PromiseResult<any>> {
+    async executeStreamedApiRequest(
+      request: RequestBuilderParams,
+      options?: RequestBuilderOptions
+    ): Promise<(httpClient?: HttpClient) => Promise<any>> {
       const localVarAxiosArgs = RequestBuilder(request, { ...configuration.baseOptions, ...options });
       return createStreamingRequestFunction(localVarAxiosArgs, globalHttpClient, configuration, credentials, {
         [TelemetryAttribute.FgaClientRequestMethod]: request.operationName,
@@ -993,7 +996,7 @@ export class OpenFgaApi extends BaseAPI {
      * @throws { FgaError }
      * @memberof OpenFgaApi
      */
-  public executeStreamedApiRequest(request: RequestBuilderParams, options?: RequestBuilderOptions): Promise<CallResult<any>> {
+  public executeStreamedApiRequest(request: RequestBuilderParams, options?: RequestBuilderOptions): Promise<any> {
     return OpenFgaApiFp(this.configuration, this.credentials).executeStreamedApiRequest(request, options).then((request) => request(this.httpClient));
   }
 }

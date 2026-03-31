@@ -303,14 +303,55 @@ export async function attemptHttpRequest<B, R>(
         }
       }
 
+      const timeoutMs = request.timeout ?? httpClient.defaultTimeout ?? 10000;
+      let signal: AbortSignal | undefined;
+      if (typeof AbortSignal !== "undefined" && typeof (AbortSignal as any).timeout === "function") {
+        // Use native AbortSignal.timeout when available.
+        signal = (AbortSignal as any).timeout(timeoutMs);
+      } else if (typeof AbortController !== "undefined") {
+        // Fallback for environments without AbortSignal.timeout.
+        const controller = new AbortController();
+        setTimeout(() => controller.abort(), timeoutMs);
+        signal = controller.signal;
+      }
       const fetchInit: RequestInit = {
         method: request.method || "GET",
         headers: fetchHeaders,
-        signal: AbortSignal.timeout(request.timeout ?? httpClient.defaultTimeout ?? 10000),
+        signal,
       };
 
       if (request.data !== undefined) {
-        fetchInit.body = typeof request.data === "string" ? request.data : JSON.stringify(request.data);
+        if (typeof request.data === "string") {
+          fetchInit.body = request.data;
+        } else {
+          const contentTypeHeader = Object.entries(fetchHeaders).find(
+            ([name]) => name.toLowerCase() === "content-type",
+          )?.[1];
+
+          const contentType = contentTypeHeader?.split(";")[0].trim().toLowerCase();
+
+          if (contentType === "application/x-www-form-urlencoded") {
+            if (request.data instanceof URLSearchParams) {
+              fetchInit.body = request.data.toString();
+            } else {
+              const formParams = new URLSearchParams();
+              for (const [key, value] of Object.entries(request.data as Record<string, any>)) {
+                if (value === undefined || value === null) continue;
+                formParams.append(key, String(value));
+              }
+              fetchInit.body = formParams.toString();
+            }
+          } else if (
+            contentType === "application/json" ||
+            contentType === "text/json" ||
+            (contentType?.endsWith("+json") ?? false)
+          ) {
+            fetchInit.body = JSON.stringify(request.data);
+          } else {
+            // Default to JSON serialization to preserve existing behavior.
+            fetchInit.body = JSON.stringify(request.data);
+          }
+        }
       }
 
       const response = await httpClient.fetch(request.url, fetchInit);
@@ -318,15 +359,17 @@ export async function attemptHttpRequest<B, R>(
 
       if (!response.ok) {
         // Non-2xx status — build error context for retry/error handling
+        // Read body as text first to avoid consuming the stream with response.json().
         let responseData: any;
         try {
-          responseData = await response.json();
-        } catch {
+          const rawBody = await response.text();
           try {
-            responseData = await response.text();
+            responseData = JSON.parse(rawBody);
           } catch {
-            responseData = undefined;
+            responseData = rawBody;
           }
+        } catch {
+          responseData = undefined;
         }
 
         const errCtx: HttpErrorContext = {
@@ -376,7 +419,7 @@ export async function attemptHttpRequest<B, R>(
         const contentType = response.headers.get("content-type") || "";
         if (response.status === 204 || response.headers.get("content-length") === "0") {
           data = undefined;
-        } else if (contentType.includes("application/json")) {
+        } else if (isJsonMime(contentType)) {
           data = await response.json();
         } else {
           data = await response.text();
@@ -721,7 +764,10 @@ export const createStreamingRequestFunction = function (axiosArgs: RequestArgs, 
     const wrappedResponse = await attemptHttpRequest(fetchRequestConfig, {
       maxRetry,
       minWaitInMs,
-    }, client);
+    }, client, {
+      telemetry: configuration.telemetry,
+      userAgent: configuration.baseOptions?.headers?.["User-Agent"],
+    });
     const response = wrappedResponse?.response;
 
     const result: any = response?.data; // raw ReadableStream

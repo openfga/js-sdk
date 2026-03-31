@@ -197,17 +197,19 @@ The SDK uses the native `fetch` API by default. You can provide a custom `HttpCl
 ```javascript
 const { OpenFgaClient } = require('@openfga/sdk'); // OR import { OpenFgaClient } from '@openfga/sdk';
 
-const fgaClient = new OpenFgaClient({
-  apiUrl: process.env.FGA_API_URL,
-  storeId: process.env.FGA_STORE_ID,
-  httpClient: {
+const fgaClient = new OpenFgaClient(
+  {
+    apiUrl: process.env.FGA_API_URL,
+    storeId: process.env.FGA_STORE_ID,
+  },
+  {
     fetch: globalThis.fetch.bind(globalThis), // or a custom fetch implementation
     defaultHeaders: {
       "X-Custom-Header": "value",
     },
     defaultTimeout: 15000, // timeout in milliseconds (default: 10000)
-  },
-});
+  }
+);
 ```
 
 The `HttpClient` interface accepts:
@@ -234,7 +236,8 @@ interface FgaResponse<T> {
 You can access it via the `$response` property on the method's return value:
 
 ```javascript
-const { headers, status } = await fgaClient.getStore().$response;
+const res = await fgaClient.getStore();
+const { headers, status } = res.$response;
 ```
 
 Methods that have custom logic, such as `clientBatchCheck`, `listRelations` and non-transactional `write` operations, will not contain this field.
