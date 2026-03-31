@@ -11,8 +11,6 @@
  */
 
 
-import globalAxios, { AxiosInstance } from "axios";
-
 import { BaseAPI } from "./base";
 import {
   DUMMY_BASE_URL,
@@ -24,6 +22,8 @@ import {
   RequestArgs,
   CallResult,
   PromiseResult,
+  HttpClient,
+  globalHttpClient,
   HttpMethod,
   RequestBuilderParams,
   RequestBuilderOptions,
@@ -140,7 +140,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    async batchCheck(storeId: string, body: BatchCheckRequest, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<BatchCheckResponse>> {
+    async batchCheck(storeId: string, body: BatchCheckRequest, options?: any): Promise<(httpClient?: HttpClient) => PromiseResult<BatchCheckResponse>> {
       assertParamExists("batchCheck", "storeId", storeId);
       assertParamExists("batchCheck", "body", body);
       return api.executeApiRequest<BatchCheckResponse>({
@@ -159,7 +159,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    async check(storeId: string, body: CheckRequest, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<CheckResponse>> {
+    async check(storeId: string, body: CheckRequest, options?: any): Promise<(httpClient?: HttpClient) => PromiseResult<CheckResponse>> {
       assertParamExists("check", "storeId", storeId);
       assertParamExists("check", "body", body);
       return api.executeApiRequest<CheckResponse>({
@@ -177,7 +177,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    async createStore(body: CreateStoreRequest, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<CreateStoreResponse>> {
+    async createStore(body: CreateStoreRequest, options?: any): Promise<(httpClient?: HttpClient) => PromiseResult<CreateStoreResponse>> {
       assertParamExists("createStore", "body", body);
       return api.executeApiRequest<CreateStoreResponse>({
         operationName: "CreateStore",
@@ -193,7 +193,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    async deleteStore(storeId: string, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<void>> {
+    async deleteStore(storeId: string, options?: any): Promise<(httpClient?: HttpClient) => PromiseResult<void>> {
       assertParamExists("deleteStore", "storeId", storeId);
       return api.executeApiRequest<void>({
         operationName: "DeleteStore",
@@ -210,7 +210,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    async expand(storeId: string, body: ExpandRequest, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<ExpandResponse>> {
+    async expand(storeId: string, body: ExpandRequest, options?: any): Promise<(httpClient?: HttpClient) => PromiseResult<ExpandResponse>> {
       assertParamExists("expand", "storeId", storeId);
       assertParamExists("expand", "body", body);
       return api.executeApiRequest<ExpandResponse>({
@@ -228,7 +228,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    async getStore(storeId: string, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<GetStoreResponse>> {
+    async getStore(storeId: string, options?: any): Promise<(httpClient?: HttpClient) => PromiseResult<GetStoreResponse>> {
       assertParamExists("getStore", "storeId", storeId);
       return api.executeApiRequest<GetStoreResponse>({
         operationName: "GetStore",
@@ -245,7 +245,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    async listObjects(storeId: string, body: ListObjectsRequest, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<ListObjectsResponse>> {
+    async listObjects(storeId: string, body: ListObjectsRequest, options?: any): Promise<(httpClient?: HttpClient) => PromiseResult<ListObjectsResponse>> {
       assertParamExists("listObjects", "storeId", storeId);
       assertParamExists("listObjects", "body", body);
       return api.executeApiRequest<ListObjectsResponse>({
@@ -266,7 +266,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
        * @param {*} [options] Override http request option.
        * @throws { FgaError }
        */
-    async streamedListObjects(storeId: string, body: ListObjectsRequest, options?: any): Promise<(axios?: AxiosInstance) => Promise<any>> {
+    async streamedListObjects(storeId: string, body: ListObjectsRequest, options?: any): Promise<(httpClient?: HttpClient) => Promise<any>> {
       assertParamExists("streamedListObjects", "storeId", storeId);
       assertParamExists("streamedListObjects", "body", body);
       return api.executeStreamedApiRequest({
@@ -286,7 +286,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    async listStores(pageSize?: number, continuationToken?: string, name?: string, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<ListStoresResponse>> {
+    async listStores(pageSize?: number, continuationToken?: string, name?: string, options?: any): Promise<(httpClient?: HttpClient) => PromiseResult<ListStoresResponse>> {
       return api.executeApiRequest<ListStoresResponse>({
         operationName: "ListStores",
         method: "GET",
@@ -302,7 +302,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    async listUsers(storeId: string, body: ListUsersRequest, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<ListUsersResponse>> {
+    async listUsers(storeId: string, body: ListUsersRequest, options?: any): Promise<(httpClient?: HttpClient) => PromiseResult<ListUsersResponse>> {
       assertParamExists("listUsers", "storeId", storeId);
       assertParamExists("listUsers", "body", body);
       return api.executeApiRequest<ListUsersResponse>({
@@ -321,7 +321,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    async read(storeId: string, body: ReadRequest, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<ReadResponse>> {
+    async read(storeId: string, body: ReadRequest, options?: any): Promise<(httpClient?: HttpClient) => PromiseResult<ReadResponse>> {
       assertParamExists("read", "storeId", storeId);
       assertParamExists("read", "body", body);
       return api.executeApiRequest<ReadResponse>({
@@ -340,7 +340,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    async readAssertions(storeId: string, authorizationModelId: string, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<ReadAssertionsResponse>> {
+    async readAssertions(storeId: string, authorizationModelId: string, options?: any): Promise<(httpClient?: HttpClient) => PromiseResult<ReadAssertionsResponse>> {
       assertParamExists("readAssertions", "storeId", storeId);
       assertParamExists("readAssertions", "authorizationModelId", authorizationModelId);
       return api.executeApiRequest<ReadAssertionsResponse>({
@@ -358,7 +358,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    async readAuthorizationModel(storeId: string, id: string, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<ReadAuthorizationModelResponse>> {
+    async readAuthorizationModel(storeId: string, id: string, options?: any): Promise<(httpClient?: HttpClient) => PromiseResult<ReadAuthorizationModelResponse>> {
       assertParamExists("readAuthorizationModel", "storeId", storeId);
       assertParamExists("readAuthorizationModel", "id", id);
       return api.executeApiRequest<ReadAuthorizationModelResponse>({
@@ -377,7 +377,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    async readAuthorizationModels(storeId: string, pageSize?: number, continuationToken?: string, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<ReadAuthorizationModelsResponse>> {
+    async readAuthorizationModels(storeId: string, pageSize?: number, continuationToken?: string, options?: any): Promise<(httpClient?: HttpClient) => PromiseResult<ReadAuthorizationModelsResponse>> {
       assertParamExists("readAuthorizationModels", "storeId", storeId);
       return api.executeApiRequest<ReadAuthorizationModelsResponse>({
         operationName: "ReadAuthorizationModels",
@@ -398,7 +398,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    async readChanges(storeId: string, type?: string, pageSize?: number, continuationToken?: string, startTime?: string, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<ReadChangesResponse>> {
+    async readChanges(storeId: string, type?: string, pageSize?: number, continuationToken?: string, startTime?: string, options?: any): Promise<(httpClient?: HttpClient) => PromiseResult<ReadChangesResponse>> {
       assertParamExists("readChanges", "storeId", storeId);
       return api.executeApiRequest<ReadChangesResponse>({
         operationName: "ReadChanges",
@@ -416,7 +416,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    async write(storeId: string, body: WriteRequest, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<object>> {
+    async write(storeId: string, body: WriteRequest, options?: any): Promise<(httpClient?: HttpClient) => PromiseResult<object>> {
       assertParamExists("write", "storeId", storeId);
       assertParamExists("write", "body", body);
       return api.executeApiRequest<object>({
@@ -436,7 +436,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    async writeAssertions(storeId: string, authorizationModelId: string, body: WriteAssertionsRequest, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<void>> {
+    async writeAssertions(storeId: string, authorizationModelId: string, body: WriteAssertionsRequest, options?: any): Promise<(httpClient?: HttpClient) => PromiseResult<void>> {
       assertParamExists("writeAssertions", "storeId", storeId);
       assertParamExists("writeAssertions", "authorizationModelId", authorizationModelId);
       assertParamExists("writeAssertions", "body", body);
@@ -456,7 +456,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @param {*} [options] Override http request option.
          * @throws { FgaError }
          */
-    async writeAuthorizationModel(storeId: string, body: WriteAuthorizationModelRequest, options?: any): Promise<(axios?: AxiosInstance) => PromiseResult<WriteAuthorizationModelResponse>> {
+    async writeAuthorizationModel(storeId: string, body: WriteAuthorizationModelRequest, options?: any): Promise<(httpClient?: HttpClient) => PromiseResult<WriteAuthorizationModelResponse>> {
       assertParamExists("writeAuthorizationModel", "storeId", storeId);
       assertParamExists("writeAuthorizationModel", "body", body);
       return api.executeApiRequest<WriteAuthorizationModelResponse>({
@@ -476,17 +476,17 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
          * @param {RequestBuilderOptions} [options] Override http request option.
          * @throws { FgaError }
          */
-    async executeApiRequest<T extends object | void = object>(request: RequestBuilderParams, options?: RequestBuilderOptions): Promise<(axios?: AxiosInstance) => PromiseResult<T>> {
+    async executeApiRequest<T extends object | void = object>(request: RequestBuilderParams, options?: RequestBuilderOptions): Promise<(httpClient?: HttpClient) => PromiseResult<T>> {
       const localVarAxiosArgs = RequestBuilder(request, { ...configuration.baseOptions, ...options });
-      return createRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials, {
+      return createRequestFunction(localVarAxiosArgs, globalHttpClient, configuration, credentials, {
         [TelemetryAttribute.FgaClientRequestMethod]: request.operationName,
         [TelemetryAttribute.FgaClientRequestStoreId]: request.pathParams?.["store_id"] ?? "",
         ...TelemetryAttributes.fromRequestBody(request.body),
       });
     },
-    async executeStreamedApiRequest(request: RequestBuilderParams, options?: RequestBuilderOptions): Promise<(axios?: AxiosInstance) => PromiseResult<any>> {
+    async executeStreamedApiRequest(request: RequestBuilderParams, options?: RequestBuilderOptions): Promise<(httpClient?: HttpClient) => PromiseResult<any>> {
       const localVarAxiosArgs = RequestBuilder(request, { ...configuration.baseOptions, ...options });
-      return createStreamingRequestFunction(localVarAxiosArgs, globalAxios, configuration, credentials, {
+      return createStreamingRequestFunction(localVarAxiosArgs, globalHttpClient, configuration, credentials, {
         [TelemetryAttribute.FgaClientRequestMethod]: request.operationName,
         [TelemetryAttribute.FgaClientRequestStoreId]: request.pathParams?.["store_id"] ?? "",
         ...TelemetryAttributes.fromRequestBody(request.body),
@@ -500,7 +500,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
  * OpenFgaApi - factory interface
  * @export
  */
-export const OpenFgaApiFactory = function (configuration: Configuration, credentials: Credentials, axios?: AxiosInstance) {
+export const OpenFgaApiFactory = function (configuration: Configuration, credentials: Credentials, httpClient?: HttpClient) {
   const localVarFp = OpenFgaApiFp(configuration, credentials);
   return {
     /**
@@ -512,7 +512,7 @@ export const OpenFgaApiFactory = function (configuration: Configuration, credent
          * @throws { FgaError }
          */
     batchCheck(storeId: string, body: BatchCheckRequest, options?: any): PromiseResult<BatchCheckResponse> {
-      return localVarFp.batchCheck(storeId, body, options).then((request) => request(axios));
+      return localVarFp.batchCheck(storeId, body, options).then((request) => request(httpClient));
     },
     /**
          * The Check API returns whether a given user has a relationship with a given object in a given store. The `user` field of the request can be a specific target, such as `user:anne`, or a userset (set of users) such as `group:marketing#member` or a type-bound public access `user:*`. To arrive at a result, the API uses: an authorization model, explicit tuples written through the Write API, contextual tuples present in the request, and implicit tuples that exist by virtue of applying set theory (such as `document:2021-budget#viewer@document:2021-budget#viewer`; the set of users who are viewers of `document:2021-budget` are the set of users who are the viewers of `document:2021-budget`). A `contextual_tuples` object may also be included in the body of the request. This object contains one field `tuple_keys`, which is an array of tuple keys. Each of these tuples may have an associated `condition`. You may also provide an `authorization_model_id` in the body. This will be used to assert that the input `tuple_key` is valid for the model specified. If not specified, the assertion will be made against the latest authorization model ID. It is strongly recommended to specify authorization model id for better performance. You may also provide a `context` object that will be used to evaluate the conditioned tuples in the system. It is strongly recommended to provide a value for all the input parameters of all the conditions, to ensure that all tuples be evaluated correctly. By default, the Check API caches results for a short time to optimize performance. You may specify a value of `HIGHER_CONSISTENCY` for the optional `consistency` parameter in the body to inform the server that higher conisistency is preferred at the expense of increased latency. Consideration should be given to the increased latency if requesting higher consistency. The response will return whether the relationship exists in the field `allowed`.  Some exceptions apply, but in general, if a Check API responds with `{allowed: true}`, then you can expect the equivalent ListObjects query to return the object, and viceversa.  For example, if `Check(user:anne, reader, document:2021-budget)` responds with `{allowed: true}`, then `ListObjects(user:anne, reader, document)` may include `document:2021-budget` in the response. ## Examples ### Querying with contextual tuples In order to check if user `user:anne` of type `user` has a `reader` relationship with object `document:2021-budget` given the following contextual tuple ```json {   \"user\": \"user:anne\",   \"relation\": \"member\",   \"object\": \"time_slot:office_hours\" } ``` the Check API can be used with the following request body: ```json {   \"tuple_key\": {     \"user\": \"user:anne\",     \"relation\": \"reader\",     \"object\": \"document:2021-budget\"   },   \"contextual_tuples\": {     \"tuple_keys\": [       {         \"user\": \"user:anne\",         \"relation\": \"member\",         \"object\": \"time_slot:office_hours\"       }     ]   },   \"authorization_model_id\": \"01G50QVV17PECNVAHX1GG4Y5NC\" } ``` ### Querying usersets Some Checks will always return `true`, even without any tuples. For example, for the following authorization model ```python model   schema 1.1 type user type document   relations     define reader: [user] ``` the following query ```json {   \"tuple_key\": {      \"user\": \"document:2021-budget#reader\",      \"relation\": \"reader\",      \"object\": \"document:2021-budget\"   } } ``` will always return `{ \"allowed\": true }`. This is because usersets are self-defining: the userset `document:2021-budget#reader` will always have the `reader` relation with `document:2021-budget`. ### Querying usersets with difference in the model A Check for a userset can yield results that must be treated carefully if the model involves difference. For example, for the following authorization model ```python model   schema 1.1 type user type group   relations     define member: [user] type document   relations     define blocked: [user]     define reader: [group#member] but not blocked ``` the following query ```json {   \"tuple_key\": {      \"user\": \"group:finance#member\",      \"relation\": \"reader\",      \"object\": \"document:2021-budget\"   },   \"contextual_tuples\": {     \"tuple_keys\": [       {         \"user\": \"user:anne\",         \"relation\": \"member\",         \"object\": \"group:finance\"       },       {         \"user\": \"group:finance#member\",         \"relation\": \"reader\",         \"object\": \"document:2021-budget\"       },       {         \"user\": \"user:anne\",         \"relation\": \"blocked\",         \"object\": \"document:2021-budget\"       }     ]   }, } ``` will return `{ \"allowed\": true }`, even though a specific user of the userset `group:finance#member` does not have the `reader` relationship with the given object. ### Requesting higher consistency By default, the Check API caches results for a short time to optimize performance. You may request higher consistency to inform the server that higher consistency should be preferred at the expense of increased latency. Care should be taken when requesting higher consistency due to the increased latency. ```json {   \"tuple_key\": {      \"user\": \"group:finance#member\",      \"relation\": \"reader\",      \"object\": \"document:2021-budget\"   },   \"consistency\": \"HIGHER_CONSISTENCY\" } ``` 
@@ -523,7 +523,7 @@ export const OpenFgaApiFactory = function (configuration: Configuration, credent
          * @throws { FgaError }
          */
     check(storeId: string, body: CheckRequest, options?: any): PromiseResult<CheckResponse> {
-      return localVarFp.check(storeId, body, options).then((request) => request(axios));
+      return localVarFp.check(storeId, body, options).then((request) => request(httpClient));
     },
     /**
          * Create a unique OpenFGA store which will be used to store authorization models and relationship tuples.
@@ -533,7 +533,7 @@ export const OpenFgaApiFactory = function (configuration: Configuration, credent
          * @throws { FgaError }
          */
     createStore(body: CreateStoreRequest, options?: any): PromiseResult<CreateStoreResponse> {
-      return localVarFp.createStore(body, options).then((request) => request(axios));
+      return localVarFp.createStore(body, options).then((request) => request(httpClient));
     },
     /**
          * Delete an OpenFGA store. This does not delete the data associated with the store, like tuples or authorization models.
@@ -543,7 +543,7 @@ export const OpenFgaApiFactory = function (configuration: Configuration, credent
          * @throws { FgaError }
          */
     deleteStore(storeId: string, options?: any): PromiseResult<void> {
-      return localVarFp.deleteStore(storeId, options).then((request) => request(axios));
+      return localVarFp.deleteStore(storeId, options).then((request) => request(httpClient));
     },
     /**
          * The Expand API will return all users and usersets that have certain relationship with an object in a certain store. This is different from the `/stores/{store_id}/read` API in that both users and computed usersets are returned. Body parameters `tuple_key.object` and `tuple_key.relation` are all required. A `contextual_tuples` object may also be included in the body of the request. This object contains one field `tuple_keys`, which is an array of tuple keys. Each of these tuples may have an associated `condition`. The response will return a tree whose leaves are the specific users and usersets. Union, intersection and difference operator are located in the intermediate nodes.  ## Example To expand all users that have the `reader` relationship with object `document:2021-budget`, use the Expand API with the following request body ```json {   \"tuple_key\": {     \"object\": \"document:2021-budget\",     \"relation\": \"reader\"   },   \"authorization_model_id\": \"01G50QVV17PECNVAHX1GG4Y5NC\" } ``` OpenFGA\'s response will be a userset tree of the users and usersets that have read access to the document. ```json {   \"tree\":{     \"root\":{       \"type\":\"document:2021-budget#reader\",       \"union\":{         \"nodes\":[           {             \"type\":\"document:2021-budget#reader\",             \"leaf\":{               \"users\":{                 \"users\":[                   \"user:bob\"                 ]               }             }           },           {             \"type\":\"document:2021-budget#reader\",             \"leaf\":{               \"computed\":{                 \"userset\":\"document:2021-budget#writer\"               }             }           }         ]       }     }   } } ``` The caller can then call expand API for the `writer` relationship for the `document:2021-budget`. ### Expand Request with Contextual Tuples  Given the model ```python model     schema 1.1  type user  type folder     relations         define owner: [user]  type document     relations         define parent: [folder]         define viewer: [user] or writer         define writer: [user] or owner from parent ``` and the initial tuples ```json [{     \"user\": \"user:bob\",     \"relation\": \"owner\",     \"object\": \"folder:1\" }] ```  To expand all `writers` of `document:1` when `document:1` is put in `folder:1`, the first call could be  ```json {   \"tuple_key\": {     \"object\": \"document:1\",     \"relation\": \"writer\"   },   \"contextual_tuples\": {     \"tuple_keys\": [       {         \"user\": \"folder:1\",         \"relation\": \"parent\",         \"object\": \"document:1\"       }     ]   } } ``` this returns: ```json {   \"tree\": {     \"root\": {       \"name\": \"document:1#writer\",       \"union\": {         \"nodes\": [           {             \"name\": \"document:1#writer\",             \"leaf\": {               \"users\": {                 \"users\": []               }             }           },           {             \"name\": \"document:1#writer\",             \"leaf\": {               \"tupleToUserset\": {                 \"tupleset\": \"document:1#parent\",                 \"computed\": [                   {                     \"userset\": \"folder:1#owner\"                   }                 ]               }             }           }         ]       }     }   } } ``` This tells us that the `owner` of `folder:1` may also be a writer. So our next call could be to find the `owners` of `folder:1` ```json {   \"tuple_key\": {     \"object\": \"folder:1\",     \"relation\": \"owner\"   } } ``` which gives ```json {   \"tree\": {     \"root\": {       \"name\": \"folder:1#owner\",       \"leaf\": {         \"users\": {           \"users\": [             \"user:bob\"           ]         }       }     }   } } ``` 
@@ -554,7 +554,7 @@ export const OpenFgaApiFactory = function (configuration: Configuration, credent
          * @throws { FgaError }
          */
     expand(storeId: string, body: ExpandRequest, options?: any): PromiseResult<ExpandResponse> {
-      return localVarFp.expand(storeId, body, options).then((request) => request(axios));
+      return localVarFp.expand(storeId, body, options).then((request) => request(httpClient));
     },
     /**
          * Returns an OpenFGA store by its identifier
@@ -564,7 +564,7 @@ export const OpenFgaApiFactory = function (configuration: Configuration, credent
          * @throws { FgaError }
          */
     getStore(storeId: string, options?: any): PromiseResult<GetStoreResponse> {
-      return localVarFp.getStore(storeId, options).then((request) => request(axios));
+      return localVarFp.getStore(storeId, options).then((request) => request(httpClient));
     },
     /**
          * The ListObjects API returns a list of all the objects of the given type that the user has a relation with.  To arrive at a result, the API uses: an authorization model, explicit tuples written through the Write API, contextual tuples present in the request, and implicit tuples that exist by virtue of applying set theory (such as `document:2021-budget#viewer@document:2021-budget#viewer`; the set of users who are viewers of `document:2021-budget` are the set of users who are the viewers of `document:2021-budget`). An `authorization_model_id` may be specified in the body. If it is not specified, the latest authorization model ID will be used. It is strongly recommended to specify authorization model id for better performance. You may also specify `contextual_tuples` that will be treated as regular tuples. Each of these tuples may have an associated `condition`. You may also provide a `context` object that will be used to evaluate the conditioned tuples in the system. It is strongly recommended to provide a value for all the input parameters of all the conditions, to ensure that all tuples be evaluated correctly. By default, the Check API caches results for a short time to optimize performance. You may specify a value of `HIGHER_CONSISTENCY` for the optional `consistency` parameter in the body to inform the server that higher conisistency is preferred at the expense of increased latency. Consideration should be given to the increased latency if requesting higher consistency. The response will contain the related objects in an array in the \"objects\" field of the response and they will be strings in the object format `<type>:<id>` (e.g. \"document:roadmap\"). The number of objects in the response array will be limited by the execution timeout specified in the flag OPENFGA_LIST_OBJECTS_DEADLINE and by the upper bound specified in the flag OPENFGA_LIST_OBJECTS_MAX_RESULTS, whichever is hit first. The objects given will not be sorted, and therefore two identical calls can give a given different set of objects.
@@ -575,7 +575,7 @@ export const OpenFgaApiFactory = function (configuration: Configuration, credent
          * @throws { FgaError }
          */
     listObjects(storeId: string, body: ListObjectsRequest, options?: any): PromiseResult<ListObjectsResponse> {
-      return localVarFp.listObjects(storeId, body, options).then((request) => request(axios));
+      return localVarFp.listObjects(storeId, body, options).then((request) => request(httpClient));
     },
     /**
        * The Streamed ListObjects API is very similar to the ListObjects API, with two differences:
@@ -588,7 +588,7 @@ export const OpenFgaApiFactory = function (configuration: Configuration, credent
        * @throws { FgaError }
        */
     streamedListObjects(storeId: string, body: ListObjectsRequest, options?: any): Promise<any> {
-      return localVarFp.streamedListObjects(storeId, body, options).then((request) => request(axios));
+      return localVarFp.streamedListObjects(storeId, body, options).then((request) => request(httpClient));
     },
     /**
          * Returns a paginated list of OpenFGA stores and a continuation token to get additional stores. The continuation token will be empty if there are no more stores. 
@@ -600,7 +600,7 @@ export const OpenFgaApiFactory = function (configuration: Configuration, credent
          * @throws { FgaError }
          */
     listStores(pageSize?: number, continuationToken?: string, name?: string, options?: any): PromiseResult<ListStoresResponse> {
-      return localVarFp.listStores(pageSize, continuationToken, name, options).then((request) => request(axios));
+      return localVarFp.listStores(pageSize, continuationToken, name, options).then((request) => request(httpClient));
     },
     /**
          * The ListUsers API returns a list of all the users of a specific type that have a relation to a given object.  To arrive at a result, the API uses: an authorization model, explicit tuples written through the Write API, contextual tuples present in the request, and implicit tuples that exist by virtue of applying set theory (such as `document:2021-budget#viewer@document:2021-budget#viewer`; the set of users who are viewers of `document:2021-budget` are the set of users who are the viewers of `document:2021-budget`). An `authorization_model_id` may be specified in the body. If it is not specified, the latest authorization model ID will be used. It is strongly recommended to specify authorization model id for better performance. You may also specify `contextual_tuples` that will be treated as regular tuples. Each of these tuples may have an associated `condition`. You may also provide a `context` object that will be used to evaluate the conditioned tuples in the system. It is strongly recommended to provide a value for all the input parameters of all the conditions, to ensure that all tuples be evaluated correctly. The response will contain the related users in an array in the \"users\" field of the response. These results may include specific objects, usersets  or type-bound public access. Each of these types of results is encoded in its own type and not represented as a string.In cases where a type-bound public access result is returned (e.g. `user:*`), it cannot be inferred that all subjects of that type have a relation to the object; it is possible that negations exist and checks should still be queried on individual subjects to ensure access to that document.The number of users in the response array will be limited by the execution timeout specified in the flag OPENFGA_LIST_USERS_DEADLINE and by the upper bound specified in the flag OPENFGA_LIST_USERS_MAX_RESULTS, whichever is hit first. The returned users will not be sorted, and therefore two identical calls may yield different sets of users.
@@ -611,7 +611,7 @@ export const OpenFgaApiFactory = function (configuration: Configuration, credent
          * @throws { FgaError }
          */
     listUsers(storeId: string, body: ListUsersRequest, options?: any): PromiseResult<ListUsersResponse> {
-      return localVarFp.listUsers(storeId, body, options).then((request) => request(axios));
+      return localVarFp.listUsers(storeId, body, options).then((request) => request(httpClient));
     },
     /**
          * The Read API will return the tuples for a certain store that match a query filter specified in the body of the request.  The API doesn\'t guarantee order by any field.  It is different from the `/stores/{store_id}/expand` API in that it only returns relationship tuples that are stored in the system and satisfy the query.  In the body: 1. `tuple_key` is optional. If not specified, it will return all tuples in the store. 2. `tuple_key.object` is mandatory if `tuple_key` is specified. It can be a full object (e.g., `type:object_id`) or type only (e.g., `type:`). 3. `tuple_key.user` is mandatory if tuple_key is specified in the case the `tuple_key.object` is a type only. If tuple_key.user is specified, it needs to be a full object (e.g., `type:user_id`). ## Examples ### Query for all objects in a type definition To query for all objects that `user:bob` has `reader` relationship in the `document` type definition, call read API with body of ```json {  \"tuple_key\": {      \"user\": \"user:bob\",      \"relation\": \"reader\",      \"object\": \"document:\"   } } ``` The API will return tuples and a continuation token, something like ```json {   \"tuples\": [     {       \"key\": {         \"user\": \"user:bob\",         \"relation\": \"reader\",         \"object\": \"document:2021-budget\"       },       \"timestamp\": \"2021-10-06T15:32:11.128Z\"     }   ],   \"continuation_token\": \"eyJwayI6IkxBVEVTVF9OU0NPTkZJR19hdXRoMHN0b3JlIiwic2siOiIxem1qbXF3MWZLZExTcUoyN01MdTdqTjh0cWgifQ==\" } ``` This means that `user:bob` has a `reader` relationship with 1 document `document:2021-budget`. Note that this API, unlike the List Objects API, does not evaluate the tuples in the store. The continuation token will be empty if there are no more tuples to query. ### Query for all stored relationship tuples that have a particular relation and object To query for all users that have `reader` relationship with `document:2021-budget`, call read API with body of  ```json {   \"tuple_key\": {      \"object\": \"document:2021-budget\",      \"relation\": \"reader\"    } } ``` The API will return something like  ```json {   \"tuples\": [     {       \"key\": {         \"user\": \"user:bob\",         \"relation\": \"reader\",         \"object\": \"document:2021-budget\"       },       \"timestamp\": \"2021-10-06T15:32:11.128Z\"     }   ],   \"continuation_token\": \"eyJwayI6IkxBVEVTVF9OU0NPTkZJR19hdXRoMHN0b3JlIiwic2siOiIxem1qbXF3MWZLZExTcUoyN01MdTdqTjh0cWgifQ==\" } ``` This means that `document:2021-budget` has 1 `reader` (`user:bob`).  Note that, even if the model said that all `writers` are also `readers`, the API will not return writers such as `user:anne` because it only returns tuples and does not evaluate them. ### Query for all users with all relationships for a particular document To query for all users that have any relationship with `document:2021-budget`, call read API with body of  ```json {   \"tuple_key\": {       \"object\": \"document:2021-budget\"    } } ``` The API will return something like  ```json {   \"tuples\": [     {       \"key\": {         \"user\": \"user:anne\",         \"relation\": \"writer\",         \"object\": \"document:2021-budget\"       },       \"timestamp\": \"2021-10-05T13:42:12.356Z\"     },     {       \"key\": {         \"user\": \"user:bob\",         \"relation\": \"reader\",         \"object\": \"document:2021-budget\"       },       \"timestamp\": \"2021-10-06T15:32:11.128Z\"     }   ],   \"continuation_token\": \"eyJwayI6IkxBVEVTVF9OU0NPTkZJR19hdXRoMHN0b3JlIiwic2siOiIxem1qbXF3MWZLZExTcUoyN01MdTdqTjh0cWgifQ==\" } ``` This means that `document:2021-budget` has 1 `reader` (`user:bob`) and 1 `writer` (`user:anne`). 
@@ -622,7 +622,7 @@ export const OpenFgaApiFactory = function (configuration: Configuration, credent
          * @throws { FgaError }
          */
     read(storeId: string, body: ReadRequest, options?: any): PromiseResult<ReadResponse> {
-      return localVarFp.read(storeId, body, options).then((request) => request(axios));
+      return localVarFp.read(storeId, body, options).then((request) => request(httpClient));
     },
     /**
          * The ReadAssertions API will return, for a given authorization model id, all the assertions stored for it. 
@@ -633,7 +633,7 @@ export const OpenFgaApiFactory = function (configuration: Configuration, credent
          * @throws { FgaError }
          */
     readAssertions(storeId: string, authorizationModelId: string, options?: any): PromiseResult<ReadAssertionsResponse> {
-      return localVarFp.readAssertions(storeId, authorizationModelId, options).then((request) => request(axios));
+      return localVarFp.readAssertions(storeId, authorizationModelId, options).then((request) => request(httpClient));
     },
     /**
          * The ReadAuthorizationModel API returns an authorization model by its identifier. The response will return the authorization model for the particular version.  ## Example To retrieve the authorization model with ID `01G5JAVJ41T49E9TT3SKVS7X1J` for the store, call the GET authorization-models by ID API with `01G5JAVJ41T49E9TT3SKVS7X1J` as the `id` path parameter.  The API will return: ```json {   \"authorization_model\":{     \"id\":\"01G5JAVJ41T49E9TT3SKVS7X1J\",     \"type_definitions\":[       {         \"type\":\"user\"       },       {         \"type\":\"document\",         \"relations\":{           \"reader\":{             \"union\":{               \"child\":[                 {                   \"this\":{}                 },                 {                   \"computedUserset\":{                     \"object\":\"\",                     \"relation\":\"writer\"                   }                 }               ]             }           },           \"writer\":{             \"this\":{}           }         }       }     ]   } } ``` In the above example, there are 2 types (`user` and `document`). The `document` type has 2 relations (`writer` and `reader`).
@@ -644,7 +644,7 @@ export const OpenFgaApiFactory = function (configuration: Configuration, credent
          * @throws { FgaError }
          */
     readAuthorizationModel(storeId: string, id: string, options?: any): PromiseResult<ReadAuthorizationModelResponse> {
-      return localVarFp.readAuthorizationModel(storeId, id, options).then((request) => request(axios));
+      return localVarFp.readAuthorizationModel(storeId, id, options).then((request) => request(httpClient));
     },
     /**
          * The ReadAuthorizationModels API will return all the authorization models for a certain store. OpenFGA\'s response will contain an array of all authorization models, sorted in descending order of creation.  ## Example Assume that a store\'s authorization model has been configured twice. To get all the authorization models that have been created in this store, call GET authorization-models. The API will return a response that looks like: ```json {   \"authorization_models\": [     {       \"id\": \"01G50QVV17PECNVAHX1GG4Y5NC\",       \"type_definitions\": [...]     },     {       \"id\": \"01G4ZW8F4A07AKQ8RHSVG9RW04\",       \"type_definitions\": [...]     },   ],   \"continuation_token\": \"eyJwayI6IkxBVEVTVF9OU0NPTkZJR19hdXRoMHN0b3JlIiwic2siOiIxem1qbXF3MWZLZExTcUoyN01MdTdqTjh0cWgifQ==\" } ``` If there are no more authorization models available, the `continuation_token` field will be empty ```json {   \"authorization_models\": [     {       \"id\": \"01G50QVV17PECNVAHX1GG4Y5NC\",       \"type_definitions\": [...]     },     {       \"id\": \"01G4ZW8F4A07AKQ8RHSVG9RW04\",       \"type_definitions\": [...]     },   ],   \"continuation_token\": \"\" } ``` 
@@ -656,7 +656,7 @@ export const OpenFgaApiFactory = function (configuration: Configuration, credent
          * @throws { FgaError }
          */
     readAuthorizationModels(storeId: string, pageSize?: number, continuationToken?: string, options?: any): PromiseResult<ReadAuthorizationModelsResponse> {
-      return localVarFp.readAuthorizationModels(storeId, pageSize, continuationToken, options).then((request) => request(axios));
+      return localVarFp.readAuthorizationModels(storeId, pageSize, continuationToken, options).then((request) => request(httpClient));
     },
     /**
          * The ReadChanges API will return a paginated list of tuple changes (additions and deletions) that occurred in a given store, sorted by ascending time. The response will include a continuation token that is used to get the next set of changes. If there are no changes after the provided continuation token, the same token will be returned in order for it to be used when new changes are recorded. If the store never had any tuples added or removed, this token will be empty. You can use the `type` parameter to only get the list of tuple changes that affect objects of that type. When reading a write tuple change, if it was conditioned, the condition will be returned. When reading a delete tuple change, the condition will NOT be returned regardless of whether it was originally conditioned or not. 
@@ -670,7 +670,7 @@ export const OpenFgaApiFactory = function (configuration: Configuration, credent
          * @throws { FgaError }
          */
     readChanges(storeId: string, type?: string, pageSize?: number, continuationToken?: string, startTime?: string, options?: any): PromiseResult<ReadChangesResponse> {
-      return localVarFp.readChanges(storeId, type, pageSize, continuationToken, startTime, options).then((request) => request(axios));
+      return localVarFp.readChanges(storeId, type, pageSize, continuationToken, startTime, options).then((request) => request(httpClient));
     },
     /**
          * The Write API will transactionally update the tuples for a certain store. Tuples and type definitions allow OpenFGA to determine whether a relationship exists between an object and an user. In the body, `writes` adds new tuples and `deletes` removes existing tuples. When deleting a tuple, any `condition` specified with it is ignored. The API is not idempotent by default: if, later on, you try to add the same tuple key (even if the `condition` is different), or if you try to delete a non-existing tuple, it will throw an error. To allow writes when an identical tuple already exists in the database, set `\"on_duplicate\": \"ignore\"` on the `writes` object. To allow deletes when a tuple was already removed from the database, set `\"on_missing\": \"ignore\"` on the `deletes` object. If a Write request contains both idempotent (ignore) and non-idempotent (error) operations, the most restrictive action (error) will take precedence. If a condition fails for a sub-request with an error flag, the entire transaction will be rolled back. This gives developers explicit control over the atomicity of the requests. The API will not allow you to write tuples such as `document:2021-budget#viewer@document:2021-budget#viewer`, because they are implicit. An `authorization_model_id` may be specified in the body. If it is, it will be used to assert that each written tuple (not deleted) is valid for the model specified. If it is not specified, the latest authorization model ID will be used. ## Example ### Adding relationships To add `user:anne` as a `writer` for `document:2021-budget`, call write API with the following  ```json {   \"writes\": {     \"tuple_keys\": [       {         \"user\": \"user:anne\",         \"relation\": \"writer\",         \"object\": \"document:2021-budget\"       }     ],     \"on_duplicate\": \"ignore\"   },   \"authorization_model_id\": \"01G50QVV17PECNVAHX1GG4Y5NC\" } ``` ### Removing relationships To remove `user:bob` as a `reader` for `document:2021-budget`, call write API with the following  ```json {   \"deletes\": {     \"tuple_keys\": [       {         \"user\": \"user:bob\",         \"relation\": \"reader\",         \"object\": \"document:2021-budget\"       }     ],     \"on_missing\": \"ignore\"   } } ``` 
@@ -681,7 +681,7 @@ export const OpenFgaApiFactory = function (configuration: Configuration, credent
          * @throws { FgaError }
          */
     write(storeId: string, body: WriteRequest, options?: any): PromiseResult<object> {
-      return localVarFp.write(storeId, body, options).then((request) => request(axios));
+      return localVarFp.write(storeId, body, options).then((request) => request(httpClient));
     },
     /**
          * The WriteAssertions API will upsert new assertions for an authorization model id, or overwrite the existing ones. An assertion is an object that contains a tuple key, the expectation of whether a call to the Check API of that tuple key will return true or false, and optionally a list of contextual tuples.
@@ -693,7 +693,7 @@ export const OpenFgaApiFactory = function (configuration: Configuration, credent
          * @throws { FgaError }
          */
     writeAssertions(storeId: string, authorizationModelId: string, body: WriteAssertionsRequest, options?: any): PromiseResult<void> {
-      return localVarFp.writeAssertions(storeId, authorizationModelId, body, options).then((request) => request(axios));
+      return localVarFp.writeAssertions(storeId, authorizationModelId, body, options).then((request) => request(httpClient));
     },
     /**
          * The WriteAuthorizationModel API will add a new authorization model to a store. Each item in the `type_definitions` array is a type definition as specified in the field `type_definition`. The response will return the authorization model\'s ID in the `id` field.  ## Example To add an authorization model with `user` and `document` type definitions, call POST authorization-models API with the body:  ```json {   \"type_definitions\":[     {       \"type\":\"user\"     },     {       \"type\":\"document\",       \"relations\":{         \"reader\":{           \"union\":{             \"child\":[               {                 \"this\":{}               },               {                 \"computedUserset\":{                   \"object\":\"\",                   \"relation\":\"writer\"                 }               }             ]           }         },         \"writer\":{           \"this\":{}         }       }     }   ] } ``` OpenFGA\'s response will include the version id for this authorization model, which will look like  ``` {\"authorization_model_id\": \"01G50QVV17PECNVAHX1GG4Y5NC\"} ``` 
@@ -704,7 +704,7 @@ export const OpenFgaApiFactory = function (configuration: Configuration, credent
          * @throws { FgaError }
          */
     writeAuthorizationModel(storeId: string, body: WriteAuthorizationModelRequest, options?: any): PromiseResult<WriteAuthorizationModelResponse> {
-      return localVarFp.writeAuthorizationModel(storeId, body, options).then((request) => request(axios));
+      return localVarFp.writeAuthorizationModel(storeId, body, options).then((request) => request(httpClient));
     },
     /**
          * Make a raw HTTP request to an arbitrary API endpoint.
@@ -716,10 +716,10 @@ export const OpenFgaApiFactory = function (configuration: Configuration, credent
          * @throws { FgaError }
          */
     executeApiRequest<T extends object | void = object>(request: RequestBuilderParams, options?: any): PromiseResult<T> {
-      return localVarFp.executeApiRequest<T>(request, options).then((request) => request(axios));
+      return localVarFp.executeApiRequest<T>(request, options).then((request) => request(httpClient));
     },
     executeStreamedApiRequest(request: RequestBuilderParams, options?: any): Promise<any> {
-      return localVarFp.executeStreamedApiRequest(request, options).then((request) => request(axios));
+      return localVarFp.executeStreamedApiRequest(request, options).then((request) => request(httpClient));
     },
   };
 };
@@ -741,7 +741,7 @@ export class OpenFgaApi extends BaseAPI {
      * @memberof OpenFgaApi
      */
   public batchCheck(storeId: string, body: BatchCheckRequest, options?: any): Promise<CallResult<BatchCheckResponse>> {
-    return OpenFgaApiFp(this.configuration, this.credentials).batchCheck(storeId, body, options).then((request) => request(this.axios));
+    return OpenFgaApiFp(this.configuration, this.credentials).batchCheck(storeId, body, options).then((request) => request(this.httpClient));
   }
 
   /**
@@ -754,7 +754,7 @@ export class OpenFgaApi extends BaseAPI {
      * @memberof OpenFgaApi
      */
   public check(storeId: string, body: CheckRequest, options?: any): Promise<CallResult<CheckResponse>> {
-    return OpenFgaApiFp(this.configuration, this.credentials).check(storeId, body, options).then((request) => request(this.axios));
+    return OpenFgaApiFp(this.configuration, this.credentials).check(storeId, body, options).then((request) => request(this.httpClient));
   }
 
   /**
@@ -766,7 +766,7 @@ export class OpenFgaApi extends BaseAPI {
      * @memberof OpenFgaApi
      */
   public createStore(body: CreateStoreRequest, options?: any): Promise<CallResult<CreateStoreResponse>> {
-    return OpenFgaApiFp(this.configuration, this.credentials).createStore(body, options).then((request) => request(this.axios));
+    return OpenFgaApiFp(this.configuration, this.credentials).createStore(body, options).then((request) => request(this.httpClient));
   }
 
   /**
@@ -778,7 +778,7 @@ export class OpenFgaApi extends BaseAPI {
      * @memberof OpenFgaApi
      */
   public deleteStore(storeId: string, options?: any): Promise<CallResult<void>> {
-    return OpenFgaApiFp(this.configuration, this.credentials).deleteStore(storeId, options).then((request) => request(this.axios));
+    return OpenFgaApiFp(this.configuration, this.credentials).deleteStore(storeId, options).then((request) => request(this.httpClient));
   }
 
   /**
@@ -791,7 +791,7 @@ export class OpenFgaApi extends BaseAPI {
      * @memberof OpenFgaApi
      */
   public expand(storeId: string, body: ExpandRequest, options?: any): Promise<CallResult<ExpandResponse>> {
-    return OpenFgaApiFp(this.configuration, this.credentials).expand(storeId, body, options).then((request) => request(this.axios));
+    return OpenFgaApiFp(this.configuration, this.credentials).expand(storeId, body, options).then((request) => request(this.httpClient));
   }
 
   /**
@@ -803,7 +803,7 @@ export class OpenFgaApi extends BaseAPI {
      * @memberof OpenFgaApi
      */
   public getStore(storeId: string, options?: any): Promise<CallResult<GetStoreResponse>> {
-    return OpenFgaApiFp(this.configuration, this.credentials).getStore(storeId, options).then((request) => request(this.axios));
+    return OpenFgaApiFp(this.configuration, this.credentials).getStore(storeId, options).then((request) => request(this.httpClient));
   }
 
   /**
@@ -816,7 +816,7 @@ export class OpenFgaApi extends BaseAPI {
      * @memberof OpenFgaApi
      */
   public listObjects(storeId: string, body: ListObjectsRequest, options?: any): Promise<CallResult<ListObjectsResponse>> {
-    return OpenFgaApiFp(this.configuration, this.credentials).listObjects(storeId, body, options).then((request) => request(this.axios));
+    return OpenFgaApiFp(this.configuration, this.credentials).listObjects(storeId, body, options).then((request) => request(this.httpClient));
   }
 
   /**
@@ -830,7 +830,7 @@ export class OpenFgaApi extends BaseAPI {
      * @throws { FgaError }
      */
   public streamedListObjects(storeId: string, body: ListObjectsRequest, options?: any): Promise<any> {
-    return OpenFgaApiFp(this.configuration, this.credentials).streamedListObjects(storeId, body, options).then((request) => request(this.axios));
+    return OpenFgaApiFp(this.configuration, this.credentials).streamedListObjects(storeId, body, options).then((request) => request(this.httpClient));
   }
 
   /**
@@ -844,7 +844,7 @@ export class OpenFgaApi extends BaseAPI {
      * @memberof OpenFgaApi
      */
   public listStores(pageSize?: number, continuationToken?: string, name?: string, options?: any): Promise<CallResult<ListStoresResponse>> {
-    return OpenFgaApiFp(this.configuration, this.credentials).listStores(pageSize, continuationToken, name, options).then((request) => request(this.axios));
+    return OpenFgaApiFp(this.configuration, this.credentials).listStores(pageSize, continuationToken, name, options).then((request) => request(this.httpClient));
   }
 
   /**
@@ -857,7 +857,7 @@ export class OpenFgaApi extends BaseAPI {
      * @memberof OpenFgaApi
      */
   public listUsers(storeId: string, body: ListUsersRequest, options?: any): Promise<CallResult<ListUsersResponse>> {
-    return OpenFgaApiFp(this.configuration, this.credentials).listUsers(storeId, body, options).then((request) => request(this.axios));
+    return OpenFgaApiFp(this.configuration, this.credentials).listUsers(storeId, body, options).then((request) => request(this.httpClient));
   }
 
   /**
@@ -870,7 +870,7 @@ export class OpenFgaApi extends BaseAPI {
      * @memberof OpenFgaApi
      */
   public read(storeId: string, body: ReadRequest, options?: any): Promise<CallResult<ReadResponse>> {
-    return OpenFgaApiFp(this.configuration, this.credentials).read(storeId, body, options).then((request) => request(this.axios));
+    return OpenFgaApiFp(this.configuration, this.credentials).read(storeId, body, options).then((request) => request(this.httpClient));
   }
 
   /**
@@ -883,7 +883,7 @@ export class OpenFgaApi extends BaseAPI {
      * @memberof OpenFgaApi
      */
   public readAssertions(storeId: string, authorizationModelId: string, options?: any): Promise<CallResult<ReadAssertionsResponse>> {
-    return OpenFgaApiFp(this.configuration, this.credentials).readAssertions(storeId, authorizationModelId, options).then((request) => request(this.axios));
+    return OpenFgaApiFp(this.configuration, this.credentials).readAssertions(storeId, authorizationModelId, options).then((request) => request(this.httpClient));
   }
 
   /**
@@ -896,7 +896,7 @@ export class OpenFgaApi extends BaseAPI {
      * @memberof OpenFgaApi
      */
   public readAuthorizationModel(storeId: string, id: string, options?: any): Promise<CallResult<ReadAuthorizationModelResponse>> {
-    return OpenFgaApiFp(this.configuration, this.credentials).readAuthorizationModel(storeId, id, options).then((request) => request(this.axios));
+    return OpenFgaApiFp(this.configuration, this.credentials).readAuthorizationModel(storeId, id, options).then((request) => request(this.httpClient));
   }
 
   /**
@@ -910,7 +910,7 @@ export class OpenFgaApi extends BaseAPI {
      * @memberof OpenFgaApi
      */
   public readAuthorizationModels(storeId: string, pageSize?: number, continuationToken?: string, options?: any): Promise<CallResult<ReadAuthorizationModelsResponse>> {
-    return OpenFgaApiFp(this.configuration, this.credentials).readAuthorizationModels(storeId, pageSize, continuationToken, options).then((request) => request(this.axios));
+    return OpenFgaApiFp(this.configuration, this.credentials).readAuthorizationModels(storeId, pageSize, continuationToken, options).then((request) => request(this.httpClient));
   }
 
   /**
@@ -926,7 +926,7 @@ export class OpenFgaApi extends BaseAPI {
      * @memberof OpenFgaApi
      */
   public readChanges(storeId: string, type?: string, pageSize?: number, continuationToken?: string, startTime?: string, options?: any): Promise<CallResult<ReadChangesResponse>> {
-    return OpenFgaApiFp(this.configuration, this.credentials).readChanges(storeId, type, pageSize, continuationToken, startTime, options).then((request) => request(this.axios));
+    return OpenFgaApiFp(this.configuration, this.credentials).readChanges(storeId, type, pageSize, continuationToken, startTime, options).then((request) => request(this.httpClient));
   }
 
   /**
@@ -939,7 +939,7 @@ export class OpenFgaApi extends BaseAPI {
      * @memberof OpenFgaApi
      */
   public write(storeId: string, body: WriteRequest, options?: any): Promise<CallResult<object>> {
-    return OpenFgaApiFp(this.configuration, this.credentials).write(storeId, body, options).then((request) => request(this.axios));
+    return OpenFgaApiFp(this.configuration, this.credentials).write(storeId, body, options).then((request) => request(this.httpClient));
   }
 
   /**
@@ -953,7 +953,7 @@ export class OpenFgaApi extends BaseAPI {
      * @memberof OpenFgaApi
      */
   public writeAssertions(storeId: string, authorizationModelId: string, body: WriteAssertionsRequest, options?: any): Promise<CallResult<void>> {
-    return OpenFgaApiFp(this.configuration, this.credentials).writeAssertions(storeId, authorizationModelId, body, options).then((request) => request(this.axios));
+    return OpenFgaApiFp(this.configuration, this.credentials).writeAssertions(storeId, authorizationModelId, body, options).then((request) => request(this.httpClient));
   }
 
   /**
@@ -966,7 +966,7 @@ export class OpenFgaApi extends BaseAPI {
      * @memberof OpenFgaApi
      */
   public writeAuthorizationModel(storeId: string, body: WriteAuthorizationModelRequest, options?: any): Promise<CallResult<WriteAuthorizationModelResponse>> {
-    return OpenFgaApiFp(this.configuration, this.credentials).writeAuthorizationModel(storeId, body, options).then((request) => request(this.axios));
+    return OpenFgaApiFp(this.configuration, this.credentials).writeAuthorizationModel(storeId, body, options).then((request) => request(this.httpClient));
   }
 
   /**
@@ -980,7 +980,7 @@ export class OpenFgaApi extends BaseAPI {
      * @memberof OpenFgaApi
      */
   public executeApiRequest<T extends object | void = object>(request: RequestBuilderParams, options?: any): Promise<CallResult<T>> {
-    return OpenFgaApiFp(this.configuration, this.credentials).executeApiRequest<T>(request, options).then((request) => request(this.axios));
+    return OpenFgaApiFp(this.configuration, this.credentials).executeApiRequest<T>(request, options).then((request) => request(this.httpClient));
   }
 
   /**
@@ -994,7 +994,7 @@ export class OpenFgaApi extends BaseAPI {
      * @memberof OpenFgaApi
      */
   public executeStreamedApiRequest(request: RequestBuilderParams, options?: any): Promise<CallResult<any>> {
-    return OpenFgaApiFp(this.configuration, this.credentials).executeStreamedApiRequest(request, options).then((request) => request(this.axios));
+    return OpenFgaApiFp(this.configuration, this.credentials).executeStreamedApiRequest(request, options).then((request) => request(this.httpClient));
   }
 }
 

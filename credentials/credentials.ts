@@ -11,12 +11,11 @@
  */
 
 
-import globalAxios, { AxiosInstance } from "axios";
 import * as jose from "jose";
 
 import { assertParamExists, isWellFormedUriString } from "../validation";
 import { FgaApiAuthenticationError, FgaApiError, FgaValidationError } from "../errors";
-import { attemptHttpRequest } from "../common";
+import { attemptHttpRequest, HttpClient } from "../common";
 import { AuthCredentialsConfig, PrivateKeyJWTConfig, ClientCredentialsConfig, ClientSecretConfig, CredentialsMethod } from "./types";
 import { TelemetryAttributes } from "../telemetry/attributes";
 import { TelemetryCounters } from "../telemetry/counters";
@@ -43,16 +42,21 @@ const HTTPS_SCHEME = "https://";
 
 export const DEFAULT_TOKEN_ENDPOINT_PATH = "oauth/token";
 
+const defaultHttpClient: HttpClient = {
+  fetch: globalThis.fetch.bind(globalThis),
+  defaultTimeout: 10000,
+};
+
 export class Credentials {
   private accessToken?: string;
   private accessTokenExpiryDate?: Date;
   private accessTokenExpiryBufferInMs = 0;
 
-  public static init(configuration: { credentials: AuthCredentialsConfig, telemetry: TelemetryConfiguration, baseOptions?: any }, axios: AxiosInstance = globalAxios): Credentials {
-    return new Credentials(configuration.credentials, axios, configuration.telemetry, configuration.baseOptions);
+  public static init(configuration: { credentials: AuthCredentialsConfig, telemetry: TelemetryConfiguration, baseOptions?: any }, httpClient: HttpClient = defaultHttpClient): Credentials {
+    return new Credentials(configuration.credentials, httpClient, configuration.telemetry, configuration.baseOptions);
   }
 
-  public constructor(private authConfig: AuthCredentialsConfig, private axios: AxiosInstance = globalAxios, private telemetryConfig: TelemetryConfiguration, private baseOptions?: any) {
+  public constructor(private authConfig: AuthCredentialsConfig, private httpClient: HttpClient = defaultHttpClient, private telemetryConfig: TelemetryConfiguration, private baseOptions?: any) {
     this.initConfig();
     this.isValid();
   }
@@ -208,7 +212,7 @@ export class Credentials {
       }, {
         maxRetry: 3,
         minWaitInMs: 100,
-      }, this.axios);
+      }, this.httpClient);
 
       const response = wrappedResponse?.response;
       if (response) {
