@@ -1,0 +1,36 @@
+name: release-please
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      bump-type:
+        description: >
+          Version bump type. Select 'explicit' to supply an exact version via
+          the 'release-version' field below. Select 'auto' to let
+          conventional-commits determine the bump automatically.
+        required: false
+        type: choice
+        default: 'auto'
+        options:
+          - auto
+          - patch
+          - minor
+          - major
+          - explicit
+      release-version:
+        description: >
+          Explicit version to release (e.g. 1.2.3 or 1.4.0-beta.1).
+        required: false
+        type: string
+
+jobs:
+  release:
+    uses: openfga/sdk-generator/.github/workflows/release-please.yml@main
+    with:
+      bump-type: ${{ inputs.bump-type || 'auto' }}
+      release-version: ${{ inputs.release-version || '' }}
+    secrets:
+      APP_ID: ${{ secrets.APP_ID }}
+      APP_PRIVATE_KEY: ${{ secrets.APP_PRIVATE_KEY }}
