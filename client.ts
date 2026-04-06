@@ -878,8 +878,8 @@ export class OpenFgaClient extends BaseAPI {
       consistency: options.consistency
     }, options);
 
-    // The streaming function returns a ReadableStream (fetch response.body)
-    const source = stream?.$response?.data ?? stream;
+    // The streaming function returns a raw ReadableStream (fetch response.body)
+    const source = stream;
 
     // Parse the stream (ReadableStream is AsyncIterable in Node 20+)
     try {

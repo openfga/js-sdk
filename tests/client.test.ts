@@ -1729,6 +1729,34 @@ describe("OpenFGA Client", () => {
         expect(scope.isDone()).toBe(true);
         expect(results).toEqual(objects);
       });
+
+      it("should receive raw stream from api.streamedListObjects (no $response envelope)", async () => {
+        const objects = ["document:1", "document:2"];
+        const scope = nocks.streamedListObjects(baseConfig.storeId!, objects);
+
+        // Call the lower-level API method directly to verify its return contract
+        const stream = await fgaClient.api.streamedListObjects(baseConfig.storeId!, {
+          user: "user:anne",
+          relation: "owner",
+          type: "document",
+        });
+
+        // The stream should be a raw value (ReadableStream or Node Readable), NOT a $response envelope
+        expect(stream).toBeDefined();
+        expect((stream as any)?.$response).toBeUndefined();
+
+        // Consume the stream to satisfy nock
+        if (stream && typeof stream[Symbol.asyncIterator] === "function") {
+          for await (const _ of stream) { /* drain */ }
+        } else if (stream && typeof stream.read === "function") {
+          await new Promise<void>((resolve) => {
+            stream.on("data", () => {});
+            stream.on("end", resolve);
+          });
+        }
+
+        expect(scope.isDone()).toBe(true);
+      });
     });
 
     describe("ListRelations", () => {
