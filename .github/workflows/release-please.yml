@@ -1,5 +1,8 @@
 name: release-please
 
+permissions:
+  contents: read
+
 on:
   push:
     branches: [main]
@@ -27,10 +30,19 @@ on:
 
 jobs:
   release:
+    permissions:
+      contents: write
+      pull-requests: write
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      startsWith(github.event.head_commit.message, 'release:')
     uses: openfga/sdk-generator/.github/workflows/release-please.yml@main
     with:
-      bump-type: ${{ inputs.bump-type || 'auto' }}
+      trigger-event:   ${{ github.event_name }}
+      bump-type:       ${{ inputs.bump-type || 'auto' }}
       release-version: ${{ inputs.release-version || '' }}
     secrets:
-      APP_ID: ${{ secrets.APP_ID }}
-      APP_PRIVATE_KEY: ${{ secrets.APP_PRIVATE_KEY }}
+      APP_ID:           ${{ secrets.APP_ID }}
+      APP_PRIVATE_KEY:  ${{ secrets.APP_PRIVATE_KEY }}
+      GPG_PRIVATE_KEY:  ${{ secrets.GPG_PRIVATE_KEY }}
+      GPG_PASSPHRASE:   ${{ secrets.GPG_PASSPHRASE }}
