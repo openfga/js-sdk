@@ -10,7 +10,7 @@ import {
   OPENFGA_CLIENT_ID,
   OPENFGA_CLIENT_SECRET,
 } from "./helpers/default-config";
-import {FgaValidationError} from "../errors";
+import {FgaApiAuthenticationError, FgaValidationError} from "../errors";
 
 describe("Credentials", () => {
   const mockTelemetryConfig: TelemetryConfiguration = new TelemetryConfiguration({});
@@ -535,6 +535,41 @@ describe("Credentials", () => {
       );
 
       await credentials.getAccessTokenHeader();
+
+      expect(scope.isDone()).toBe(true);
+    });
+
+    test("should throw FgaApiAuthenticationError (instanceof) when token endpoint returns non-auth error", async () => {
+      // Use 400 — this triggers FgaApiValidationError (non-retryable) in attemptHttpRequest.
+      // The credentials catch block must re-wrap it as FgaApiAuthenticationError
+      // so that callers using instanceof can detect auth failures.
+      const scope = nock("https://issuer.fga.example")
+        .post(`/${DEFAULT_TOKEN_ENDPOINT_PATH}`)
+        .reply(400, { code: "invalid_request", message: "bad token request" });
+
+      const credentials = new Credentials(
+        {
+          method: CredentialsMethod.ClientCredentials,
+          config: {
+            apiTokenIssuer: "issuer.fga.example",
+            apiAudience: OPENFGA_API_AUDIENCE,
+            clientId: OPENFGA_CLIENT_ID,
+            clientSecret: OPENFGA_CLIENT_SECRET,
+          },
+        } as AuthCredentialsConfig,
+        undefined,
+        mockTelemetryConfig,
+      );
+
+      try {
+        await credentials.getAccessTokenHeader();
+        fail("Expected an error to be thrown");
+      } catch (err) {
+        expect(err).toBeInstanceOf(FgaApiAuthenticationError);
+        expect((err as FgaApiAuthenticationError).clientId).toBe(OPENFGA_CLIENT_ID);
+        expect((err as FgaApiAuthenticationError).audience).toBe(OPENFGA_API_AUDIENCE);
+        expect((err as FgaApiAuthenticationError).grantType).toBe("client_credentials");
+      }
 
       expect(scope.isDone()).toBe(true);
     });

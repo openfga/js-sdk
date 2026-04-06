@@ -28,7 +28,7 @@ export interface UserConfigurationParams {
    */
   apiHost?: string;
   credentials?: CredentialsConfig;
-  baseOptions?: any;
+  baseOptions?: BaseOptions;
   retryParams?: RetryParams;
   telemetry?: TelemetryConfig;
 }
@@ -40,8 +40,8 @@ export function GetDefaultRetryParams (maxRetry: number = DEFAULT_MAX_RETRY, min
   };
 }
 
-interface BaseOptions {
-  headers: Record<string, string>;
+export interface BaseOptions {
+  headers?: Record<string, string>;
 }
 
 type CredentialsConfig =
@@ -90,9 +90,9 @@ export class Configuration {
    */
   apiHost: string;
   /**
-   * base options for axios calls
+   * base options for HTTP requests
    *
-   * @type {any}
+   * @type {BaseOptions}
    * @memberof Configuration
    */
   baseOptions?: BaseOptions;
