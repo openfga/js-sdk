@@ -244,6 +244,83 @@ describe("fetch-based HTTP client", () => {
       });
     });
 
+    describe("streaming timeout", () => {
+      it("should not attach an abort signal for stream requests without explicit timeout", async () => {
+        let capturedSignal: AbortSignal | null | undefined;
+        const stream = new ReadableStream({
+          start(controller) {
+            controller.enqueue(new TextEncoder().encode("{\"result\":\"ok\"}\n"));
+            controller.close();
+          },
+        });
+
+        const client = mockHttpClient(
+          async (_url, init) => {
+            capturedSignal = init?.signal;
+            return new Response(stream, { status: 200, headers: { "content-type": "application/json" } });
+          },
+          { defaultTimeout: 10000 }
+        );
+
+        await attemptHttpRequest(
+          { url: `${SdkConstants.TestApiUrl}/stream`, method: "POST", headers: {}, responseType: "stream" },
+          { maxRetry: 0, minWaitInMs: 100 },
+          client
+        );
+
+        // Stream requests without explicit timeout should NOT have a signal
+        expect(capturedSignal).toBeUndefined();
+      });
+
+      it("should attach an abort signal for stream requests with explicit timeout", async () => {
+        let capturedSignal: AbortSignal | null | undefined;
+        const stream = new ReadableStream({
+          start(controller) {
+            controller.enqueue(new TextEncoder().encode("{\"result\":\"ok\"}\n"));
+            controller.close();
+          },
+        });
+
+        const client = mockHttpClient(
+          async (_url, init) => {
+            capturedSignal = init?.signal;
+            return new Response(stream, { status: 200, headers: { "content-type": "application/json" } });
+          },
+          { defaultTimeout: 10000 }
+        );
+
+        await attemptHttpRequest(
+          { url: `${SdkConstants.TestApiUrl}/stream`, method: "POST", headers: {}, responseType: "stream", timeout: 30000 },
+          { maxRetry: 0, minWaitInMs: 100 },
+          client
+        );
+
+        // Stream requests WITH explicit timeout should have a signal
+        expect(capturedSignal).toBeDefined();
+        expect(capturedSignal).toBeInstanceOf(AbortSignal);
+      });
+
+      it("should still attach an abort signal for non-stream requests", async () => {
+        let capturedSignal: AbortSignal | null | undefined;
+        const client = mockHttpClient(
+          async (_url, init) => {
+            capturedSignal = init?.signal;
+            return mockResponse(200, {});
+          },
+          { defaultTimeout: 10000 }
+        );
+
+        await attemptHttpRequest(
+          { url: `${SdkConstants.TestApiUrl}/check`, method: "POST", headers: {} },
+          { maxRetry: 0, minWaitInMs: 100 },
+          client
+        );
+
+        expect(capturedSignal).toBeDefined();
+        expect(capturedSignal).toBeInstanceOf(AbortSignal);
+      });
+    });
+
     describe("timeout", () => {
       it("should pass AbortSignal.timeout to fetch", async () => {
         let capturedSignal: AbortSignal | undefined;
@@ -476,6 +553,42 @@ describe("fetch-based HTTP client", () => {
         ).rejects.toThrow(FgaApiError);
 
         expect(callCount).toBe(1);
+      });
+
+      it("should default requestMethod to GET in error context when method is omitted", async () => {
+        const client = mockHttpClient(async () =>
+          mockResponse(400, { code: "validation_error", message: "bad" }, { statusText: "Bad Request" })
+        );
+
+        try {
+          await attemptHttpRequest(
+            { url: `${SdkConstants.TestApiUrl}/stores/s1/check`, headers: {} },
+            { maxRetry: 0, minWaitInMs: 100 },
+            client
+          );
+          fail("should have thrown");
+        } catch (err: any) {
+          expect(err).toBeInstanceOf(FgaApiValidationError);
+          expect(err.method).toBe("GET");
+        }
+      });
+
+      it("should default requestMethod to GET in network error context when method is omitted", async () => {
+        const client = mockHttpClient(async () => {
+          throw new TypeError("Failed to fetch");
+        });
+
+        try {
+          await attemptHttpRequest(
+            { url: `${SdkConstants.TestApiUrl}/stores/s1/check`, headers: {} },
+            { maxRetry: 0, minWaitInMs: 1 },
+            client
+          );
+          fail("should have thrown");
+        } catch (err: any) {
+          expect(err).toBeInstanceOf(FgaError);
+          expect(err.message).toContain("GET");
+        }
       });
 
       it("should include method, URL, and status in generic FgaApiError message for unmapped status", async () => {

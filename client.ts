@@ -1066,7 +1066,7 @@ export class OpenFgaClient extends BaseAPI {
   async executeStreamedApiRequest(
     request: RequestBuilderParams,
     options: ClientRequestOpts = {}
-  ): PromiseResult<any> {
+  ): Promise<any> {
     return this.api.executeStreamedApiRequest(request, options);
   }
 }

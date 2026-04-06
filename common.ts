@@ -303,16 +303,19 @@ export async function attemptHttpRequest<B, R>(
         }
       }
 
-      const timeoutMs = request.timeout ?? httpClient.defaultTimeout ?? 10000;
+      const timeoutMs = request.responseType === "stream" && request.timeout == null ?
+        undefined : request.timeout ?? httpClient.defaultTimeout ?? 10000;
       let signal: AbortSignal | undefined;
-      if (typeof AbortSignal !== "undefined" && typeof (AbortSignal as any).timeout === "function") {
-        // Use native AbortSignal.timeout when available.
-        signal = (AbortSignal as any).timeout(timeoutMs);
-      } else if (typeof AbortController !== "undefined") {
-        // Fallback for environments without AbortSignal.timeout.
-        const controller = new AbortController();
-        setTimeout(() => controller.abort(), timeoutMs);
-        signal = controller.signal;
+      if (timeoutMs !== undefined) {
+        if (typeof AbortSignal !== "undefined" && typeof (AbortSignal as any).timeout === "function") {
+          // Use native AbortSignal.timeout when available.
+          signal = (AbortSignal as any).timeout(timeoutMs);
+        } else if (typeof AbortController !== "undefined") {
+          // Fallback for environments without AbortSignal.timeout.
+          const controller = new AbortController();
+          setTimeout(() => controller.abort(), timeoutMs);
+          signal = controller.signal;
+        }
       }
       const fetchInit: RequestInit = {
         method: request.method || "GET",
@@ -378,7 +381,7 @@ export async function attemptHttpRequest<B, R>(
           headers: responseHeaders,
           data: responseData,
           requestUrl: request.url,
-          requestMethod: request.method,
+          requestMethod: request.method ?? "GET",
           requestData: request.data,
         };
 
@@ -469,7 +472,7 @@ export async function attemptHttpRequest<B, R>(
 
       const errCtx: HttpErrorContext = {
         requestUrl: request.url,
-        requestMethod: request.method,
+        requestMethod: request.method ?? "GET",
         requestData: request.data,
       };
 
