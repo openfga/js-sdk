@@ -1547,7 +1547,69 @@ describe("OpenFGA Client", () => {
         } finally {
           expect(scope.isDone()).toBe(true);
         }
-      }); 
+      });
+
+      it("should fallback to client's authorization model when unspecified", async () => {
+        const mockedResponse = {
+          result: {
+            "cor-1": {
+              allowed: true,
+              error: undefined,
+            },
+            "cor-2": {
+              allowed: false,
+              error: undefined,
+            },
+          },
+        };
+
+        const scope = nocks
+          .singleBatchCheck(
+            baseConfig.storeId!,
+            mockedResponse,
+            undefined,
+            undefined,
+            baseConfig.authorizationModelId!,
+          )
+          .matchHeader("X-OpenFGA-Client-Bulk-Request-Id", /.*/);
+
+        expect(scope.isDone()).toBe(false);
+        const response = await fgaClient.batchCheck({
+          checks: [
+            {
+              user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
+              relation: "can_read",
+              object: "document",
+              contextualTuples: {
+                tuple_keys: [
+                  {
+                    user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
+                    relation: "editor",
+                    object: "folder:product",
+                  },
+                  {
+                    user: "folder:product",
+                    relation: "parent",
+                    object: "document:0192ab2a-d83f-756d-9397-c5ed9f3cb69a",
+                  },
+                ],
+              },
+              correlationId: "cor-1",
+            },
+            {
+              user: "folder:product",
+              relation: "parent",
+              object: "document:0192ab2a-d83f-756d-9397-c5ed9f3cb69a",
+              correlationId: "cor-2",
+            },
+          ],
+        });
+
+        expect(scope.isDone()).toBe(true);
+        expect(response.result).toHaveLength(2);
+        expect(response.result[0].allowed).toBe(true);
+        expect(response.result[1].allowed).toBe(false);
+      });
     });
 
     describe("Expand", () => {
