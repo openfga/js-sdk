@@ -20,8 +20,11 @@
         { "type": "chore",    "section": "Miscellaneous", "hidden": true  }
       ],
       "extra-files": [
-        { "type": "json",    "path": "package.json",      "jsonpath": "$.version" },
-        { "type": "generic", "path": "constants/index.ts" }
+        { "type": "json",    "path": "package.json",                  "jsonpath": "$.version" },
+        { "type": "generic", "path": "example/example1/package.json" },
+        { "type": "generic", "path": "example/streamed-list-objects/package.json" },
+        { "type": "generic", "path": "constants/index.ts" },
+        { "type": "generic", "path": "example/README.md" }
       ]
     }
   }
