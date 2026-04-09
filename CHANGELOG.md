@@ -1,8 +1,6 @@
 # Changelog
 
 
-## [Unreleased](https://github.com/openfga/js-sdk/compare/v0.9.4...HEAD)
-
 ## v0.9.4
 
 ### [v0.9.4](https://github.com/openfga/js-sdk/compare/v0.9.3...v0.9.4) (2026-03-31)
