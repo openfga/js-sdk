@@ -21,8 +21,8 @@
       ],
       "extra-files": [
         { "type": "json",    "path": "package.json",                  "jsonpath": "$.version" },
-        { "type": "generic", "path": "example/example1/package.json" },
-        { "type": "generic", "path": "example/streamed-list-objects/package.json" },
+        { "type": "json",    "path": "example/example1/package.json",              "jsonpath": "$.dependencies['@openfga/sdk']" },
+        { "type": "json",    "path": "example/streamed-list-objects/package.json", "jsonpath": "$.dependencies['@openfga/sdk']" },
         { "type": "generic", "path": "constants/index.ts" },
         { "type": "generic", "path": "example/README.md" }
       ]
