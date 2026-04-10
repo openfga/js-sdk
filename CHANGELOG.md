@@ -8,11 +8,6 @@
 
 * Correctly set authorization model id when calling batch checks ([#372](https://github.com/openfga/js-sdk/issues/372)) ([bbc8bde](https://github.com/openfga/js-sdk/commit/bbc8bdec04475b7707542b09be4e31fa9666dd2f))
 
-
-### Miscellaneous
-
-* release 0.9.5 ([d12a6e3](https://github.com/openfga/js-sdk/commit/d12a6e3ffcdd139ff9a8b1bfaa54b80795249eca))
-
 ## v0.9.4
 
 ### [v0.9.4](https://github.com/openfga/js-sdk/compare/v0.9.3...v0.9.4) (2026-03-31)
