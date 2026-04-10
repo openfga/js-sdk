@@ -35,7 +35,7 @@ jobs:
       pull-requests: write
     if: |
       github.event_name == 'workflow_dispatch' ||
-      startsWith(github.event.head_commit.message, 'release:')
+      (startsWith(github.event.pull_request.title, 'release:') && github.event.pull_request.base.ref == 'main')
     uses: openfga/sdk-generator/.github/workflows/release-please.yml@main
     with:
       trigger-event:   ${{ github.event_name }}
