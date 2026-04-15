@@ -1,0 +1,18 @@
+{
+  "name": "api-executor",
+  "private": "true",
+  "version": "1.0.0",
+  "description": "Example demonstrating executeApiRequest and executeStreamedApiRequest on OpenFgaClient",
+  "author": "OpenFGA",
+  "license": "Apache-2.0",
+  "scripts": {
+    "start": "node apiExecutor.mjs"
+  },
+  "dependencies": {
+    "@openfga/sdk": "file:../../"
+  },
+  "engines": {
+    "node": ">=16.13.0"
+  }
+}
+
