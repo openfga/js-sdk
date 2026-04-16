@@ -141,9 +141,10 @@ const fgaClient = new OpenFgaClient({
     method: CredentialsMethod.ClientCredentials,
     config: {
       apiTokenIssuer: process.env.FGA_API_TOKEN_ISSUER,
-      apiAudience: process.env.FGA_API_AUDIENCE,
+      apiAudience: process.env.FGA_API_AUDIENCE, // optional, required for Auth0; omit for standard OAuth2
       clientId: process.env.FGA_CLIENT_ID,
       clientSecret: process.env.FGA_CLIENT_SECRET,
+      // scopes: "read write", // optional, space-separated OAuth2 scopes
     }
   }
 });

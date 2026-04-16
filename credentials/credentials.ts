@@ -27,7 +27,8 @@ import SdkConstants from "../constants";
 interface ClientSecretRequest {
   client_id: string;
   client_secret: string;
-  audience: string;
+  audience?: string;
+  scope?: string;
   grant_type: "client_credentials";
 }
 
@@ -35,7 +36,8 @@ interface ClientAssertionRequest {
   client_id: string;
   client_assertion: string;
   client_assertion_type: "urn:ietf:params:oauth:client-assertion-type:jwt-bearer";
-  audience: string;
+  audience?: string;
+  scope?: string;
 }
 
 const HTTP_SCHEME = "http://";
@@ -97,7 +99,6 @@ export class Credentials {
     case CredentialsMethod.ClientCredentials: {
       assertParamExists("Credentials", "config.clientId", authConfig.config?.clientId);
       assertParamExists("Credentials", "config.apiTokenIssuer", authConfig.config?.apiTokenIssuer);
-      assertParamExists("Credentials", "config.apiAudience", authConfig.config?.apiAudience);
       assertParamExists("Credentials", "config.clientSecret or config.clientAssertionSigningKey", (authConfig.config as ClientSecretConfig).clientSecret || (authConfig.config as PrivateKeyJWTConfig).clientAssertionSigningKey);
 
       const normalizedApiTokenIssuer = this.normalizeApiTokenIssuer(authConfig.config?.apiTokenIssuer);
@@ -281,7 +282,8 @@ export class Credentials {
         ...config.customClaims,
         client_id: (config as PrivateKeyJWTConfig).clientId,
         client_assertion: assertion,
-        audience: config.apiAudience,
+        ...(config.apiAudience ? { audience: config.apiAudience } : {}),
+        ...(config.scopes ? { scope: config.scopes } : {}),
         client_assertion_type: "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
         grant_type: "client_credentials",
       } as ClientAssertionRequest;
@@ -290,7 +292,8 @@ export class Credentials {
         ...config.customClaims,
         client_id: (config as ClientSecretConfig).clientId,
         client_secret: (config as ClientSecretConfig).clientSecret,
-        audience: (config as ClientSecretConfig).apiAudience,
+        ...(config.apiAudience ? { audience: config.apiAudience } : {}),
+        ...(config.scopes ? { scope: config.scopes } : {}),
         grant_type: "client_credentials",
       };
     }

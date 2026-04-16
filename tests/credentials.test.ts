@@ -6,6 +6,7 @@ import { TelemetryConfiguration } from "../telemetry/configuration";
 import SdkConstants from "../constants";
 import {
   OPENFGA_API_AUDIENCE,
+  OPENFGA_API_TOKEN_ISSUER,
   OPENFGA_CLIENT_ASSERTION_SIGNING_KEY,
   OPENFGA_CLIENT_ID,
   OPENFGA_CLIENT_SECRET,
@@ -426,6 +427,112 @@ describe("Credentials", () => {
         undefined,
         mockTelemetryConfig,
       )).toThrow(FgaValidationError);
+    });
+
+    test("should succeed without apiAudience for standard OAuth2 servers", () => {
+      expect(() => new Credentials(
+        {
+          method: CredentialsMethod.ClientCredentials,
+          config: {
+            apiTokenIssuer: OPENFGA_API_TOKEN_ISSUER,
+            clientId: OPENFGA_CLIENT_ID,
+            clientSecret: OPENFGA_CLIENT_SECRET,
+          },
+        } as AuthCredentialsConfig,
+        undefined,
+        mockTelemetryConfig,
+      )).not.toThrow();
+    });
+
+    test("should not include audience in request body when apiAudience is not set", async () => {
+      const expectedBaseUrl = "https://issuer.fga.example";
+      const expectedPath = `/${DEFAULT_TOKEN_ENDPOINT_PATH}`;
+
+      const scope = nock(expectedBaseUrl)
+        .post(expectedPath, (body: string) => {
+          const params = new URLSearchParams(body);
+          expect(params.has("audience")).toBe(false);
+          return true;
+        })
+        .reply(200, { access_token: "test-token", expires_in: 300 });
+
+      const credentials = new Credentials(
+        {
+          method: CredentialsMethod.ClientCredentials,
+          config: {
+            apiTokenIssuer: "issuer.fga.example",
+            clientId: OPENFGA_CLIENT_ID,
+            clientSecret: OPENFGA_CLIENT_SECRET,
+          },
+        } as AuthCredentialsConfig,
+        undefined,
+        mockTelemetryConfig,
+      );
+
+      await credentials.getAccessTokenHeader();
+      expect(scope.isDone()).toBe(true);
+    });
+
+    test("should include scope in request body when scopes are set", async () => {
+      const expectedBaseUrl = "https://issuer.fga.example";
+      const expectedPath = `/${DEFAULT_TOKEN_ENDPOINT_PATH}`;
+
+      const scope = nock(expectedBaseUrl)
+        .post(expectedPath, (body: string) => {
+          const params = new URLSearchParams(body);
+          expect(params.get("scope")).toBe("read write");
+          return true;
+        })
+        .reply(200, { access_token: "test-token", expires_in: 300 });
+
+      const credentials = new Credentials(
+        {
+          method: CredentialsMethod.ClientCredentials,
+          config: {
+            apiTokenIssuer: "issuer.fga.example",
+            clientId: OPENFGA_CLIENT_ID,
+            clientSecret: OPENFGA_CLIENT_SECRET,
+            scopes: "read write",
+          },
+        } as AuthCredentialsConfig,
+        undefined,
+        mockTelemetryConfig,
+      );
+
+      await credentials.getAccessTokenHeader();
+      expect(scope.isDone()).toBe(true);
+    });
+
+    test("should include both audience and scope when both are set", async () => {
+      const expectedBaseUrl = "https://issuer.fga.example";
+      const expectedPath = `/${DEFAULT_TOKEN_ENDPOINT_PATH}`;
+
+      const scope = nock(expectedBaseUrl)
+        .post(expectedPath, (body: string) => {
+          const params = new URLSearchParams(body);
+          expect(params.get("audience")).toBe(OPENFGA_API_AUDIENCE);
+          expect(params.get("scope")).toBe("read write");
+          return true;
+        })
+        .reply(200, { access_token: "test-token", expires_in: 300 });
+
+      const credentials = new Credentials(
+        {
+          method: CredentialsMethod.ClientCredentials,
+          config: {
+            apiTokenIssuer: "issuer.fga.example",
+            apiAudience: OPENFGA_API_AUDIENCE,
+            clientId: OPENFGA_CLIENT_ID,
+            clientSecret: OPENFGA_CLIENT_SECRET,
+            scopes: "read write",
+          },
+        } as AuthCredentialsConfig,
+        undefined,
+        mockTelemetryConfig,
+      );
+
+      await credentials.getAccessTokenHeader();
+      expect(scope.isDone()).toBe(true);
     });
 
     test("should normalize audience from apiTokenIssuer when using PrivateKeyJWT client credentials with HTTPS scheme", async () => {
