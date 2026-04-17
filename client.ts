@@ -1,4 +1,4 @@
-import { asyncPool } from "./utils/async-pool";
+import { asyncPool } from "./utils/utils-lite/async-pool";
 
 import { OpenFgaApi, HttpMethod, RequestBuilderParams, RequestBuilderOptions } from "./api";
 import type { FgaResponse, HttpClient } from "./common";
