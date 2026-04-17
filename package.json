@@ -12,10 +12,11 @@
     "zanzibar"
   ],
   "license": "Apache-2.0",
-  "main": "./dist/index.js",
+  "main": "./dist/cjs/index.js",
   "typings": "./dist/index.d.ts",
   "scripts": {
-    "build": "tsc --outDir dist/",
+    "build": "npm run build:cjs",
+    "build:cjs": "tsc --project tsconfig.json",
     "prepublishOnly": "rm -rf dist/ && npm run build",
     "test": "jest --config ./tests/jest.config.js",
     "lint": "eslint . --ext .ts",
