@@ -1,8 +1,8 @@
-import { ApiTokenConfig, AuthCredentialsConfig, ClientCredentialsConfig, CredentialsMethod } from "./credentials/types";
-import { FgaValidationError, } from "./errors";
-import { assertParamExists, isWellFormedUriString } from "./validation";
-import { TelemetryConfig, TelemetryConfiguration } from "./telemetry/configuration";
-import SdkConstants from "./constants";
+import { ApiTokenConfig, AuthCredentialsConfig, ClientCredentialsConfig, CredentialsMethod } from "./credentials/types.js";
+import { FgaValidationError, } from "./errors.js";
+import { assertParamExists, isWellFormedUriString } from "./validation.js";
+import { TelemetryConfig, TelemetryConfiguration } from "./telemetry/configuration.js";
+import SdkConstants from "./constants/index.js";
 
 // default maximum number of retry
 const DEFAULT_MAX_RETRY = SdkConstants.DefaultMaxRetry;

@@ -1,5 +1,5 @@
-import { ClientConfiguration, UserClientConfigurationParams } from "../../client";
-import { CredentialsMethod } from "../../credentials";
+import { ClientConfiguration, UserClientConfigurationParams } from "../../client.js";
+import { CredentialsMethod } from "../../credentials/index.js";
 
 export const OPENFGA_STORE_ID = "01H0H015178Y2V4CX10C2KGHF4";
 export const OPENFGA_MODEL_ID = "01HWBBMZTT7F1M97DVXQK4Z7J3";

@@ -3,6 +3,9 @@ module.exports = {
   rootDir: "../",
   testEnvironment: "node",
   moduleFileExtensions: ["js", "d.ts", "ts", "json"],
+  moduleNameMapper: {
+    "^(\\.{1,2}/.*)\\.js$": "$1",
+  },
   setupFilesAfterEnv: ["./tests/setup.ts"],
   collectCoverage: true,
   coverageReporters: ["text", "cobertura", "lcov"],

@@ -1,4 +1,4 @@
-import { TelemetryCounters } from "../../telemetry/counters";
+import { TelemetryCounters } from "../../telemetry/counters.js";
 
 describe("TelemetryCounters", () => {
   test("should have correct counter details", () => {

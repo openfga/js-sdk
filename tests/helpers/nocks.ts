@@ -26,8 +26,8 @@ import {
   TupleKey,
   TupleOperation,
   WriteAuthorizationModelRequest,
-} from "../../index";
-import { defaultConfiguration } from "./default-config";
+} from "../../index.js";
+import { defaultConfiguration } from "./default-config.js";
 
 export const getNocks = ((nock: typeof Nock) => ({
   tokenExchange: (

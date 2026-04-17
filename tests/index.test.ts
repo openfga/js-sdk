@@ -14,17 +14,17 @@ import {
   FgaError,
   OpenFgaApi,
   TelemetryAttribute,
-} from "../index";
-import { CallResult } from "../common";
-import { GetDefaultRetryParams } from "../configuration";
-import { AuthCredentialsConfig } from "../credentials";
+} from "../index.js";
+import { CallResult } from "../common.js";
+import { GetDefaultRetryParams } from "../configuration.js";
+import { AuthCredentialsConfig } from "../credentials/index.js";
 import {
   baseConfig,
   defaultConfiguration,
   OPENFGA_API_TOKEN_ISSUER,
   OPENFGA_CLIENT_ASSERTION_SIGNING_KEY,
-} from "./helpers/default-config";
-import { getNocks } from "./helpers/nocks";
+} from "./helpers/default-config.js";
+import { getNocks } from "./helpers/nocks.js";
 
 const nocks = getNocks(nock);
 nock.disableNetConnect();

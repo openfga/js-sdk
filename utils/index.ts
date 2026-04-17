@@ -1,2 +1,2 @@
-export * from "./utils-lite";
-export * from "./generate-random-id";
+export * from "./utils-lite/index.js";
+export * from "./generate-random-id.js";

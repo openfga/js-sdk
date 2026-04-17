@@ -13,7 +13,7 @@
 
 import { Readable } from "node:stream";
 import { EventEmitter } from "node:events";
-import { parseNDJSONStream } from "../streaming";
+import { parseNDJSONStream } from "../streaming.js";
 
 describe("Streaming Utilities", () => {
   describe("parseNDJSONStream (Node.js)", () => {
