@@ -960,6 +960,41 @@ const response = await fgaClient.executeApiRequest({
 });
 ```
 
+#### Example: Calling a Streaming Endpoint
+
+For streaming endpoints (e.g. `streamed-list-objects`), use `executeStreamedApiRequest` instead of `executeApiRequest`. This returns a raw Node.js readable stream. To parse the newline-delimited JSON (NDJSON) response into individual objects, use the `parseNDJSONStream` helper exported by the SDK:
+
+```javascript
+const { OpenFgaClient, parseNDJSONStream } = require('@openfga/sdk');
+
+const fgaClient = new OpenFgaClient({
+  apiUrl: process.env.FGA_API_URL,
+  storeId: process.env.FGA_STORE_ID,
+});
+
+const streamResponse = await fgaClient.executeStreamedApiRequest({
+  operationName: 'StreamedListObjects',
+  method: 'POST',
+  path: '/stores/{store_id}/streamed-list-objects',
+  pathParams: { store_id: process.env.FGA_STORE_ID },
+  body: {
+    authorization_model_id: process.env.FGA_MODEL_ID,
+    user: 'user:alice',
+    relation: 'reader',
+    type: 'document',
+  },
+});
+
+// The response is a raw stream — use parseNDJSONStream to iterate over parsed JSON objects
+const source = streamResponse?.$response?.data ?? streamResponse;
+
+for await (const item of parseNDJSONStream(source)) {
+  console.log('Object:', item.object);
+}
+```
+
+> **Note:** `executeStreamedApiRequest` returns the raw stream intentionally, giving you full control over consumption. `parseNDJSONStream` handles chunked data, partial lines, and buffer flushing automatically. It accepts Node.js `Readable` streams, `AsyncIterable`s, or even plain strings and `Buffer`s.
+
 ### Retries
 
 If a network request fails with a 429 or 5xx error from the server, the SDK will automatically retry the request up to 3 times with a minimum wait time of 100 milliseconds between each attempt.
