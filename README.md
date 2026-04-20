@@ -985,15 +985,14 @@ const streamResponse = await fgaClient.executeStreamedApiRequest({
   },
 });
 
-// The response is a raw stream — use parseNDJSONStream to iterate over parsed JSON objects
-const source = streamResponse?.$response?.data ?? streamResponse;
-
-for await (const item of parseNDJSONStream(source)) {
+// executeStreamedApiRequest returns the raw Node.js Readable stream directly.
+// Use parseNDJSONStream to iterate over the parsed JSON objects:
+for await (const item of parseNDJSONStream(streamResponse)) {
   console.log('Object:', item.object);
 }
 ```
 
-> **Note:** `executeStreamedApiRequest` returns the raw stream intentionally, giving you full control over consumption. `parseNDJSONStream` handles chunked data, partial lines, and buffer flushing automatically. It accepts Node.js `Readable` streams, `AsyncIterable`s, or even plain strings and `Buffer`s.
+> **Note:** Unlike `executeApiRequest` (which wraps the response in a `CallResult` with a `$response` property), `executeStreamedApiRequest` returns the raw stream directly. `parseNDJSONStream` handles chunked data, partial lines, and buffer flushing automatically. It accepts Node.js `Readable` streams, `AsyncIterable`s, or even plain strings and `Buffer`s.
 
 ### Retries
 
