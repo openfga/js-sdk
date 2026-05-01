@@ -2,6 +2,7 @@
   "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
   "release-type": "node",
   "pull-request-title-pattern": "release: v${version}",
+  "bootstrap-sha": "3df466750781d6df812e82b42edece784a5085e6",
   "packages": {
     ".": {
       "package-name": "",
