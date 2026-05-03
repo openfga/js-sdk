@@ -11,14 +11,12 @@ import {
   ListUsersResponse,
   ConsistencyPreference,
   ErrorCode,
-  BatchCheckRequest,
   ClientWriteRequestOnDuplicateWrites,
   ClientWriteRequestOnMissingDeletes,
 } from "../index";
 import { baseConfig, defaultConfiguration, getNocks } from "./helpers";
 
 const nocks = getNocks(nock);
-nock.disableNetConnect();
 
 describe("OpenFGA Client", () => {
 
@@ -1875,7 +1873,8 @@ describe("OpenFGA Client", () => {
         const scope0 = nocks.check(defaultConfiguration.storeId!, tuples[0], defaultConfiguration.getBasePath(), { allowed: true }).matchHeader("X-OpenFGA-Client-Method", "ListRelations");
         const scope1 = nocks.check(defaultConfiguration.storeId!, tuples[1], defaultConfiguration.getBasePath(), { allowed: false }).matchHeader("X-OpenFGA-Client-Method", "ListRelations");
         const scope2 = nocks.check(defaultConfiguration.storeId!, tuples[2], defaultConfiguration.getBasePath(), { allowed: true }).matchHeader("X-OpenFGA-Client-Method", "ListRelations");
-        const scope3 = nocks.check(defaultConfiguration.storeId!, tuples[3], defaultConfiguration.getBasePath(), "" as any, 500).matchHeader("X-OpenFGA-Client-Method", "ListRelations");
+        // Mock all default retries+1 to exhaust them all and trigger actual failure.
+        const scope3 = Array.from({ length: 4 }, () => nocks.check(defaultConfiguration.storeId!, tuples[3], defaultConfiguration.getBasePath(), "" as any, 500).matchHeader("X-OpenFGA-Client-Method", "ListRelations"));
         const scope4 = nocks.check(defaultConfiguration.storeId!, tuples[4], defaultConfiguration.getBasePath(), {
           "code": "validation_error",
           "message": "relation &#39;workspace#can_read&#39; not found"
@@ -1890,12 +1889,12 @@ describe("OpenFGA Client", () => {
         expect(scope0.isDone()).toBe(false);
         expect(scope1.isDone()).toBe(false);
         expect(scope2.isDone()).toBe(false);
-        expect(scope3.isDone()).toBe(false);
+        expect(scope3.every(scope => scope.isDone())).toBe(false);
         expect(scope4.isDone()).toBe(false);
         expect(scope5.isDone()).toBe(false);
 
         try {
-          const response = await fgaClient.listRelations({
+          await fgaClient.listRelations({
             user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
             object: "workspace:1",
             relations: ["admin", "guest", "reader", "viewer"],
@@ -1904,7 +1903,7 @@ describe("OpenFGA Client", () => {
           expect(scope0.isDone()).toBe(true);
           expect(scope1.isDone()).toBe(true);
           expect(scope2.isDone()).toBe(true);
-          expect(scope3.isDone()).toBe(true);
+          expect(scope3.every(scope => scope.isDone())).toBe(true);
           expect(scope4.isDone()).toBe(false);
           expect(scope5.isDone()).toBe(false);
           expect(err).toBeInstanceOf(FgaApiError);
