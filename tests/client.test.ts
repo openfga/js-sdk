@@ -15,6 +15,7 @@ import {
   ClientWriteRequestOnDuplicateWrites,
   ClientWriteRequestOnMissingDeletes,
 } from "../index";
+import SdkConstants from "../constants";
 import { baseConfig, defaultConfiguration, getNocks } from "./helpers";
 
 const nocks = getNocks(nock);
@@ -1875,7 +1876,19 @@ describe("OpenFGA Client", () => {
         const scope0 = nocks.check(defaultConfiguration.storeId!, tuples[0], defaultConfiguration.getBasePath(), { allowed: true }).matchHeader("X-OpenFGA-Client-Method", "ListRelations");
         const scope1 = nocks.check(defaultConfiguration.storeId!, tuples[1], defaultConfiguration.getBasePath(), { allowed: false }).matchHeader("X-OpenFGA-Client-Method", "ListRelations");
         const scope2 = nocks.check(defaultConfiguration.storeId!, tuples[2], defaultConfiguration.getBasePath(), { allowed: true }).matchHeader("X-OpenFGA-Client-Method", "ListRelations");
-        const scope3 = nocks.check(defaultConfiguration.storeId!, tuples[3], defaultConfiguration.getBasePath(), "" as any, 500).matchHeader("X-OpenFGA-Client-Method", "ListRelations");
+        // The default retry policy retries 5xx responses up to DefaultMaxRetry
+        // times, so we need this 500 mock to be matched maxRetry + 1 times for
+        // retries to exhaust and surface as an FgaApiInternalError (a subclass
+        // of FgaApiError, which is what this test asserts).
+        const scope3 = nock(defaultConfiguration.getBasePath())
+          .post(`/stores/${defaultConfiguration.storeId!}/check`, (body: { tuple_key: { user: string; relation: string; object: string } }) =>
+            body.tuple_key.user === tuples[3].user &&
+            body.tuple_key.relation === tuples[3].relation &&
+            body.tuple_key.object === tuples[3].object
+          )
+          .matchHeader("X-OpenFGA-Client-Method", "ListRelations")
+          .times(SdkConstants.DefaultMaxRetry + 1) // initial attempt + retries
+          .reply(500, "");
         const scope4 = nocks.check(defaultConfiguration.storeId!, tuples[4], defaultConfiguration.getBasePath(), {
           "code": "validation_error",
           "message": "relation &#39;workspace#can_read&#39; not found"
