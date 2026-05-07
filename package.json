@@ -18,8 +18,8 @@
     "build": "tsc --outDir dist/",
     "prepublishOnly": "rm -rf dist/ && npm run build",
     "test": "jest --config ./tests/jest.config.js",
-    "lint": "eslint . --ext .ts",
-    "lint:fix": "eslint . --ext .ts --fix"
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
   },
   "dependencies": {
     "@opentelemetry/api": "^1.9.1",
@@ -33,7 +33,7 @@
     "@types/tiny-async-pool": "^2.0.3",
     "@typescript-eslint/eslint-plugin": "^8.59.2",
     "@typescript-eslint/parser": "^8.59.2",
-    "eslint": "9.39.4",
+    "eslint": "^10.3.0",
     "globals": "^17.6.0",
     "jest": "30.3.0",
     "nock": "^14.0.14",
