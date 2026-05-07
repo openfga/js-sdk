@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@openfga/sdk": "^0.9.5",
-    "@openfga/syntax-transformer": "^0.2.0"
+    "@openfga/syntax-transformer": "^0.2.1"
   },
   "engines": {
     "node": ">=16.15.0"
