@@ -55,6 +55,29 @@ function getResponseHeaders(err: AxiosError): any {
     : {};
 }
 
+function parseRequestData(data: unknown): any {
+  if (typeof data !== "string") {
+    return data;
+  }
+
+  try {
+    return JSON.parse(data);
+  } catch {
+    try {
+      const params = new URLSearchParams(data);
+      const parsedParams = Object.fromEntries(params.entries());
+      return Object.keys(parsedParams).length > 0 ? parsedParams : undefined;
+    } catch {
+      return undefined;
+    }
+  }
+}
+
+function getAuthenticationErrorMessage(err: AxiosError | FgaApiError): string {
+  const statusText = err instanceof FgaApiError ? err.statusText : err.response?.statusText;
+  return `FGA Authentication Error.${statusText ? ` ${statusText}` : ""}`;
+}
+
 /**
  *
  * @export
@@ -201,20 +224,53 @@ export class FgaApiAuthenticationError extends FgaApiError {
   public grantType?: string;
   public apiErrorCode?: string;
 
-  constructor(err: AxiosError) {
-    super(err);
-    this.message = `FGA Authentication Error.${err.response?.statusText ? ` ${err.response.statusText}` : ""}`;
+  constructor(err: AxiosError | FgaApiError, context?: {
+    clientId?: string;
+    audience?: string;
+    grantType?: string;
+  }) {
+    super(err as AxiosError, getAuthenticationErrorMessage(err));
+
+    if (err instanceof FgaApiError) {
+      this.statusCode = err.statusCode;
+      this.statusText = err.statusText;
+      this.requestURL = err.requestURL;
+      this.method = err.method as Method;
+      this.responseData = err.responseData;
+      this.responseHeader = err.responseHeader;
+      this.requestId = err.requestId;
+      this.apiErrorCode = (err.responseData as any)?.code;
+
+      const data: any = parseRequestData(err.requestData);
+
+      this.clientId = context?.clientId ?? data?.client_id;
+      this.audience = context?.audience ?? data?.audience;
+      this.grantType = context?.grantType ?? data?.grant_type;
+
+      if ((err as Error)?.stack) {
+        this.stack = (err as Error).stack;
+      }
+      return;
+    }
+
+    this.statusCode = err.response?.status;
+    this.statusText = err.response?.statusText;
+    this.requestURL = err.config?.url;
+    this.method = err.config?.method as Method;
+    this.responseData = err.response?.data;
+    this.responseHeader = err.response?.headers;
     this.apiErrorCode = (err.response?.data as any)?.code;
 
-    let data: any;
-    try {
-      data = JSON.parse(err.config?.data || "{}");
-    } catch (err) {
-      /* do nothing */
+    const errResponseHeaders = getResponseHeaders(err);
+    this.requestId = errResponseHeaders[cFGARequestId];
+
+    const data: any = parseRequestData(err.config?.data);
+    this.clientId = context?.clientId ?? data?.client_id;
+    this.audience = context?.audience ?? data?.audience;
+    this.grantType = context?.grantType ?? data?.grant_type;
+    if ((err as Error)?.stack) {
+      this.stack = (err as Error).stack;
     }
-    this.clientId = data?.client_id;
-    this.audience = data?.audience;
-    this.grantType = data?.grant_type;
   }
 }
 
