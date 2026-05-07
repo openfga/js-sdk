@@ -543,6 +543,11 @@ describe("Credentials", () => {
       const apiTokenIssuer = "issuer.fga.example";
       const expectedBaseUrl = "https://issuer.fga.example";
       const expectedPath = `/${DEFAULT_TOKEN_ENDPOINT_PATH}`;
+      // We do this to skip the wait time between retries
+      const setTimeoutSpy = jest.spyOn(global, "setTimeout").mockImplementation(((callback: () => void) => {
+        callback();
+        return {} as NodeJS.Timeout;
+      }) as typeof setTimeout);
 
       const scope = nock(expectedBaseUrl)
         .post(expectedPath)
@@ -552,34 +557,38 @@ describe("Credentials", () => {
           message: "token exchange failed",
         });
 
-      const credentials = new Credentials(
-        {
-          method: CredentialsMethod.ClientCredentials,
-          config: {
-            apiTokenIssuer,
-            apiAudience: OPENFGA_API_AUDIENCE,
-            clientId: OPENFGA_CLIENT_ID,
-            clientSecret: OPENFGA_CLIENT_SECRET,
-          },
-        } as AuthCredentialsConfig,
-        undefined,
-        mockTelemetryConfig,
-      );
-
-      let error: unknown;
       try {
-        await credentials.getAccessTokenHeader();
-      } catch (err) {
-        error = err;
-      }
+        const credentials = new Credentials(
+          {
+            method: CredentialsMethod.ClientCredentials,
+            config: {
+              apiTokenIssuer,
+              apiAudience: OPENFGA_API_AUDIENCE,
+              clientId: OPENFGA_CLIENT_ID,
+              clientSecret: OPENFGA_CLIENT_SECRET,
+            },
+          } as AuthCredentialsConfig,
+          undefined,
+          mockTelemetryConfig,
+        );
 
-      expect(error).toBeInstanceOf(FgaApiAuthenticationError);
-      const authenticationError = error as FgaApiAuthenticationError;
-      expect(authenticationError.statusCode).toBe(500);
-      expect(authenticationError.clientId).toBe(OPENFGA_CLIENT_ID);
-      expect(authenticationError.audience).toBe(OPENFGA_API_AUDIENCE);
-      expect(authenticationError.grantType).toBe(CredentialsMethod.ClientCredentials);
-      expect(scope.isDone()).toBe(true);
+        let error: unknown;
+        try {
+          await credentials.getAccessTokenHeader();
+        } catch (err) {
+          error = err;
+        }
+
+        expect(error).toBeInstanceOf(FgaApiAuthenticationError);
+        const authenticationError = error as FgaApiAuthenticationError;
+        expect(authenticationError.statusCode).toBe(500);
+        expect(authenticationError.clientId).toBe(OPENFGA_CLIENT_ID);
+        expect(authenticationError.audience).toBe(OPENFGA_API_AUDIENCE);
+        expect(authenticationError.grantType).toBe(CredentialsMethod.ClientCredentials);
+        expect(scope.isDone()).toBe(true);
+      } finally {
+        setTimeoutSpy.mockRestore();
+      }
     });
 
     test("should preserve auth context when token endpoint returns 401", async () => {
