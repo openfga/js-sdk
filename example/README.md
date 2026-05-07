@@ -9,6 +9,9 @@ A bare-bones example. It creates a store and runs a set of calls against it incl
 OpenTelemetry:
 An example that demonstrates how to integrate the OpenFGA JS SDK with OpenTelemetry.
 
+API Executor:
+Demonstrates how to use the low-level `executeApiRequest` and `executeStreamedApiRequest` methods to call OpenFGA endpoints directly — both standard request/response and streaming. Useful when calling new, experimental, or custom endpoints not yet wrapped by the SDK.
+
 ### Running the Examples
 
 Prerequisites:
@@ -31,7 +34,7 @@ Steps
 2. In the Example `package.json` change the `@openfga/sdk` dependency from a semver range like below
 ```json
 "dependencies": {
-    "@openfga/sdk": "^0.9.2"
+    "@openfga/sdk": "^0.9.4"
   }
 ```
 to a `file:` reference like below

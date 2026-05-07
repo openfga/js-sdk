@@ -1,5 +1,3 @@
-/* tslint:disable */
-/* eslint-disable */
 /**
  * JavaScript and Node.js SDK for OpenFGA
  *

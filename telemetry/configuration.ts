@@ -114,7 +114,8 @@ export class TelemetryConfiguration implements TelemetryConfig {
         [TelemetryMetric.CounterCredentialsRequest]: {attributes: TelemetryConfiguration.defaultAttributes},
         [TelemetryMetric.HistogramRequestDuration]: {attributes: TelemetryConfiguration.defaultAttributes},
         [TelemetryMetric.HistogramQueryDuration]: {attributes: TelemetryConfiguration.defaultAttributes},
-        [TelemetryMetric.HistogramHttpRequestDuration]: {attributes: TelemetryConfiguration.defaultAttributes},
+        // HistogramHttpRequestDuration is disabled by default
+        [TelemetryMetric.HistogramHttpRequestDuration]: undefined,
       };
     } else {
       this.metrics = {

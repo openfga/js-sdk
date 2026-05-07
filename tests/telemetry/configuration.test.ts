@@ -33,7 +33,9 @@ describe("TelemetryConfiguration", () => {
     expect(config.metrics?.counterCredentialsRequest?.attributes).toEqual(TelemetryConfiguration.defaultAttributes);
     expect(config.metrics?.histogramQueryDuration?.attributes).toEqual(TelemetryConfiguration.defaultAttributes);
     expect(config.metrics?.histogramRequestDuration?.attributes).toEqual(TelemetryConfiguration.defaultAttributes);
-  }); 
+    // histogramHttpRequestDuration is disabled by default due to high cardinality
+    expect(config.metrics?.histogramHttpRequestDuration?.attributes).toEqual(undefined);
+  });
 
   test("should be undefined if empty object passed", () => {
     const config = new TelemetryConfiguration({});
@@ -41,5 +43,6 @@ describe("TelemetryConfiguration", () => {
     expect(config.metrics?.counterCredentialsRequest?.attributes).toEqual(undefined);
     expect(config.metrics?.histogramQueryDuration?.attributes).toEqual(undefined);
     expect(config.metrics?.histogramRequestDuration?.attributes).toEqual(undefined);
-  }); 
+    expect(config.metrics?.histogramHttpRequestDuration?.attributes).toEqual(undefined);
+  });
 });

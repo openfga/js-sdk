@@ -16,9 +16,10 @@ export class FgaError extends Error {
 
   constructor(err?: Error | string | unknown, msg?: string) {
     super(
-      msg || typeof err === "string"
-        ? (err as string)
+      msg ?? (typeof err === "string"
+        ? err
         : `FGA Error${(err as Error)?.message ? `: ${(err as Error).message}` : ""}`
+      )
     );
     if ((err as Error)?.stack) {
       this.stack = (err as Error).stack;
@@ -180,11 +181,9 @@ export class FgaApiRateLimitExceededError extends FgaApiError {
     super(err);
     this.apiErrorCode = (err.response?.data as any)?.code;
 
-    const { endpointCategory } = getRequestMetadataFromPath(err.request?.path);
-    const errResponseHeaders = getResponseHeaders(err);
     this.message = msg
       ? msg
-      : `FGA API Rate Limit Error for ${this.method} ${endpointCategory}`;
+      : `FGA API Rate Limit Error for ${this.method} ${this.endpointCategory}`;
   }
 }
 
@@ -218,18 +217,11 @@ export class FgaApiInternalError extends FgaApiError {
  * @class FgaApiAuthenticationError
  * @extends { FgaApiError }
  */
-export class FgaApiAuthenticationError extends FgaError {
+export class FgaApiAuthenticationError extends FgaApiError {
   name = "FgaApiAuthenticationError";
-  public statusCode?: number;
-  public statusText?: string;
-  public method?: Method;
-  public requestURL?: string;
   public clientId?: string;
   public audience?: string;
   public grantType?: string;
-  public responseData?: any;
-  public responseHeader?: any;
-  public requestId?: string;
   public apiErrorCode?: string;
 
   constructor(err: AxiosError | FgaApiError, context?: {
@@ -237,7 +229,7 @@ export class FgaApiAuthenticationError extends FgaError {
     audience?: string;
     grantType?: string;
   }) {
-    super(getAuthenticationErrorMessage(err));
+    super(err as AxiosError, getAuthenticationErrorMessage(err));
 
     if (err instanceof FgaApiError) {
       this.statusCode = err.statusCode;

@@ -1,13 +1,35 @@
 # Changelog
 
 
-## [Unreleased](https://github.com/openfga/js-sdk/compare/v0.9.2...HEAD)
+## [0.9.5](https://github.com/openfga/js-sdk/compare/v0.9.4...v0.9.5) (2026-04-10)
+
+
+### Fixed
+
+* Correctly set authorization model id when calling batch checks ([#372](https://github.com/openfga/js-sdk/issues/372)) ([bbc8bde](https://github.com/openfga/js-sdk/commit/bbc8bdec04475b7707542b09be4e31fa9666dd2f))
+
+## v0.9.4
+
+### [v0.9.4](https://github.com/openfga/js-sdk/compare/v0.9.3...v0.9.4) (2026-03-31)
+
+- fix(deps): pin axios to 1.14.0 and fix brace-expansion audit vulnerability (#363) - [details](https://socket.dev/blog/axios-npm-package-compromised)
+
+## v0.9.3
+
+### [v0.9.3](https://github.com/openfga/js-sdk/compare/v0.9.2...v0.9.3) (2026-02-27)
+
+- feat: add `executeApiRequest` and `executeStreamedApiRequest` methods to `OpenFgaClient` for calling arbitrary API endpoints with full SDK support (authentication, retries, telemetry, error handling). See [documentation](https://github.com/openfga/js-sdk#calling-other-endpoints) for more. (#298, #345) - thanks @Abishek-Newar!
+- fix: use current SDK version in telemetry meter (#335)
+- fix: disable httprequestduration metric by default to avoid high cardinality (#344)
+- fix: apply expiry buffer before reusing cached tokens (#331)
+- chore!: drop support for Node.js v16 & 18. We recommend updating to a node-runtime that is [supported upstream](https://nodejs.org/en/about/previous-releases) - currently 20 (maintenance), 22 (maintenance), 24 (LTS) and 25 (current).
+  The minimum supported version of Node.js is now v20. This is in line with our [stated supported environments](./SUPPORTED_RUNTIMES.md)
 
 ## v0.9.2
 
 ### [v0.9.2](https://github.com/openfga/js-sdk/compare/v0.9.1...v0.9.2) (2026-02-10)
 
-- feat: add support for [streamedListObjects](https://openfga.dev/api/service#/Relationship%20Queries/StreamedListObjects). See [documentation](#streamed-list-objects)
+- feat: add support for [streamedListObjects](https://openfga.dev/api/service#/Relationship%20Queries/StreamedListObjects). See [documentation](https://github.com/openfga/js-sdk#streamed-list-objects)
 - chore: remove node url dependency blocking browser usage (#300)
 - feat: Report a per-http call metric (#303)
 

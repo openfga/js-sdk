@@ -15,6 +15,7 @@ import { Counter, Histogram, Meter } from "@opentelemetry/api";
 import { TelemetryCounter } from "./counters";
 import { TelemetryHistogram } from "./histograms";
 import { metrics } from "@opentelemetry/api";
+import SdkConstants from "../constants";
 
 export enum TelemetryMetric {
   CounterCredentialsRequest = "counterCredentialsRequest",
@@ -31,7 +32,7 @@ export class MetricRecorder {
 
   meter(): Meter {
     if (!this._meter) {
-      this._meter = metrics.getMeter("@openfga/sdk", "0.6.3");
+      this._meter = metrics.getMeter("@openfga/sdk", SdkConstants.SdkVersion);
     }
     return this._meter;
   }

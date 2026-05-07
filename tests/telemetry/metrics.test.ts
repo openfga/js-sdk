@@ -2,6 +2,8 @@ import { MetricRecorder } from "../../telemetry/metrics";
 import { TelemetryCounters } from "../../telemetry/counters";
 import { TelemetryHistograms } from "../../telemetry/histograms";
 import { TelemetryAttributes } from "../../telemetry/attributes";
+import SdkConstants from "../../constants";
+import { metrics } from "@opentelemetry/api";
 
 jest.mock("@opentelemetry/api", () => ({
   metrics: {
@@ -31,6 +33,12 @@ describe("TelemetryMetrics", () => {
 
     expect(histogram).toBeDefined();
     expect(histogram.record).toHaveBeenCalledWith(200, undefined);
+  });
+
+  test("should register meter with current SDK version", () => {
+    telemetryMetrics.counter(TelemetryCounters.credentialsRequest, 1);
+
+    expect((metrics as any).getMeter).toHaveBeenCalledWith("@openfga/sdk", SdkConstants.SdkVersion);
   });
 
   test("should handle creating metrics with custom attributes", () => {
