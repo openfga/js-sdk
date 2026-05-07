@@ -24,3 +24,23 @@ updates:
       dependencies:
         patterns:
           - "*"
+
+  - package-ecosystem: npm
+    directory: /example/api-executor
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /example/example1
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /example/opentelemetry
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /example/streamed-list-objects
+    schedule:
+      interval: daily
