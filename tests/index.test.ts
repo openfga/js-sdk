@@ -425,27 +425,25 @@ describe("OpenFGA SDK", function () {
       });
     });
 
-    describe("429 with retry in config and retry is successful", () => {
+    describe("429 with default retry config is successful", () => {
       const tupleKey = {
         user: "user:xyz",
         relation: "viewer",
         object: "foobar:x",
       };
+      let failedRequestNock: nock.Scope;
 
       beforeEach(async () => {
-        const updateBaseConfig = {
-          ...baseConfig,
-          retryParams: GetDefaultRetryParams(2, 10),
-        };
-        fgaApi = new OpenFgaApi({ ...updateBaseConfig });
+        fgaApi = new OpenFgaApi({ ...baseConfig });
 
         nocks.tokenExchange(OPENFGA_API_TOKEN_ISSUER, "test-token");
 
-        nock(basePath)
+        failedRequestNock = nock(basePath)
           .post(
             `/stores/${storeId}/check`,
             {
               tuple_key: tupleKey,
+              authorization_model_id: "01GXSA8YR785C4FYS3C0RTG7B1"
             },
             expect.objectContaining({ Authorization: "Bearer test-token" })
           )
@@ -465,6 +463,54 @@ describe("OpenFGA SDK", function () {
       it("should return allowed", async () => {
         const result = await fgaApi.check(baseConfig.storeId!, { tuple_key: tupleKey, authorization_model_id: "01GXSA8YR785C4FYS3C0RTG7B1"}, {});
 
+        expect(failedRequestNock.isDone()).toBe(true);
+        expect(result.allowed).toBe(true);
+      });
+    });
+
+    describe("429 with retry in config and retry is successful", () => {
+      const tupleKey = {
+        user: "user:xyz",
+        relation: "viewer",
+        object: "foobar:x",
+      };
+      let failedRequestNock: nock.Scope;
+
+      beforeEach(async () => {
+        const updateBaseConfig = {
+          ...baseConfig,
+          retryParams: GetDefaultRetryParams(2, 10),
+        };
+        fgaApi = new OpenFgaApi({ ...updateBaseConfig });
+
+        nocks.tokenExchange(OPENFGA_API_TOKEN_ISSUER, "test-token");
+
+        failedRequestNock = nock(basePath)
+          .post(
+            `/stores/${storeId}/check`,
+            {
+              tuple_key: tupleKey,
+              authorization_model_id: "01GXSA8YR785C4FYS3C0RTG7B1"
+            },
+            expect.objectContaining({ Authorization: "Bearer test-token" })
+          )
+          .times(1)
+          .reply(429, {
+            code: "rate_limit_exceeded",
+            message: "nock error",
+          });
+
+        nocks.check(baseConfig.storeId!, tupleKey);
+      });
+
+      afterEach(() => {
+        nock.cleanAll();
+      });
+
+      it("should return allowed", async () => {
+        const result = await fgaApi.check(baseConfig.storeId!, { tuple_key: tupleKey, authorization_model_id: "01GXSA8YR785C4FYS3C0RTG7B1"}, {});
+
+        expect(failedRequestNock.isDone()).toBe(true);
         expect(result.allowed).toBe(true);
       });
     });
@@ -475,11 +521,12 @@ describe("OpenFGA SDK", function () {
         relation: "viewer",
         object: "foobar:x",
       };
+      let failedRequestNock: nock.Scope;
 
       beforeEach(async () => {
         nocks.tokenExchange(OPENFGA_API_TOKEN_ISSUER, "test-token");
 
-        nock(basePath)
+        failedRequestNock = nock(basePath)
           .post(
             `/stores/${storeId}/check`,
             {
@@ -507,6 +554,7 @@ describe("OpenFGA SDK", function () {
           { retryParams: GetDefaultRetryParams(2, 10) }
         );
 
+        expect(failedRequestNock.isDone()).toBe(true);
         expect(result.allowed).toBe(true);
       });
     });

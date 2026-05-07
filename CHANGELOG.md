@@ -1,7 +1,12 @@
 # Changelog
 
 
-## [Unreleased](https://github.com/openfga/js-sdk/compare/v0.9.4...HEAD)
+## [0.9.5](https://github.com/openfga/js-sdk/compare/v0.9.4...v0.9.5) (2026-04-10)
+
+
+### Fixed
+
+* Correctly set authorization model id when calling batch checks ([#372](https://github.com/openfga/js-sdk/issues/372)) ([bbc8bde](https://github.com/openfga/js-sdk/commit/bbc8bdec04475b7707542b09be4e31fa9666dd2f))
 
 - feat!: replace axios with native `fetch` for cross-platform support (Node.js, browsers, Deno, Cloudflare Workers, Vercel Edge).
   - **BREAKING**: `AxiosResponse` is no longer exposed on `$response`. The new type is `FgaResponse<T>` (with `status`, `statusText`, `headers`, `data`).

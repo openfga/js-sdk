@@ -51,6 +51,7 @@ export class Credentials {
   private accessToken?: string;
   private accessTokenExpiryDate?: Date;
   private accessTokenExpiryBufferInMs = 0;
+  private refreshAccessTokenPromise?: Promise<string | undefined>;
 
   public static init(configuration: { credentials: AuthCredentialsConfig, telemetry: TelemetryConfiguration, baseOptions?: any }, httpClient: HttpClient = defaultHttpClient): Credentials {
     return new Credentials(configuration.credentials, httpClient, configuration.telemetry, configuration.baseOptions);
@@ -150,7 +151,13 @@ export class Credentials {
         return this.accessToken;
       }
 
-      return this.refreshAccessToken();
+      if (!this.refreshAccessTokenPromise) {
+        this.refreshAccessTokenPromise = this.refreshAccessToken().finally(() => {
+          this.refreshAccessTokenPromise = undefined;
+        });
+      }
+
+      return this.refreshAccessTokenPromise;
     }
     }
   }

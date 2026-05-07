@@ -158,7 +158,7 @@ export class Configuration {
     }
 
     this.baseOptions = baseOptions;
-    this.retryParams = params.retryParams;
+    this.retryParams = Object.assign(GetDefaultRetryParams(), params.retryParams);
     this.telemetry = new TelemetryConfiguration(params?.telemetry?.metrics);
   }
 

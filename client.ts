@@ -515,11 +515,10 @@ export class OpenFgaClient extends BaseAPI {
       maxParallelRequests = DEFAULT_MAX_METHOD_PARALLEL_REQS,
     } = transaction;
     const { writes, deletes } = body;
-    const authorizationModelId = this.getAuthorizationModelId(options);
 
     if (!transaction?.disable) {
       const apiBody: WriteRequest = {
-        authorization_model_id: authorizationModelId,
+        authorization_model_id: this.getAuthorizationModelId(options),
       };
       if (writes?.length) {
         apiBody.writes = {
@@ -775,7 +774,7 @@ export class OpenFgaClient extends BaseAPI {
     const batchResponses = asyncPool(maxParallelRequests, batchedChecks, async (batch: BatchCheckItem[]) => {
       const batchRequest: BatchCheckRequest = {
         checks: batch,
-        authorization_model_id: options.authorizationModelId,
+        authorization_model_id: this.getAuthorizationModelId(options),
         consistency: options.consistency,
       };
 
