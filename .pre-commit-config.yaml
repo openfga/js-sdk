@@ -3,10 +3,14 @@ repos:
   rev: v8.16.3
   hooks:
   - id: gitleaks
-- repo: https://github.com/pre-commit/mirrors-eslint
-  rev: v8.38.0
+- repo: local
   hooks:
   - id: eslint
+    name: eslint
+    entry: npx eslint
+    language: system
+    types_or: [javascript, ts, tsx]
+    pass_filenames: true
 - repo: https://github.com/pre-commit/pre-commit-hooks
   rev: v4.4.0
   hooks:
