@@ -6,15 +6,10 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
-    ignore:
-      - dependency-name: "eslint"
-        versions: [">=10.0.0 <11.0.0"]
     groups:
       dependencies:
         patterns:
           - "*"
-        exclude-patterns:
-          - "eslint"
 
   - package-ecosystem: "github-actions"
     directory: "/"
@@ -28,19 +23,19 @@ updates:
   - package-ecosystem: npm
     directory: /example/api-executor
     schedule:
-      interval: daily
+      interval: weekly
 
   - package-ecosystem: npm
     directory: /example/example1
     schedule:
-      interval: daily
+      interval: weekly
 
   - package-ecosystem: npm
     directory: /example/opentelemetry
     schedule:
-      interval: daily
+      interval: weekly
 
   - package-ecosystem: npm
     directory: /example/streamed-list-objects
     schedule:
-      interval: daily
+      interval: weekly
