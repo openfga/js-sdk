@@ -1,28 +1,7 @@
 # Changelog
 
 
-## [0.9.7](https://github.com/openfga/js-sdk/compare/v0.9.6...v0.9.7) (2026-05-11)
-
-
-### Added
-
-* add APIExecutor dedicated examples ([#385](https://github.com/openfga/js-sdk/issues/385)) ([e1faea8](https://github.com/openfga/js-sdk/commit/e1faea8a9c0ee004346fdb0125adcefcc5d711b2))
-* draft releases, version verification, and reusable workflows ([#396](https://github.com/openfga/js-sdk/issues/396)) ([83bf30e](https://github.com/openfga/js-sdk/commit/83bf30ee2bddda474707a9963908301f5046a949))
-
-
-### Fixed
-
-* correctly set default retry params ([#394](https://github.com/openfga/js-sdk/issues/394)) ([6b03882](https://github.com/openfga/js-sdk/commit/6b03882c7b8cf512c1e0f3548de556135695762c))
-* prevent token refresh thundering herd ([#333](https://github.com/openfga/js-sdk/issues/333)) ([025346f](https://github.com/openfga/js-sdk/commit/025346ffe020fd31f3cdaf9f2d874bbcf01f3691))
-* stop mutating token refresh errors into auth errors ([#329](https://github.com/openfga/js-sdk/issues/329)) ([d5cbccb](https://github.com/openfga/js-sdk/commit/d5cbccb91b135ad61be04805de6923c9b8d46cdd))
-
-
-### Documentation
-
-* parse raw stream ([#389](https://github.com/openfga/js-sdk/issues/389)) ([7331c56](https://github.com/openfga/js-sdk/commit/7331c56609bf40ed73cb4badc1f404720ea2634a))
-
-## [0.9.6](https://github.com/openfga/js-sdk/compare/v0.9.5...v0.9.6) (2026-05-11)
-
+## [0.9.7](https://github.com/openfga/js-sdk/compare/v0.9.5...v0.9.7) (2026-05-11)
 
 ### Fixed
 
