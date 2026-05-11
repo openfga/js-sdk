@@ -5,7 +5,8 @@
     "module": "commonjs",
     "noImplicitAny": true,
     "strict": true,
-    "outDir": "dist",
+    "declarationDir": "dist",
+    "outDir": "dist/cjs",
     "rootDir": ".",
     "typeRoots": [
       "node_modules/@types"

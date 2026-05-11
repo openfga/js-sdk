@@ -5,9 +5,9 @@ import {
   UserClientConfigurationParams,
   FgaApiNotFoundError,
   FgaApiValidationError,
-} from "../index";
-import { CredentialsMethod } from "../credentials";
-import { baseConfig, defaultConfiguration, OPENFGA_STORE_ID } from "./helpers/default-config";
+} from "../index.js";
+import { CredentialsMethod } from "../credentials/index.js";
+import { baseConfig, defaultConfiguration, OPENFGA_STORE_ID } from "./helpers/default-config.js";
 
 describe("OpenFgaClient.executeApiRequest", () => {
   const basePath = defaultConfiguration.getBasePath();

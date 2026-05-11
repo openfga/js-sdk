@@ -2,7 +2,7 @@ import {
   ErrorCode,
   InternalErrorCode,
   NotFoundErrorCode,
-} from "./apiModel";
+} from "./apiModel.js";
 
 /**
  * Context extracted from a failed HTTP request/response,

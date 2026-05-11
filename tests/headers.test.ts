@@ -1,7 +1,7 @@
 import nock from "nock";
-import { OpenFgaClient, UserClientConfigurationParams } from "../index";
-import { baseConfig } from "./helpers/default-config";
-import { CredentialsMethod } from "../credentials";
+import { OpenFgaClient, UserClientConfigurationParams } from "../index.js";
+import { baseConfig } from "./helpers/default-config.js";
+import { CredentialsMethod } from "../credentials/index.js";
 
 nock.disableNetConnect();
 

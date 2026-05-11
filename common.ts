@@ -1,6 +1,6 @@
-import { Configuration, RetryParams } from "./configuration";
-import SdkConstants from "./constants";
-import type { Credentials } from "./credentials";
+import { Configuration, RetryParams } from "./configuration.js";
+import SdkConstants from "./constants/index.js";
+import type { Credentials } from "./credentials/index.js";
 import {
   FgaApiError,
   FgaApiInternalError,
@@ -11,11 +11,11 @@ import {
   FgaError,
   FgaValidationError,
   HttpErrorContext,
-} from "./errors";
-import { setNotEnumerableProperty } from "./utils";
-import { TelemetryAttribute, TelemetryAttributes } from "./telemetry/attributes";
-import { TelemetryConfiguration } from "./telemetry/configuration";
-import { TelemetryHistograms } from "./telemetry/histograms";
+} from "./errors.js";
+import { setNotEnumerableProperty } from "./utils/index.js";
+import { TelemetryAttribute, TelemetryAttributes } from "./telemetry/attributes.js";
+import { TelemetryConfiguration } from "./telemetry/configuration.js";
+import { TelemetryHistograms } from "./telemetry/histograms.js";
 
 /**
  *

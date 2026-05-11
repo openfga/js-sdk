@@ -12,10 +12,22 @@
     "zanzibar"
   ],
   "license": "Apache-2.0",
-  "main": "./dist/index.js",
+  "main": "./dist/cjs/index.js",
+  "module": "./dist/esm/index.js",
   "typings": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.js",
+      "default": "./dist/cjs/index.js"
+    }
+  },
   "scripts": {
-    "build": "tsc --outDir dist/",
+    "build": "npm run build:cjs && npm run build:esm && npm run build:post",
+    "build:cjs": "tsc --project tsconfig.json",
+    "build:esm": "tsc --project tsconfig.esm.json",
+    "build:post": "echo '{\"type\":\"commonjs\"}' > dist/cjs/package.json && echo '{\"type\":\"module\"}' > dist/esm/package.json",
     "prepublishOnly": "rm -rf dist/ && npm run build",
     "test": "jest --config ./tests/jest.config.js",
     "lint": "eslint .",
@@ -23,13 +35,11 @@
   },
   "dependencies": {
     "@opentelemetry/api": "^1.9.1",
-    "jose": "5.10.0",
-    "tiny-async-pool": "^2.1.0"
+    "jose": "5.10.0"
   },
   "devDependencies": {
     "@types/jest": "30.0.0",
     "@types/node": "^25.6.0",
-    "@types/tiny-async-pool": "^2.0.3",
     "@typescript-eslint/eslint-plugin": "^8.59.2",
     "@typescript-eslint/parser": "^8.59.2",
     "eslint": "^10.3.0",

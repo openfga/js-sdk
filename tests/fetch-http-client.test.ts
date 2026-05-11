@@ -1,5 +1,5 @@
-import { attemptHttpRequest, HttpClient, FgaResponse } from "../common";
-import SdkConstants from "../constants";
+import { attemptHttpRequest, HttpClient, FgaResponse } from "../common.js";
+import SdkConstants from "../constants/index.js";
 import {
   FgaError,
   FgaApiValidationError,
@@ -8,8 +8,8 @@ import {
   FgaApiRateLimitExceededError,
   FgaApiInternalError,
   FgaApiError,
-} from "../errors";
-import { OpenFgaClient } from "../client";
+} from "../errors.js";
+import { OpenFgaClient } from "../client.js";
 
 function mockHttpClient(
   fetchImpl: (url: string | URL | Request, init?: RequestInit) => Promise<Response>,

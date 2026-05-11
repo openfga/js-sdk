@@ -1,7 +1,7 @@
-import asyncPool = require("tiny-async-pool");
+import { asyncPool } from "./utils/utils-lite/async-pool.js";
 
-import { OpenFgaApi, HttpMethod, RequestBuilderParams, RequestBuilderOptions } from "./api";
-import type { FgaResponse, HttpClient } from "./common";
+import { OpenFgaApi, HttpMethod, RequestBuilderParams, RequestBuilderOptions } from "./api.js";
+import type { FgaResponse, HttpClient } from "./common.js";
 export type { HttpMethod, RequestBuilderParams, RequestBuilderOptions };
 import {
   Assertion,
@@ -40,19 +40,19 @@ import {
   WriteRequest,
   WriteRequestWritesOnDuplicate,
   WriteRequestDeletesOnMissing,
-} from "./apiModel";
-import { BaseAPI } from "./base";
-import { CallResult, PromiseResult } from "./common";
-import { Configuration, RetryParams, UserConfigurationParams } from "./configuration";
-import { FgaApiAuthenticationError, FgaRequiredParamError, FgaValidationError } from "./errors";
+} from "./apiModel.js";
+import { BaseAPI } from "./base.js";
+import { CallResult, PromiseResult } from "./common.js";
+import { Configuration, RetryParams, UserConfigurationParams } from "./configuration.js";
+import { FgaApiAuthenticationError, FgaRequiredParamError, FgaValidationError } from "./errors.js";
 import {
   chunkArray,
   generateRandomIdWithNonUniqueFallback,
   setHeaderIfNotSet,
-} from "./utils";
-import { isWellFormedUlidString } from "./validation";
-import SdkConstants from "./constants";
-import { parseNDJSONStream } from "./streaming";
+} from "./utils/index.js";
+import { isWellFormedUlidString } from "./validation.js";
+import SdkConstants from "./constants/index.js";
+import { parseNDJSONStream } from "./streaming.js";
 
 export type UserClientConfigurationParams = UserConfigurationParams & {
   storeId?: string;

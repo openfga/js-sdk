@@ -13,15 +13,15 @@
 
 import * as jose from "jose";
 
-import { assertParamExists, isWellFormedUriString } from "../validation";
-import { FgaApiAuthenticationError, FgaApiError, FgaValidationError } from "../errors";
-import { attemptHttpRequest, HttpClient } from "../common";
-import { AuthCredentialsConfig, PrivateKeyJWTConfig, ClientCredentialsConfig, ClientSecretConfig, CredentialsMethod } from "./types";
-import { TelemetryAttributes } from "../telemetry/attributes";
-import { TelemetryCounters } from "../telemetry/counters";
-import { TelemetryConfiguration } from "../telemetry/configuration";
+import { assertParamExists, isWellFormedUriString } from "../validation.js";
+import { FgaApiAuthenticationError, FgaApiError, FgaValidationError } from "../errors.js";
+import { attemptHttpRequest, HttpClient } from "../common.js";
+import { AuthCredentialsConfig, PrivateKeyJWTConfig, ClientCredentialsConfig, ClientSecretConfig, CredentialsMethod } from "./types.js";
+import { TelemetryAttributes } from "../telemetry/attributes.js";
+import { TelemetryCounters } from "../telemetry/counters.js";
+import { TelemetryConfiguration } from "../telemetry/configuration.js";
 import { randomUUID } from "crypto";
-import SdkConstants from "../constants";
+import SdkConstants from "../constants/index.js";
 
 interface ClientSecretRequest {
   client_id: string;

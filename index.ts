@@ -11,17 +11,17 @@
  */
 
 
-export * from "./api";
-export * from "./client";
-export * from "./apiModel";
-export { Configuration, UserConfigurationParams, GetDefaultRetryParams } from "./configuration";
-export { Credentials, CredentialsMethod } from "./credentials";
-export * from "./telemetry/attributes";
-export * from "./telemetry/configuration";
-export * from "./telemetry/counters";
-export * from "./telemetry/histograms";
-export * from "./telemetry/metrics";
-export * from "./errors";
-export { FgaResponse, HttpClient, CallResult, PromiseResult } from "./common";
-export { parseNDJSONStream } from "./streaming";
+export * from "./api.js";
+export * from "./client.js";
+export * from "./apiModel.js";
+export { Configuration, UserConfigurationParams, GetDefaultRetryParams } from "./configuration.js";
+export { Credentials, CredentialsMethod } from "./credentials/index.js";
+export * from "./telemetry/attributes.js";
+export * from "./telemetry/configuration.js";
+export * from "./telemetry/counters.js";
+export * from "./telemetry/histograms.js";
+export * from "./telemetry/metrics.js";
+export * from "./errors.js";
+export { FgaResponse, HttpClient, CallResult, PromiseResult } from "./common.js";
+export { parseNDJSONStream } from "./streaming.js";
 

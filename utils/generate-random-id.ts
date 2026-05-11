@@ -3,9 +3,10 @@ import { randomUUID, randomBytes } from "crypto";
 /**
  * Generates a random ID
  *
- * Note: May not return a valid value on older browsers - we're fine with this for now
+ * Note: May not return a secure random value.
+ *       We're fine with this, as this is just used to identify requests.
  */
-export function generateRandomId(): string | undefined {
+export function generateRandomId(): string {
   if (typeof randomUUID === "function") {
     return randomUUID();
   }
@@ -15,10 +16,15 @@ export function generateRandomId(): string | undefined {
     return randomBytes(20).toString("hex");
   }
 
-  // For older browsers
-  return;
+  // Fallback for older browsers and runtimes without crypto support
+  const chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  let result = "";
+  for (let i = 0; i < 20; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
 }
 
 export function generateRandomIdWithNonUniqueFallback(): string {
-  return generateRandomId() || "00000000-0000-0000-0000-000000000000";
+  return generateRandomId();
 }

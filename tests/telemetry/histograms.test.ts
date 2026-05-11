@@ -1,4 +1,4 @@
-import { TelemetryHistograms } from "../../telemetry/histograms";
+import { TelemetryHistograms } from "../../telemetry/histograms.js";
 
 describe("TelemetryHistograms", () => {
   test("should have correct histogram details for request duration", () => {
