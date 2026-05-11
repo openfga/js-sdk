@@ -1,6 +1,13 @@
 # Changelog
 
 
+## [0.9.7](https://github.com/openfga/js-sdk/compare/v0.9.6...v0.9.7) (2026-05-11)
+
+
+### Miscellaneous
+
+* release 0.9.7 ([707de22](https://github.com/openfga/js-sdk/commit/707de225dc70524b7307e5183775c8b67e1cb0c2))
+
 ## [0.9.6](https://github.com/openfga/js-sdk/compare/v0.9.5...v0.9.6) (2026-05-11)
 
 
