@@ -3,6 +3,7 @@
   "release-type": "node",
   "pull-request-title-pattern": "release: v${version}",
   "draft": true,
+  "force-tag-creation": true,
   "bootstrap-sha": "93131c7fa858c266247169120104823881e51499",
   "packages": {
     ".": {
