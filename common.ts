@@ -1,6 +1,4 @@
-import { AxiosInstance, AxiosRequestConfig, AxiosResponse } from "axios";
-
-import { Configuration } from "./configuration";
+import { Configuration, RetryParams } from "./configuration";
 import SdkConstants from "./constants";
 import type { Credentials } from "./credentials";
 import {
@@ -12,6 +10,7 @@ import {
   FgaApiValidationError,
   FgaError,
   FgaValidationError,
+  HttpErrorContext,
 } from "./errors";
 import { setNotEnumerableProperty } from "./utils";
 import { TelemetryAttribute, TelemetryAttributes } from "./telemetry/attributes";
@@ -34,6 +33,35 @@ export interface RequestArgs {
   options: any;
 }
 
+/**
+ * SDK-owned response type, replacing AxiosResponse.
+ * @export
+ */
+export interface FgaResponse<T> {
+  status: number;
+  statusText: string;
+  headers: Record<string, string>;
+  data: T;
+}
+
+/**
+ * Configuration for the HTTP client used by the SDK.
+ * @export
+ */
+export interface HttpClient {
+  fetch: typeof globalThis.fetch;
+  defaultHeaders?: Record<string, string>;
+  defaultTimeout?: number;
+}
+
+/**
+ * Default HttpClient using the global fetch.
+ * Used as fallback when no custom HttpClient is provided.
+ */
+export const globalHttpClient: HttpClient = {
+  fetch: globalThis.fetch.bind(globalThis),
+  defaultTimeout: 10000,
+};
 
 /**
  *
@@ -78,7 +106,7 @@ export const setSearchParams = function (url: URL, ...objects: any[]) {
  * @return True if the given MIME is JSON, false otherwise.
  */
 const isJsonMime = (mime: string): boolean => {
-   
+
   const jsonMime = new RegExp("^(application/json|[^;/ \t]+/[^;/ \t]+[+]json)[ \t]*(;.*)?$", "i");
   return mime !== null && (jsonMime.test(mime) || mime.toLowerCase() === "application/json-patch+json");
 };
@@ -112,19 +140,11 @@ interface StringIndexable {
 }
 
 export type CallResult<T extends ObjectOrVoid> = T & {
-  $response: AxiosResponse<T>
+  $response: FgaResponse<T>
 };
 
 export type PromiseResult<T extends ObjectOrVoid> = Promise<CallResult<T>>;
 
-/**
- * Returns true if this error is returned from axios
- * source: https://github.com/axios/axios/blob/21a5ad34c4a5956d81d338059ac0dd34a19ed094/lib/helpers/isAxiosError.js#L12
- * @param err
- */
-function isAxiosError(err: any): boolean {
-  return err && typeof err === "object" && err.isAxiosError === true;
-}
 function calculateExponentialBackoffWithJitter(retryAttempt: number, minWaitInMs: number): number {
   const minDelayMs = Math.ceil(2 ** retryAttempt * minWaitInMs);
   const maxDelayMs = Math.ceil(2 ** (retryAttempt + 1) * minWaitInMs);
@@ -146,20 +166,14 @@ function isValidRetryDelay(delayMs: number): boolean {
  * @param headers - HTTP response headers
  * @returns Delay in milliseconds if valid, undefined otherwise
  */
-function parseRetryAfterHeader(headers: Record<string, string | string[] | undefined>): number | undefined {
+function parseRetryAfterHeader(headers: Record<string, string>): number | undefined {
   // Find the retry-after header regardless of case
   const retryAfterHeaderNameLower = SdkConstants.RetryAfterHeaderName.toLowerCase();
   const retryAfterKey = Object.keys(headers).find(key =>
     key.toLowerCase() === retryAfterHeaderNameLower
   );
 
-  const retryAfterHeader = retryAfterKey ? headers[retryAfterKey] : undefined;
-
-  if (!retryAfterHeader) {
-    return undefined;
-  }
-
-  const retryAfterHeaderValue = Array.isArray(retryAfterHeader) ? retryAfterHeader[0] : retryAfterHeader;
+  const retryAfterHeaderValue = retryAfterKey ? headers[retryAfterKey] : undefined;
 
   if (!retryAfterHeaderValue) {
     return undefined;
@@ -191,74 +205,242 @@ function parseRetryAfterHeader(headers: Record<string, string | string[] | undef
   return undefined;
 }
 
-interface WrappedAxiosResponse<R> {
-  response?: AxiosResponse<R>;
+/**
+ * Convert a fetch Headers object to a plain Record<string, string>.
+ */
+function headersToRecord(headers: Headers): Record<string, string> {
+  const result: Record<string, string> = {};
+  headers.forEach((value, key) => {
+    result[key] = value;
+  });
+  return result;
+}
+
+interface WrappedResponse<R> {
+  response?: FgaResponse<R>;
   retries: number;
 }
 
 function checkIfRetryableError(
-  err: any,
+  errCtx: HttpErrorContext,
   iterationCount: number,
   maxRetry: number
 ): { retryable: boolean; error?: Error } {
-  if (!isAxiosError(err)) {
-    return { retryable: false, error: new FgaError(err) };
-  }
+  const status = errCtx.status;
 
-  const status = (err as any)?.response?.status;
-  const isNetworkError = !status;
-
-  if (isNetworkError) {
+  // Network error — no status code
+  if (!status) {
     if (iterationCount > maxRetry) {
-      return { retryable: false, error: new FgaError(err) };
+      return { retryable: false, error: new FgaError(undefined, `Network error for ${errCtx.requestMethod} ${errCtx.requestUrl}`) };
     }
     return { retryable: true };
   }
 
   if (status === 400 || status === 422) {
-    return { retryable: false, error: new FgaApiValidationError(err) };
+    return { retryable: false, error: new FgaApiValidationError(errCtx) };
   } else if (status === 401 || status === 403) {
-    return { retryable: false, error: new FgaApiAuthenticationError(err) };
+    return { retryable: false, error: new FgaApiAuthenticationError(errCtx) };
   } else if (status === 404) {
-    return { retryable: false, error: new FgaApiNotFoundError(err) };
+    return { retryable: false, error: new FgaApiNotFoundError(errCtx) };
   } else if (status === 429 || (status >= 500 && status !== 501)) {
     if (iterationCount > maxRetry) {
       if (status === 429) {
-        return { retryable: false, error: new FgaApiRateLimitExceededError(err) };
+        return { retryable: false, error: new FgaApiRateLimitExceededError(errCtx) };
       } else {
-        return { retryable: false, error: new FgaApiInternalError(err) };
+        return { retryable: false, error: new FgaApiInternalError(errCtx) };
       }
     }
     return { retryable: true };
   } else {
-    return { retryable: false, error: new FgaApiError(err) };
+    return { retryable: false, error: new FgaApiError(errCtx) };
   }
 }
 
+/**
+ * Request configuration for attemptHttpRequest.
+ */
+interface FetchRequestConfig {
+  url: string;
+  method?: string;
+  headers?: Record<string, string>;
+  data?: any;
+  responseType?: string;
+  timeout?: number;
+}
+
 export async function attemptHttpRequest<B, R>(
-  request: AxiosRequestConfig<B>,
+  request: FetchRequestConfig,
   config: {
     maxRetry: number;
     minWaitInMs: number;
   },
-  axiosInstance: AxiosInstance,
+  httpClient: HttpClient,
   telemetryConfig?: {
     telemetry?: TelemetryConfiguration;
     userAgent?: string;
   },
-): Promise<WrappedAxiosResponse<R> | undefined> {
+): Promise<WrappedResponse<R> | undefined> {
   let iterationCount = 0;
   do {
     iterationCount++;
 
-    // Track HTTP request duration for this specific call
     const httpRequestStart = performance.now();
-    let response: AxiosResponse<R> | undefined;
+    let fgaResponse: FgaResponse<R> | undefined;
     let httpRequestError: any;
 
     try {
-      response = await axiosInstance(request);
+      // Merge headers with case-insensitive override: per-request headers
+      // take precedence over default headers regardless of casing.
+      const fetchHeaders: Record<string, string> = {};
+      if (httpClient.defaultHeaders) {
+        for (const [k, v] of Object.entries(httpClient.defaultHeaders)) {
+          fetchHeaders[k.toLowerCase()] = v;
+        }
+      }
+      if (request.headers) {
+        for (const [k, v] of Object.entries(request.headers)) {
+          fetchHeaders[k.toLowerCase()] = v;
+        }
+      }
+
+      const timeoutMs = request.responseType === "stream" && request.timeout == null ?
+        undefined : request.timeout ?? httpClient.defaultTimeout ?? 10000;
+      let signal: AbortSignal | undefined;
+      if (timeoutMs !== undefined) {
+        if (typeof AbortSignal !== "undefined" && typeof (AbortSignal as any).timeout === "function") {
+          // Use native AbortSignal.timeout when available.
+          signal = (AbortSignal as any).timeout(timeoutMs);
+        } else if (typeof AbortController !== "undefined") {
+          // Fallback for environments without AbortSignal.timeout.
+          const controller = new AbortController();
+          setTimeout(() => controller.abort(), timeoutMs);
+          signal = controller.signal;
+        }
+      }
+      const fetchInit: RequestInit = {
+        method: request.method || "GET",
+        headers: fetchHeaders,
+        signal,
+      };
+
+      if (request.data !== undefined) {
+        if (typeof request.data === "string") {
+          fetchInit.body = request.data;
+        } else {
+          const contentTypeHeader = Object.entries(fetchHeaders).find(
+            ([name]) => name.toLowerCase() === "content-type",
+          )?.[1];
+
+          const contentType = contentTypeHeader?.split(";")[0].trim().toLowerCase();
+
+          if (contentType === "application/x-www-form-urlencoded") {
+            if (request.data instanceof URLSearchParams) {
+              fetchInit.body = request.data.toString();
+            } else {
+              const formParams = new URLSearchParams();
+              for (const [key, value] of Object.entries(request.data as Record<string, any>)) {
+                if (value === undefined || value === null) continue;
+                formParams.append(key, String(value));
+              }
+              fetchInit.body = formParams.toString();
+            }
+          } else if (
+            contentType === "application/json" ||
+            contentType === "text/json" ||
+            (contentType?.endsWith("+json") ?? false)
+          ) {
+            fetchInit.body = JSON.stringify(request.data);
+          } else {
+            // Default to JSON serialization to preserve existing behavior.
+            fetchInit.body = JSON.stringify(request.data);
+          }
+        }
+      }
+
+      const response = await httpClient.fetch(request.url, fetchInit);
+      const responseHeaders = headersToRecord(response.headers);
+
+      if (!response.ok) {
+        // Non-2xx status — build error context for retry/error handling
+        // Read body as text first to avoid consuming the stream with response.json().
+        let responseData: any;
+        try {
+          const rawBody = await response.text();
+          try {
+            responseData = JSON.parse(rawBody);
+          } catch {
+            responseData = rawBody;
+          }
+        } catch {
+          responseData = undefined;
+        }
+
+        const errCtx: HttpErrorContext = {
+          status: response.status,
+          statusText: response.statusText,
+          headers: responseHeaders,
+          data: responseData,
+          requestUrl: request.url,
+          requestMethod: request.method ?? "GET",
+          requestData: request.data,
+        };
+
+        // Emit per-HTTP-request metric before checking retry
+        emitHttpRequestMetric(telemetryConfig, request, response.status, httpRequestStart);
+
+        const { retryable, error } = checkIfRetryableError(errCtx, iterationCount, config.maxRetry);
+
+        if (!retryable) {
+          throw error;
+        }
+
+        // Calculate retry delay
+        let retryDelayMs: number | undefined;
+        const status = response.status;
+        if (status === 429 || (status >= 500 && status !== 501)) {
+          retryDelayMs = parseRetryAfterHeader(responseHeaders);
+        }
+        if (!retryDelayMs) {
+          retryDelayMs = calculateExponentialBackoffWithJitter(iterationCount, config.minWaitInMs);
+        }
+
+        await new Promise(r => setTimeout(r, Math.min(retryDelayMs, SdkConstants.RetryHeaderMaxAllowableDurationInSec * 1000)));
+        continue;
+      }
+
+      // Success path
+      if (request.responseType === "stream") {
+        // For streaming, return the body as-is without parsing
+        fgaResponse = {
+          status: response.status,
+          statusText: response.statusText,
+          headers: responseHeaders,
+          data: response.body as any,
+        };
+      } else {
+        let data: any;
+        const contentType = response.headers.get("content-type") || "";
+        if (response.status === 204 || response.headers.get("content-length") === "0") {
+          data = undefined;
+        } else if (isJsonMime(contentType)) {
+          data = await response.json();
+        } else {
+          data = await response.text();
+        }
+
+        fgaResponse = {
+          status: response.status,
+          statusText: response.statusText,
+          headers: responseHeaders,
+          data,
+        };
+      }
     } catch (err: any) {
+      // Network errors, timeouts, or already-classified FGA errors
+      if (err instanceof FgaError) {
+        throw err;
+      }
+
       httpRequestError = err;
     }
 
@@ -266,81 +448,91 @@ export async function attemptHttpRequest<B, R>(
     const httpRequestDuration = Math.round(performance.now() - httpRequestStart);
 
     // Emit per-HTTP-request metric if telemetry is configured
-    if (telemetryConfig?.telemetry?.metrics?.histogramHttpRequestDuration) {
-      const httpAttrs: Record<string, string | number> = {};
-
-      // Build attributes from the request
-      if (request.url) {
-        try {
-          const parsedUrl = new URL(request.url);
-          httpAttrs[TelemetryAttribute.HttpHost] = parsedUrl.hostname;
-          httpAttrs[TelemetryAttribute.UrlScheme] = parsedUrl.protocol.replace(":", "");
-          httpAttrs[TelemetryAttribute.UrlFull] = request.url;
-        } catch {
-          // URL parsing failed, still include the raw URL
-          httpAttrs[TelemetryAttribute.UrlFull] = request.url;
-        }
-      }
-      if (request.method) {
-        httpAttrs[TelemetryAttribute.HttpRequestMethod] = request.method.toUpperCase();
-      }
-      if (telemetryConfig.userAgent) {
-        httpAttrs[TelemetryAttribute.UserAgentOriginal] = telemetryConfig.userAgent;
-      }
-
-      // Add response status code if available
-      const responseStatus = response?.status || httpRequestError?.response?.status;
-      if (responseStatus != null) {
-        httpAttrs[TelemetryAttribute.HttpResponseStatusCode] = responseStatus;
-      }
-
-      telemetryConfig.telemetry.recorder.histogram(
-        TelemetryHistograms.httpRequestDuration,
-        httpRequestDuration,
-        TelemetryAttributes.prepare(
-          httpAttrs,
-          telemetryConfig.telemetry.metrics.histogramHttpRequestDuration.attributes
-        )
-      );
-    }
+    emitHttpRequestMetric(telemetryConfig, request, fgaResponse?.status ?? httpRequestError?.response?.status, httpRequestStart);
 
     // Handle successful response
-    if (response && !httpRequestError) {
+    if (fgaResponse && !httpRequestError) {
       return {
-        response: response,
+        response: fgaResponse,
         retries: iterationCount - 1,
       };
     }
 
-    // Handle error
+    // Handle network/timeout error
     if (httpRequestError) {
-      const { retryable, error } = checkIfRetryableError(httpRequestError, iterationCount, config.maxRetry);
+      // Only retry network-level errors (TypeError from fetch, DOMException for abort).
+      // Other errors (programming errors, unexpected throws) should propagate immediately.
+      const isNetworkError = httpRequestError instanceof TypeError ||
+        (httpRequestError?.name === "AbortError") ||
+        (httpRequestError?.name === "TimeoutError");
+
+      if (!isNetworkError) {
+        throw new FgaError(httpRequestError);
+      }
+
+      const errCtx: HttpErrorContext = {
+        requestUrl: request.url,
+        requestMethod: request.method ?? "GET",
+        requestData: request.data,
+      };
+
+      const { retryable, error } = checkIfRetryableError(errCtx, iterationCount, config.maxRetry);
 
       if (!retryable) {
         throw error;
       }
 
-      const status = httpRequestError?.response?.status;
-      let retryDelayMs: number | undefined;
-
-      if ((status &&
-        (status === 429 || (status >= 500 && status !== 501))) &&
-        httpRequestError.response?.headers) {
-        retryDelayMs = parseRetryAfterHeader(httpRequestError.response.headers);
-      }
-      if (!retryDelayMs) {
-        retryDelayMs = calculateExponentialBackoffWithJitter(iterationCount, config.minWaitInMs);
-      }
-
+      const retryDelayMs = calculateExponentialBackoffWithJitter(iterationCount, config.minWaitInMs);
       await new Promise(r => setTimeout(r, Math.min(retryDelayMs, SdkConstants.RetryHeaderMaxAllowableDurationInSec * 1000)));
     }
   } while (iterationCount < config.maxRetry + 1);
 }
 
+function emitHttpRequestMetric(
+  telemetryConfig: { telemetry?: TelemetryConfiguration; userAgent?: string } | undefined,
+  request: FetchRequestConfig,
+  responseStatus: number | undefined,
+  httpRequestStart: number
+) {
+  if (!telemetryConfig?.telemetry?.metrics?.histogramHttpRequestDuration) return;
+
+  const httpRequestDuration = Math.round(performance.now() - httpRequestStart);
+  const httpAttrs: Record<string, string | number> = {};
+
+  if (request.url) {
+    try {
+      const parsedUrl = new URL(request.url);
+      httpAttrs[TelemetryAttribute.HttpHost] = parsedUrl.hostname;
+      httpAttrs[TelemetryAttribute.UrlScheme] = parsedUrl.protocol.replace(":", "");
+      httpAttrs[TelemetryAttribute.UrlFull] = request.url;
+    } catch {
+      httpAttrs[TelemetryAttribute.UrlFull] = request.url;
+    }
+  }
+  if (request.method) {
+    httpAttrs[TelemetryAttribute.HttpRequestMethod] = request.method.toUpperCase();
+  }
+  if (telemetryConfig.userAgent) {
+    httpAttrs[TelemetryAttribute.UserAgentOriginal] = telemetryConfig.userAgent;
+  }
+  if (responseStatus != null) {
+    httpAttrs[TelemetryAttribute.HttpResponseStatusCode] = responseStatus;
+  }
+
+  telemetryConfig.telemetry.recorder.histogram(
+    TelemetryHistograms.httpRequestDuration,
+    httpRequestDuration,
+    TelemetryAttributes.prepare(
+      httpAttrs,
+      telemetryConfig.telemetry.metrics.histogramHttpRequestDuration.attributes
+    )
+  );
+}
+
 /**
- * creates an axios request function
+ * creates a fetch request function
  */
-export const createRequestFunction = function (axiosArgs: RequestArgs, axiosInstance: AxiosInstance, configuration: Configuration, credentials: Credentials, methodAttributes: Record<string, string | number> = {}) {
+export const createRequestFunction = function (axiosArgs: RequestArgs, httpClient: HttpClient, configuration: Configuration, credentials: Credentials, methodAttributes: Record<string, string | number> = {}) {
   configuration.isValid();
 
   const retryParams = axiosArgs.options?.retryParams ? axiosArgs.options?.retryParams : configuration.retryParams;
@@ -349,16 +541,23 @@ export const createRequestFunction = function (axiosArgs: RequestArgs, axiosInst
 
   const start = performance.now();
 
-  return async (axios: AxiosInstance = axiosInstance): PromiseResult<any> => {
+  return async (client: HttpClient = httpClient): PromiseResult<any> => {
     await setBearerAuthToObject(axiosArgs.options.headers, credentials!);
 
     const url = configuration.getBasePath() + axiosArgs.url;
 
-    const axiosRequestArgs = { ...axiosArgs.options, url: url };
-    const wrappedResponse = await attemptHttpRequest(axiosRequestArgs, {
+    const fetchRequestConfig: FetchRequestConfig = {
+      url,
+      method: axiosArgs.options.method,
+      headers: axiosArgs.options.headers,
+      data: axiosArgs.options.data,
+      timeout: axiosArgs.options.timeout,
+    };
+
+    const wrappedResponse = await attemptHttpRequest(fetchRequestConfig, {
       maxRetry,
       minWaitInMs,
-    }, axios, {
+    }, client, {
       telemetry: configuration.telemetry,
       userAgent: configuration.baseOptions?.headers?.["User-Agent"],
     });
@@ -370,7 +569,7 @@ export const createRequestFunction = function (axiosArgs: RequestArgs, axiosInst
     let attributes: StringIndexable = {};
 
     attributes = TelemetryAttributes.fromRequest({
-      userAgent: configuration.baseOptions?.headers["User-Agent"],
+      userAgent: configuration.baseOptions?.headers?.["User-Agent"],
       httpMethod: axiosArgs.options?.method,
       url,
       resendCount: wrappedResponse?.retries,
@@ -458,12 +657,23 @@ export interface RequestBuilderOptions {
   headers?: Record<string, string>;
   /** Extra query parameters appended to the URL. */
   query?: Record<string, unknown>;
-  /** Any other axios request config properties (e.g. timeout, auth). */
-  [key: string]: unknown;
+  /** Request timeout in milliseconds. */
+  timeout?: number;
+  /** Retry configuration for this request. */
+  retryParams?: RetryParams;
 }
 
 /**
- * Builds the axios RequestArgs for an arbitrary API call.
+ * Internal request options used inside RequestBuilder.
+ * Extends the public options with fields set by the SDK itself.
+ */
+interface InternalRequestOptions extends RequestBuilderOptions {
+  method?: string;
+  data?: string;
+}
+
+/**
+ * Builds the RequestArgs for an arbitrary API call.
  *
  * @param request - The request parameters
  * @param options - Request options (merge configuration.baseOptions and per-call overrides before passing)
@@ -489,7 +699,7 @@ export function RequestBuilder(request: RequestBuilderParams, options: RequestBu
   }
 
   const requestUrl = new URL(requestPathTemplate, DUMMY_BASE_URL);
-  const requestOptions: RequestBuilderOptions = { method: request.method, ...options };
+  const requestOptions: InternalRequestOptions = { method: request.method, ...options };
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const queryParams = {} as any;
 
@@ -528,10 +738,10 @@ export function RequestBuilder(request: RequestBuilderParams, options: RequestBu
 }
 
 /**
- * creates an axios streaming request function that returns the raw response stream
+ * creates a streaming request function that returns the raw response stream
  * for incremental parsing (used by streamedListObjects)
  */
-export const createStreamingRequestFunction = function (axiosArgs: RequestArgs, axiosInstance: AxiosInstance, configuration: Configuration, credentials: Credentials, methodAttributes: Record<string, string | number> = {}) {
+export const createStreamingRequestFunction = function (axiosArgs: RequestArgs, httpClient: HttpClient, configuration: Configuration, credentials: Credentials, methodAttributes: Record<string, string | number> = {}) {
   configuration.isValid();
 
   const retryParams = axiosArgs.options?.retryParams ? axiosArgs.options?.retryParams : configuration.retryParams;
@@ -540,24 +750,35 @@ export const createStreamingRequestFunction = function (axiosArgs: RequestArgs, 
 
   const start = performance.now();
 
-  return async (axios: AxiosInstance = axiosInstance): Promise<any> => {
+  return async (client: HttpClient = httpClient): Promise<any> => {
     await setBearerAuthToObject(axiosArgs.options.headers, credentials!);
 
     const url = configuration.getBasePath() + axiosArgs.url;
 
-    const axiosRequestArgs = { ...axiosArgs.options, responseType: "stream", url: url };
-    const wrappedResponse = await attemptHttpRequest(axiosRequestArgs, {
+    const fetchRequestConfig: FetchRequestConfig = {
+      url,
+      method: axiosArgs.options.method,
+      headers: axiosArgs.options.headers,
+      data: axiosArgs.options.data,
+      responseType: "stream",
+      timeout: axiosArgs.options.timeout,
+    };
+
+    const wrappedResponse = await attemptHttpRequest(fetchRequestConfig, {
       maxRetry,
       minWaitInMs,
-    }, axios);
+    }, client, {
+      telemetry: configuration.telemetry,
+      userAgent: configuration.baseOptions?.headers?.["User-Agent"],
+    });
     const response = wrappedResponse?.response;
 
-    const result: any = response?.data; // raw stream
+    const result: any = response?.data; // raw ReadableStream
 
     let attributes: StringIndexable = {};
 
     attributes = TelemetryAttributes.fromRequest({
-      userAgent: configuration.baseOptions?.headers["User-Agent"],
+      userAgent: configuration.baseOptions?.headers?.["User-Agent"],
       httpMethod: axiosArgs.options?.method,
       url,
       resendCount: wrappedResponse?.retries,

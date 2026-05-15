@@ -1,30 +1,23 @@
-import { FgaApiAuthenticationError, FgaApiError } from "../errors";
+import { FgaApiAuthenticationError, FgaApiError, HttpErrorContext } from "../errors";
 
 describe("errors.ts", () => {
   describe("FgaApiAuthenticationError", () => {
     test("should be an instance of FgaApiError", () => {
-      const axiosError = {
-        response: {
-          status: 401,
-          statusText: "Unauthorized",
-          data: { code: "auth_error" },
-          headers: {},
-        },
-        config: {
-          url: "https://issuer.fga.example/oauth/token",
-          method: "post",
-          data: JSON.stringify({
-            client_id: "client-id",
-            audience: "api-audience",
-            grant_type: "client_credentials",
-          }),
-        },
-        request: {
-          path: "/stores/01H0GVCS1HCQM6SJRJ4A026FZ9/check",
-        },
-      } as any;
+      const errorContext: HttpErrorContext = {
+        status: 401,
+        statusText: "Unauthorized",
+        data: { code: "auth_error" },
+        headers: {},
+        requestUrl: "https://issuer.fga.example/oauth/token",
+        requestMethod: "post",
+        requestData: JSON.stringify({
+          client_id: "client-id",
+          audience: "api-audience",
+          grant_type: "client_credentials",
+        }),
+      };
 
-      const err = new FgaApiAuthenticationError(axiosError);
+      const err = new FgaApiAuthenticationError(errorContext);
 
       expect(err).toBeInstanceOf(FgaApiError);
       expect(err).toBeInstanceOf(Error);

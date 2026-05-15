@@ -17,6 +17,12 @@
 
 * Correctly set authorization model id when calling batch checks ([#372](https://github.com/openfga/js-sdk/issues/372)) ([bbc8bde](https://github.com/openfga/js-sdk/commit/bbc8bdec04475b7707542b09be4e31fa9666dd2f))
 
+- feat!: replace axios with native `fetch` for cross-platform support (Node.js, browsers, Deno, Cloudflare Workers, Vercel Edge).
+  - **BREAKING**: `AxiosResponse` is no longer exposed on `$response`. The new type is `FgaResponse<T>` (with `status`, `statusText`, `headers`, `data`).
+  - **BREAKING**: `AxiosInstance` injection is replaced by the `HttpClient` interface (`{ fetch, defaultHeaders, defaultTimeout }`).
+  - Timeouts now use `AbortSignal.timeout()`.
+- chore: all `options?: any` parameters in the API layer are now properly typed as `RequestBuilderOptions`.
+
 ## v0.9.4
 
 ### [v0.9.4](https://github.com/openfga/js-sdk/compare/v0.9.3...v0.9.4) (2026-03-31)
