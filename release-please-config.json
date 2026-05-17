@@ -3,7 +3,8 @@
   "release-type": "node",
   "pull-request-title-pattern": "release: v${version}",
   "draft": true,
-  "bootstrap-sha": "3df466750781d6df812e82b42edece784a5085e6",
+  "force-tag-creation": true,
+  "bootstrap-sha": "93131c7fa858c266247169120104823881e51499",
   "packages": {
     ".": {
       "package-name": "",
@@ -25,9 +26,7 @@
         { "type": "release",  "section": "Miscellaneous", "hidden": true  }
       ],
       "extra-files": [
-        { "type": "json",    "path": "package.json",                  "jsonpath": "$.version" },
-        { "type": "json",    "path": "example/example1/package.json",              "jsonpath": "$.dependencies['@openfga/sdk']" },
-        { "type": "json",    "path": "example/streamed-list-objects/package.json", "jsonpath": "$.dependencies['@openfga/sdk']" },
+        { "type": "json",    "path": "package.json",  "jsonpath": "$.version" },
         { "type": "generic", "path": "constants/index.ts" },
         { "type": "generic", "path": "example/README.md" }
       ]

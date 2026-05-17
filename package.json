@@ -1,6 +1,6 @@
 {
   "name": "@openfga/sdk",
-  "version": "0.9.5",
+  "version": "0.9.6",
   "description": "JavaScript and Node.js SDK for OpenFGA",
   "author": "OpenFGA",
   "keywords": [
@@ -23,7 +23,7 @@
   },
   "dependencies": {
     "@opentelemetry/api": "^1.9.1",
-    "axios": "1.16.0",
+    "axios": "1.16.1",
     "jose": "5.10.0",
     "tiny-async-pool": "^2.1.0"
   },
