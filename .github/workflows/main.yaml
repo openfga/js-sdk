@@ -204,4 +204,4 @@ jobs:
     needs: [publish]
     permissions:
       contents: write
-    uses: openfga/sdk-generator/.github/workflows/undraft-release.yml@main
+    uses: openfga/.github/.github/workflows/undraft-release.yml@main
