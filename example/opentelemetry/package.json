@@ -13,7 +13,7 @@
     "@opentelemetry/exporter-metrics-otlp-proto": "^0.219.0",
     "@opentelemetry/exporter-prometheus": "^0.219.0",
     "@opentelemetry/sdk-metrics": "^2.7.1",
-    "@opentelemetry/sdk-node": "^0.218.0",
+    "@opentelemetry/sdk-node": "^0.219.0",
     "dotenv": "^17.4.2"
   },
   "engines": {
