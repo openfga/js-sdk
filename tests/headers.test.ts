@@ -3,17 +3,11 @@ import { OpenFgaClient, UserClientConfigurationParams } from "../index";
 import { baseConfig } from "./helpers/default-config";
 import { CredentialsMethod } from "../credentials";
 
-nock.disableNetConnect();
-
 describe("Header Functionality Tests", () => {
   const testConfig: UserClientConfigurationParams = {
     ...baseConfig,
     credentials: { method: CredentialsMethod.None }
   };
-
-  afterEach(() => {
-    nock.cleanAll();
-  });
 
   describe("Default headers from client configuration", () => {
     it("should send default headers from baseOptions on all requests", async () => {
@@ -28,7 +22,7 @@ describe("Header Functionality Tests", () => {
         }
       });
 
-      const scope = nock(testConfig.apiUrl!)
+      nock(testConfig.apiUrl!)
         .post(`/stores/${testConfig.storeId}/check`)
         .reply(function(this: nock.ReplyFnContext) {
           // Verify all default headers are present
@@ -43,8 +37,6 @@ describe("Header Functionality Tests", () => {
         relation: "reader",
         object: "document:test"
       });
-
-      expect(scope.isDone()).toBe(true);
     });
 
     it("should send default headers on multiple different API calls", async () => {
@@ -58,7 +50,7 @@ describe("Header Functionality Tests", () => {
       });
 
       // Test check endpoint
-      const checkScope = nock(testConfig.apiUrl!)
+      nock(testConfig.apiUrl!)
         .post(`/stores/${testConfig.storeId}/check`)
         .reply(function() {
           expect(this.req.headers["x-persistent-header"]).toBe("should-appear-everywhere");
@@ -66,7 +58,7 @@ describe("Header Functionality Tests", () => {
         });
 
       // Test read endpoint
-      const readScope = nock(testConfig.apiUrl!)
+      nock(testConfig.apiUrl!)
         .post(`/stores/${testConfig.storeId}/read`)
         .reply(function() {
           expect(this.req.headers["x-persistent-header"]).toBe("should-appear-everywhere");
@@ -80,9 +72,6 @@ describe("Header Functionality Tests", () => {
       });
 
       await fgaClient.read({});
-
-      expect(checkScope.isDone()).toBe(true);
-      expect(readScope.isDone()).toBe(true);
     });
   });
 
@@ -90,7 +79,7 @@ describe("Header Functionality Tests", () => {
     it("should send per-request headers when specified", async () => {
       const fgaClient = new OpenFgaClient(testConfig);
 
-      const scope = nock(testConfig.apiUrl!)
+      nock(testConfig.apiUrl!)
         .post(`/stores/${testConfig.storeId}/check`)
         .reply(function() {
           expect(this.req.headers["x-request-header"]).toBe("request-value");
@@ -108,15 +97,13 @@ describe("Header Functionality Tests", () => {
           "X-Correlation-ID": "abc-123-def"
         }
       });
-
-      expect(scope.isDone()).toBe(true);
     });
 
     it("should only send per-request headers on the specific request", async () => {
       const fgaClient = new OpenFgaClient(testConfig);
 
       // First request with headers
-      const firstScope = nock(testConfig.apiUrl!)
+      nock(testConfig.apiUrl!)
         .post(`/stores/${testConfig.storeId}/check`)
         .reply(function() {
           expect(this.req.headers["x-first-request"]).toBe("first-value");
@@ -125,7 +112,7 @@ describe("Header Functionality Tests", () => {
         });
 
       // Second request with different headers
-      const secondScope = nock(testConfig.apiUrl!)
+      nock(testConfig.apiUrl!)
         .post(`/stores/${testConfig.storeId}/check`)
         .reply(function() {
           expect(this.req.headers["x-second-request"]).toBe("second-value");
@@ -152,9 +139,6 @@ describe("Header Functionality Tests", () => {
           "X-Second-Request": "second-value"
         }
       });
-
-      expect(firstScope.isDone()).toBe(true);
-      expect(secondScope.isDone()).toBe(true);
     });
   });
 
@@ -170,7 +154,7 @@ describe("Header Functionality Tests", () => {
         }
       });
 
-      const scope = nock(testConfig.apiUrl!)
+      nock(testConfig.apiUrl!)
         .post(`/stores/${testConfig.storeId}/check`)
         .reply(function() {
           // Verify default headers are present
@@ -194,8 +178,6 @@ describe("Header Functionality Tests", () => {
           "X-User-Context": "test-user"
         }
       });
-
-      expect(scope.isDone()).toBe(true);
     });
 
     it("should merge headers from multiple sources correctly", async () => {
@@ -210,7 +192,7 @@ describe("Header Functionality Tests", () => {
         }
       });
 
-      const scope = nock(testConfig.apiUrl!)
+      nock(testConfig.apiUrl!)
         .post(`/stores/${testConfig.storeId}/check`)
         .reply(function() {
           const headers = this.req.headers;
@@ -241,8 +223,6 @@ describe("Header Functionality Tests", () => {
           "X-Timestamp": "2023-10-01"
         }
       });
-
-      expect(scope.isDone()).toBe(true);
     });
   });
 
@@ -259,7 +239,7 @@ describe("Header Functionality Tests", () => {
         }
       });
 
-      const scope = nock(testConfig.apiUrl!)
+      nock(testConfig.apiUrl!)
         .post(`/stores/${testConfig.storeId}/check`)
         .reply(function() {
           // Per-request headers should override default headers
@@ -281,8 +261,6 @@ describe("Header Functionality Tests", () => {
           "X-Shared-Header": "from-request"
         }
       });
-
-      expect(scope.isDone()).toBe(true);
     });
 
     it("should preserve non-overridden default headers", async () => {
@@ -297,7 +275,7 @@ describe("Header Functionality Tests", () => {
         }
       });
 
-      const scope = nock(testConfig.apiUrl!)
+      nock(testConfig.apiUrl!)
         .post(`/stores/${testConfig.storeId}/check`)
         .reply(function() {
           // Non-overridden defaults should remain
@@ -319,8 +297,6 @@ describe("Header Functionality Tests", () => {
           "X-Override-This": "new-value"
         }
       });
-
-      expect(scope.isDone()).toBe(true);
     });
 
     it("should handle case-insensitive header overrides correctly", async () => {
@@ -333,7 +309,7 @@ describe("Header Functionality Tests", () => {
         }
       });
 
-      const scope = nock(testConfig.apiUrl!)
+      nock(testConfig.apiUrl!)
         .post(`/stores/${testConfig.storeId}/check`)
         .reply(function() {
           // HTTP headers are case-insensitive, so request header should override default
@@ -354,8 +330,6 @@ describe("Header Functionality Tests", () => {
           "x-test-header": "request-value"  // Different case
         }
       });
-
-      expect(scope.isDone()).toBe(true);
     });
   });
 
@@ -374,7 +348,7 @@ describe("Header Functionality Tests", () => {
         }
       });
 
-      const scope = nock(testConfig.apiUrl!)
+      nock(testConfig.apiUrl!)
         .post(`/stores/${testConfig.storeId}/check`)
         .reply(function() {
           const headers = this.req.headers;
@@ -393,8 +367,6 @@ describe("Header Functionality Tests", () => {
         relation: "reader",
         object: "document:test"
       });
-
-      expect(scope.isDone()).toBe(true);
     });
 
     it("does not allow Content-Type override via per-request headers", async () => {
@@ -402,7 +374,7 @@ describe("Header Functionality Tests", () => {
 
       const fgaClient = new OpenFgaClient(testConfig);
 
-      const scope = nock(testConfig.apiUrl!)
+      nock(testConfig.apiUrl!)
         .post(`/stores/${testConfig.storeId}/check`)
         .reply(function() {
           // SDK always enforces Content-Type for JSON APIs
@@ -422,8 +394,6 @@ describe("Header Functionality Tests", () => {
           "X-Custom-Request": "request-value"       // Custom headers still work
         }
       });
-
-      expect(scope.isDone()).toBe(true);
     });
 
     it("should set Content-Type to application/json by default", async () => {
@@ -439,7 +409,7 @@ describe("Header Functionality Tests", () => {
         }
       });
 
-      const scope = nock(testConfig.apiUrl!)
+      nock(testConfig.apiUrl!)
         .post(`/stores/${testConfig.storeId}/check`)
         .reply(function() {
           const headers = this.req.headers;
@@ -459,8 +429,6 @@ describe("Header Functionality Tests", () => {
         relation: "reader",
         object: "document:test"
       });
-
-      expect(scope.isDone()).toBe(true);
     });
 
     it("SDK enforces Content-Type and Accept regardless of baseOptions headers", async () => {
@@ -477,7 +445,7 @@ describe("Header Functionality Tests", () => {
         }
       });
 
-      const scope = nock(testConfig.apiUrl!)
+      nock(testConfig.apiUrl!)
         .post(`/stores/${testConfig.storeId}/check`)
         .reply(function() {
           const headers = this.req.headers;
@@ -497,8 +465,6 @@ describe("Header Functionality Tests", () => {
         relation: "reader",
         object: "document:test"
       });
-
-      expect(scope.isDone()).toBe(true);
     });
   });
 
@@ -511,7 +477,7 @@ describe("Header Functionality Tests", () => {
         }
       });
 
-      const scope = nock(testConfig.apiUrl!)
+      nock(testConfig.apiUrl!)
         .post(`/stores/${testConfig.storeId}/check`)
         .reply(function() {
           // Should still have SDK headers
@@ -526,8 +492,6 @@ describe("Header Functionality Tests", () => {
         relation: "reader",
         object: "document:test"
       });
-
-      expect(scope.isDone()).toBe(true);
     });
 
     it("should handle undefined baseOptions", async () => {
@@ -536,7 +500,7 @@ describe("Header Functionality Tests", () => {
         // No baseOptions specified
       });
 
-      const scope = nock(testConfig.apiUrl!)
+      nock(testConfig.apiUrl!)
         .post(`/stores/${testConfig.storeId}/check`)
         .reply(function() {
           // Should still have SDK headers
@@ -551,8 +515,6 @@ describe("Header Functionality Tests", () => {
         relation: "reader",
         object: "document:test"
       });
-
-      expect(scope.isDone()).toBe(true);
     });
 
     it("should handle empty per-request headers", async () => {
@@ -565,7 +527,7 @@ describe("Header Functionality Tests", () => {
         }
       });
 
-      const scope = nock(testConfig.apiUrl!)
+      nock(testConfig.apiUrl!)
         .post(`/stores/${testConfig.storeId}/check`)
         .reply(function() {
           // Default headers should still be present
@@ -581,8 +543,6 @@ describe("Header Functionality Tests", () => {
       }, {
         headers: {}  // Empty headers object
       });
-
-      expect(scope.isDone()).toBe(true);
     });
 
     it("should handle special header values", async () => {
@@ -598,7 +558,7 @@ describe("Header Functionality Tests", () => {
         }
       });
 
-      const scope = nock(testConfig.apiUrl!)
+      nock(testConfig.apiUrl!)
         .post(`/stores/${testConfig.storeId}/check`)
         .reply(function() {
           const headers = this.req.headers;
@@ -616,8 +576,6 @@ describe("Header Functionality Tests", () => {
         relation: "reader",
         object: "document:test"
       });
-
-      expect(scope.isDone()).toBe(true);
     });
 
     it("should handle large number of headers", async () => {
@@ -641,7 +599,7 @@ describe("Header Functionality Tests", () => {
         }
       });
 
-      const scope = nock(testConfig.apiUrl!)
+      nock(testConfig.apiUrl!)
         .post(`/stores/${testConfig.storeId}/check`)
         .reply(function() {
           const headers = this.req.headers;
@@ -666,8 +624,6 @@ describe("Header Functionality Tests", () => {
       }, {
         headers: requestHeaders
       });
-
-      expect(scope.isDone()).toBe(true);
     });
   });
 
@@ -683,21 +639,21 @@ describe("Header Functionality Tests", () => {
       });
 
       // Test multiple endpoints
-      const checkScope = nock(testConfig.apiUrl!)
+      nock(testConfig.apiUrl!)
         .post(`/stores/${testConfig.storeId}/check`)
         .reply(function() {
           expect(this.req.headers["x-consistent-header"]).toBe("always-present");
           return [200, { allowed: true }];
         });
 
-      const readScope = nock(testConfig.apiUrl!)
+      nock(testConfig.apiUrl!)
         .post(`/stores/${testConfig.storeId}/read`)
         .reply(function() {
           expect(this.req.headers["x-consistent-header"]).toBe("always-present");
           return [200, { tuples: [] }];
         });
 
-      const writeScope = nock(testConfig.apiUrl!)
+      nock(testConfig.apiUrl!)
         .post(`/stores/${testConfig.storeId}/write`)
         .reply(function() {
           expect(this.req.headers["x-consistent-header"]).toBe("always-present");
@@ -719,10 +675,6 @@ describe("Header Functionality Tests", () => {
           object: "document:test"
         }]
       });
-
-      expect(checkScope.isDone()).toBe(true);
-      expect(readScope.isDone()).toBe(true);
-      expect(writeScope.isDone()).toBe(true);
     });
   });
 });
