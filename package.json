@@ -23,13 +23,13 @@
   },
   "dependencies": {
     "@opentelemetry/api": "^1.9.1",
-    "axios": "1.16.1",
+    "axios": "1.18.1",
     "jose": "5.10.0",
     "tiny-async-pool": "^2.1.0"
   },
   "devDependencies": {
     "@types/jest": "30.0.0",
-    "@types/node": "^25.6.0",
+    "@types/node": "^26.0.1",
     "@types/tiny-async-pool": "^2.0.3",
     "@typescript-eslint/eslint-plugin": "^8.59.2",
     "@typescript-eslint/parser": "^8.59.2",
@@ -37,7 +37,7 @@
     "globals": "^17.6.0",
     "jest": "30.3.0",
     "nock": "^14.0.14",
-    "ts-jest": "29.4.9",
+    "ts-jest": "29.4.11",
     "typescript": "^6.0.3"
   },
   "files": [
