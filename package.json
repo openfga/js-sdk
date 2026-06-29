@@ -39,6 +39,9 @@
     "ts-jest": "29.4.9",
     "typescript": "^6.0.3"
   },
+  "overrides": {
+    "js-yaml": "^4.2.0"
+  },
   "files": [
     "CHANGELOG.md",
     "LICENSE",
