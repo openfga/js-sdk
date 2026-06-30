@@ -8,14 +8,10 @@
 
 * The `$response` property type changes from `AxiosResponse<T>` to `FgaResponse<T>`. The constructor now accepts an optional `HttpClient` instead of `AxiosInstance`. `baseOptions.httpAgent`/`httpsAgent` are no longer applicable as fetch handles connection pooling natively.
 
-### Added
+### Changed
 
 * replace axios with native fetch ([#366](https://github.com/openfga/js-sdk/issues/366)) ([1af0efd](https://github.com/openfga/js-sdk/commit/1af0efd5ef58351d2b1acd2f12433e37c7055e9c))
 
-
-### Miscellaneous
-
-* release 0.9.7-beta.1 ([1d0eadd](https://github.com/openfga/js-sdk/commit/1d0eadd9834b74d46fea8a48c90e17a7ef7bb6bc))
 
 ## [0.9.6](https://github.com/openfga/js-sdk/compare/v0.9.5...v0.9.6) (2026-05-11)
 
