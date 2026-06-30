@@ -22,5 +22,6 @@ export * from "./telemetry/counters";
 export * from "./telemetry/histograms";
 export * from "./telemetry/metrics";
 export * from "./errors";
+export { FgaResponse, HttpClient, CallResult, PromiseResult } from "./common";
 export { parseNDJSONStream } from "./streaming";
 

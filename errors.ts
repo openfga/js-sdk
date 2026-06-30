@@ -1,9 +1,22 @@
-import { AxiosError, AxiosHeaderValue, Method } from "axios";
 import {
   ErrorCode,
   InternalErrorCode,
   NotFoundErrorCode,
 } from "./apiModel";
+
+/**
+ * Context extracted from a failed HTTP request/response,
+ * used to construct SDK error classes without coupling to any HTTP library.
+ */
+export interface HttpErrorContext {
+  status?: number;
+  statusText?: string;
+  headers?: Record<string, string>;
+  data?: any;
+  requestUrl?: string;
+  requestMethod?: string;
+  requestData?: any;
+}
 
 /**
  *
@@ -45,37 +58,11 @@ function getRequestMetadataFromPath(path?: string): {
 
 const cFGARequestId = "fga-request-id";
 
-function getResponseHeaders(err: AxiosError): any {
-  return err.response
-    ? Object.fromEntries(
-      Object.entries(err.response.headers).map(([k, v]) => [
-        k.toLowerCase(), v,
-      ])
-    )
-    : {};
-}
-
-function parseRequestData(data: unknown): any {
-  if (typeof data !== "string") {
-    return data;
-  }
-
-  try {
-    return JSON.parse(data);
-  } catch {
-    try {
-      const params = new URLSearchParams(data);
-      const parsedParams = Object.fromEntries(params.entries());
-      return Object.keys(parsedParams).length > 0 ? parsedParams : undefined;
-    } catch {
-      return undefined;
-    }
-  }
-}
-
-function getAuthenticationErrorMessage(err: AxiosError | FgaApiError): string {
-  const statusText = err instanceof FgaApiError ? err.statusText : err.response?.statusText;
-  return `FGA Authentication Error.${statusText ? ` ${statusText}` : ""}`;
+function normalizeHeaders(headers?: Record<string, string>): Record<string, string> {
+  if (!headers) return {};
+  return Object.fromEntries(
+    Object.entries(headers).map(([k, v]) => [k.toLowerCase(), v])
+  );
 }
 
 /**
@@ -88,37 +75,41 @@ export class FgaApiError extends FgaError {
   name = "FgaApiError";
   public statusCode?: number;
   public statusText?: string;
-  public method?: Method;
+  public method?: string;
   public requestURL?: string;
   public storeId?: string;
   public endpointCategory?: string;
   public apiErrorMessage?: string;
   public requestData?: any;
   public responseData?: any;
-  public responseHeader?: Record<string, AxiosHeaderValue | undefined>;
+  public responseHeader?: Record<string, string>;
   public requestId?: string;
 
-  constructor(err: AxiosError, msg?: string) {
-    super(msg ? msg : err);
-    this.statusCode = err.response?.status;
-    this.statusText = err.response?.statusText;
-    this.requestData = err.config?.data;
-    this.requestURL = err.config?.url;
-    this.method = err.config?.method as Method;
+  constructor(err: HttpErrorContext | Error, msg?: string) {
+    super(msg ? msg : (err instanceof Error ? err : undefined),
+      !msg && !(err instanceof Error)
+        ? `FGA API Error: ${err.requestMethod ?? "Unknown Method"} ${err.requestUrl ?? "Unknown URL"} - ${err.status ?? "Unknown Status"}${err.statusText ? ` ${err.statusText}` : ""}`
+        : undefined
+    );
+    if (err instanceof Error) {
+      if (err.stack) this.stack = err.stack;
+      return;
+    }
+    this.statusCode = err.status;
+    this.statusText = err.statusText;
+    this.requestData = err.requestData;
+    this.requestURL = err.requestUrl;
+    this.method = err.requestMethod;
     const { storeId, endpointCategory } = getRequestMetadataFromPath(
-      err.request?.path
+      err.requestUrl ? new URL(err.requestUrl, "http://localhost").pathname : undefined
     );
     this.storeId = storeId;
     this.endpointCategory = endpointCategory;
-    this.apiErrorMessage = (err.response?.data as any)?.message;
-    this.responseData = err.response?.data;
-    this.responseHeader = err.response?.headers;
-    const errResponseHeaders = getResponseHeaders(err);
-    this.requestId = errResponseHeaders[cFGARequestId];
-
-    if ((err as Error)?.stack) {
-      this.stack = (err as Error).stack;
-    }
+    this.apiErrorMessage = err.data?.message;
+    this.responseData = err.data;
+    const normalizedHeaders = normalizeHeaders(err.headers);
+    this.responseHeader = normalizedHeaders;
+    this.requestId = normalizedHeaders[cFGARequestId];
   }
 }
 
@@ -131,16 +122,18 @@ export class FgaApiError extends FgaError {
 export class FgaApiValidationError extends FgaApiError {
   name = "FgaApiValidationError";
   public apiErrorCode: ErrorCode;
-  constructor(err: AxiosError, msg?: string) {
+  constructor(err: HttpErrorContext, msg?: string) {
     // If there is a better error message, use it instead of the default error
     super(err);
-    this.apiErrorCode = (err.response?.data as any)?.code;
-    const { endpointCategory } = getRequestMetadataFromPath(err.request?.path);
+    this.apiErrorCode = err.data?.code;
+    const { endpointCategory } = getRequestMetadataFromPath(
+      err.requestUrl ? new URL(err.requestUrl, "http://localhost").pathname : undefined
+    );
     this.message = msg
       ? msg
-      : (err.response?.data as any)?.message
-        ? `FGA API Validation Error: ${err.config?.method} ${endpointCategory} : Error ${(err.response?.data as any)?.message}`
-        : (err as Error).message;
+      : err.data?.message
+        ? `FGA API Validation Error: ${err.requestMethod} ${endpointCategory} : Error ${err.data.message}`
+        : this.message;
   }
 }
 
@@ -153,15 +146,15 @@ export class FgaApiValidationError extends FgaApiError {
 export class FgaApiNotFoundError extends FgaApiError {
   name = "FgaApiNotFoundError";
   public apiErrorCode: NotFoundErrorCode;
-  constructor(err: AxiosError, msg?: string) {
+  constructor(err: HttpErrorContext, msg?: string) {
     // If there is a better error message, use it instead of the default error
     super(err);
-    this.apiErrorCode = (err.response?.data as any)?.code;
+    this.apiErrorCode = err.data?.code;
     this.message = msg
       ? msg
-      : (err.response?.data as any)?.message
-        ? `FGA API NotFound Error: ${err.config?.method} : Error ${(err.response?.data as any)?.message}`
-        : (err as Error).message;
+      : err.data?.message
+        ? `FGA API NotFound Error: ${err.requestMethod} : Error ${err.data.message}`
+        : this.message;
   }
 }
 
@@ -177,9 +170,9 @@ export class FgaApiRateLimitExceededError extends FgaApiError {
   name = "FgaApiRateLimitExceededError";
   public apiErrorCode?: string;
 
-  constructor(err: AxiosError, msg?: string) {
+  constructor(err: HttpErrorContext, msg?: string) {
     super(err);
-    this.apiErrorCode = (err.response?.data as any)?.code;
+    this.apiErrorCode = err.data?.code;
 
     this.message = msg
       ? msg
@@ -197,17 +190,19 @@ export class FgaApiInternalError extends FgaApiError {
   name = "FgaApiInternalError";
   public apiErrorCode: InternalErrorCode;
 
-  constructor(err: AxiosError, msg?: string) {
+  constructor(err: HttpErrorContext, msg?: string) {
     // If there is a better error message, use it instead of the default error
     super(err);
-    const { endpointCategory } = getRequestMetadataFromPath(err.request?.path);
-    this.apiErrorCode = (err.response?.data as any)?.code;
+    const { endpointCategory } = getRequestMetadataFromPath(
+      err.requestUrl ? new URL(err.requestUrl, "http://localhost").pathname : undefined
+    );
+    this.apiErrorCode = err.data?.code;
 
     this.message = msg
       ? msg
-      : (err.response?.data as any)?.message
-        ? `FGA API Internal Error: ${err.config?.method} ${endpointCategory} : Error ${(err.response?.data as any)?.message}`
-        : (err as Error).message;
+      : err.data?.message
+        ? `FGA API Internal Error: ${err.requestMethod} ${endpointCategory} : Error ${err.data.message}`
+        : this.message;
   }
 }
 
@@ -224,53 +219,59 @@ export class FgaApiAuthenticationError extends FgaApiError {
   public grantType?: string;
   public apiErrorCode?: string;
 
-  constructor(err: AxiosError | FgaApiError, context?: {
+  constructor(err: HttpErrorContext | FgaApiError, context?: {
     clientId?: string;
     audience?: string;
     grantType?: string;
   }) {
-    super(err as AxiosError, getAuthenticationErrorMessage(err));
+    // Passing an FgaApiError to super(Error) lets the base preserve the
+    // original stack via `this.stack = err.stack`. The branch dropped axios,
+    // so the original main-side AxiosError path is gone — only the
+    // HttpErrorContext path and the FgaApiError re-wrap path remain.
+    super(err instanceof FgaApiError ? (err as Error) : err);
+
+    // Normalize the data fields we read from regardless of which input
+    // shape arrived. FgaApiError uses {responseData, requestData, statusText};
+    // HttpErrorContext uses {data, requestData, statusText}.
+    let responseData: any;
+    let requestData: any;
+    let statusText: string | undefined;
 
     if (err instanceof FgaApiError) {
+      // Re-wrap path (PR #329): produce a typed FgaApiAuthenticationError
+      // by COPYING fields off the source — never by mutating its prototype.
+      // Mutation breaks `instanceof FgaApiAuthenticationError` and was the
+      // confirmed audit P0; this constructor branch is the canonical fix.
       this.statusCode = err.statusCode;
       this.statusText = err.statusText;
       this.requestURL = err.requestURL;
-      this.method = err.method as Method;
+      this.method = err.method;
+      this.requestData = err.requestData;
       this.responseData = err.responseData;
       this.responseHeader = err.responseHeader;
       this.requestId = err.requestId;
-      this.apiErrorCode = (err.responseData as any)?.code;
-
-      const data: any = parseRequestData(err.requestData);
-
-      this.clientId = context?.clientId ?? data?.client_id;
-      this.audience = context?.audience ?? data?.audience;
-      this.grantType = context?.grantType ?? data?.grant_type;
-
-      if ((err as Error)?.stack) {
-        this.stack = (err as Error).stack;
-      }
-      return;
+      responseData = err.responseData;
+      requestData = err.requestData;
+      statusText = err.statusText;
+    } else {
+      // HttpErrorContext path — base class already populated statusCode etc.
+      responseData = err.data;
+      requestData = err.requestData;
+      statusText = err.statusText;
     }
 
-    this.statusCode = err.response?.status;
-    this.statusText = err.response?.statusText;
-    this.requestURL = err.config?.url;
-    this.method = err.config?.method as Method;
-    this.responseData = err.response?.data;
-    this.responseHeader = err.response?.headers;
-    this.apiErrorCode = (err.response?.data as any)?.code;
+    this.message = `FGA Authentication Error.${statusText ? ` ${statusText}` : ""}`;
+    this.apiErrorCode = responseData?.code;
 
-    const errResponseHeaders = getResponseHeaders(err);
-    this.requestId = errResponseHeaders[cFGARequestId];
-
-    const data: any = parseRequestData(err.config?.data);
+    let data: any;
+    try {
+      data = typeof requestData === "string" ? JSON.parse(requestData) : (requestData || {});
+    } catch {
+      /* do nothing */
+    }
     this.clientId = context?.clientId ?? data?.client_id;
     this.audience = context?.audience ?? data?.audience;
     this.grantType = context?.grantType ?? data?.grant_type;
-    if ((err as Error)?.stack) {
-      this.stack = (err as Error).stack;
-    }
   }
 }
 
