@@ -15,7 +15,7 @@
  * Version of the OpenFGA JavaScript SDK.
  */
 
-const SdkVersion = "0.9.6"; // x-release-please-version
+const SdkVersion = "0.9.7-beta.1"; // x-release-please-version
 
 /**
  * User agent used in HTTP requests.
