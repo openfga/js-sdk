@@ -1,4 +1,4 @@
-import * as nock from "nock";
+import nock from "nock";
 import { OpenFgaClient, UserClientConfigurationParams } from "../index";
 import { baseConfig } from "./helpers/default-config";
 import { CredentialsMethod } from "../credentials";
@@ -30,7 +30,7 @@ describe("Header Functionality Tests", () => {
 
       const scope = nock(testConfig.apiUrl!)
         .post(`/stores/${testConfig.storeId}/check`)
-        .reply(function() {
+        .reply(function(this: nock.ReplyFnContext) {
           // Verify all default headers are present
           expect(this.req.headers["x-default-header"]).toBe("default-value");
           expect(this.req.headers["x-client-id"]).toBe("test-client-123");

@@ -10,13 +10,47 @@ updates:
       dependencies:
         patterns:
           - "*"
-        exclude-patterns:
-          - "eslint"
 
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
+    groups:
+      dependencies:
+        patterns:
+          - "*"
+
+  - package-ecosystem: npm
+    directory: /example/api-executor
+    schedule:
+      interval: weekly
+    groups:
+      dependencies:
+        patterns:
+          - "*"
+
+  - package-ecosystem: npm
+    directory: /example/example1
+    schedule:
+      interval: weekly
+    groups:
+      dependencies:
+        patterns:
+          - "*"
+
+  - package-ecosystem: npm
+    directory: /example/opentelemetry
+    schedule:
+      interval: weekly
+    groups:
+      dependencies:
+        patterns:
+          - "*"
+
+  - package-ecosystem: npm
+    directory: /example/streamed-list-objects
+    schedule:
+      interval: weekly
     groups:
       dependencies:
         patterns:

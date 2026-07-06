@@ -1,5 +1,9 @@
-import * as nock from "nock";
+import nock from "nock";
+
+beforeEach(() => {
+  nock.disableNetConnect();
+});
 
 afterAll(() => {
-    nock.restore();
+  nock.restore();
 });

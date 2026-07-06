@@ -1,4 +1,5 @@
-import type * as Nock from "nock";
+import type nock from "nock";
+type Nock = typeof nock;
 
 import { Readable } from "node:stream";
 
@@ -29,7 +30,7 @@ import {
 } from "../../index";
 import { defaultConfiguration } from "./default-config";
 
-export const getNocks = ((nock: typeof Nock) => ({
+export const getNocks = ((nock: Nock) => ({
   tokenExchange: (
     apiTokenIssuer: string,
     accessToken = "test-token",

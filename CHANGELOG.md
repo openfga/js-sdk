@@ -1,7 +1,27 @@
 # Changelog
 
 
-## [Unreleased](https://github.com/openfga/js-sdk/compare/v0.9.3...HEAD)
+## [0.9.6](https://github.com/openfga/js-sdk/compare/v0.9.5...v0.9.6) (2026-05-11)
+
+
+### Fixed
+
+* correctly set default retry params ([#394](https://github.com/openfga/js-sdk/issues/394)) ([6b03882](https://github.com/openfga/js-sdk/commit/6b03882)) , Thanks @kamilogorek
+* prevent token refresh thundering herd ([#333](https://github.com/openfga/js-sdk/issues/333)) ([025346f](https://github.com/openfga/js-sdk/commit/025346f))
+* stop mutating token refresh errors into auth errors ([#329](https://github.com/openfga/js-sdk/issues/329)) ([d5cbccb](https://github.com/openfga/js-sdk/commit/d5cbccb))
+
+## [0.9.5](https://github.com/openfga/js-sdk/compare/v0.9.4...v0.9.5) (2026-04-10)
+
+
+### Fixed
+
+* Correctly set authorization model id when calling batch checks ([#372](https://github.com/openfga/js-sdk/issues/372)) ([bbc8bde](https://github.com/openfga/js-sdk/commit/bbc8bdec04475b7707542b09be4e31fa9666dd2f))
+
+## v0.9.4
+
+### [v0.9.4](https://github.com/openfga/js-sdk/compare/v0.9.3...v0.9.4) (2026-03-31)
+
+- fix(deps): pin axios to 1.14.0 and fix brace-expansion audit vulnerability (#363) - [details](https://socket.dev/blog/axios-npm-package-compromised)
 
 ## v0.9.3
 
