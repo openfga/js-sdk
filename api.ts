@@ -94,6 +94,8 @@ import {
   SourceInfo,
   Status,
   Store,
+  StreamResultOfStreamedListObjectsResponse,
+  StreamedListObjectsResponse,
   Tuple,
   TupleChange,
   TupleKey,
@@ -133,7 +135,7 @@ import { TelemetryAttribute, TelemetryAttributes } from "./telemetry/attributes"
 export const OpenFgaApiFp = function(configuration: Configuration, credentials: Credentials) {
   const api = {
     /**
-         * The `BatchCheck` API functions nearly identically to `Check`, but instead of checking a single user-object relationship BatchCheck accepts a list of relationships to check and returns a map containing `BatchCheckItem` response for each check it received.  An associated `correlation_id` is required for each check in the batch. This ID is used to correlate a check to the appropriate response. It is a string consisting of only alphanumeric characters or hyphens with a maximum length of 36 characters. This `correlation_id` is used to map the result of each check to the item which was checked, so it must be unique for each item in the batch. We recommend using a UUID or ULID as the `correlation_id`, but you can use whatever unique identifier you need as long  as it matches this regex pattern: `^[\\w\\d-]{1,36}$`  NOTE: The maximum number of checks that can be passed in the `BatchCheck` API is configurable via the [OPENFGA_MAX_CHECKS_PER_BATCH_CHECK](https://openfga.dev/docs/getting-started/setup-openfga/configuration#OPENFGA_MAX_CHECKS_PER_BATCH_CHECK) environment variable. If `BatchCheck` is called using the SDK, the SDK can split the batch check requests for you.  For more details on how `Check` functions, see the docs for `/check`.  ### Examples #### A BatchCheckRequest ```json {   \"checks\": [      {        \"tuple_key\": {          \"object\": \"document:2021-budget\"          \"relation\": \"reader\",          \"user\": \"user:anne\",        },        \"contextual_tuples\": {...}        \"context\": {}        \"correlation_id\": \"01JA8PM3QM7VBPGB8KMPK8SBD5\"      },      {        \"tuple_key\": {          \"object\": \"document:2021-budget\"          \"relation\": \"reader\",          \"user\": \"user:bob\",        },        \"contextual_tuples\": {...}        \"context\": {}        \"correlation_id\": \"01JA8PMM6A90NV5ET0F28CYSZQ\"      }    ] } ```  Below is a possible response to the above request. Note that the result map\'s keys are the `correlation_id` values from the checked items in the request: ```json {    \"result\": {      \"01JA8PMM6A90NV5ET0F28CYSZQ\": {        \"allowed\": false,         \"error\": {\"message\": \"\"}      },      \"01JA8PM3QM7VBPGB8KMPK8SBD5\": {        \"allowed\": true,         \"error\": {\"message\": \"\"}      } } ```
+         * The `BatchCheck` API functions nearly identically to `Check`, but instead of checking a single user-object relationship BatchCheck accepts a list of relationships to check and returns a map containing `BatchCheckItem` response for each check it received.  An associated `correlation_id` is required for each check in the batch. This ID is used to correlate a check to the appropriate response. It is a string consisting of only alphanumeric characters or hyphens with a maximum length of 36 characters. This `correlation_id` is used to map the result of each check to the item which was checked, so it must be unique for each item in the batch. We recommend using a UUID or ULID as the `correlation_id`, but you can use whatever unique identifier you need as long  as it matches this regex pattern: `^[\\w\\d-]{1,36}$`  NOTE: The maximum number of checks that can be passed in the `BatchCheck` API is configurable via the [OPENFGA_MAX_CHECKS_PER_BATCH_CHECK](https://openfga.dev/docs/getting-started/setup-openfga/configuration#OPENFGA_MAX_CHECKS_PER_BATCH_CHECK) environment variable. If `BatchCheck` is called using the SDK, the SDK can split the batch check requests for you.  For more details on how `Check` functions, see the docs for `/check`.  ### Examples #### A BatchCheckRequest ```json {   \"checks\": [      {        \"tuple_key\": {          \"object\": \"document:2021-budget\"          \"relation\": \"reader\",          \"user\": \"user:anne\",        },        \"contextual_tuples\": {...}        \"context\": {}        \"correlation_id\": \"01JA8PM3QM7VBPGB8KMPK8SBD5\"      },      {        \"tuple_key\": {          \"object\": \"document:2021-budget\"          \"relation\": \"reader\",          \"user\": \"user:bob\",        },        \"contextual_tuples\": {...}        \"context\": {}        \"correlation_id\": \"01JA8PMM6A90NV5ET0F28CYSZQ\"      }    ] } ```  Below is a possible response to the above request. Note that the result map\'s keys are the `correlation_id` values from the checked items in the request: ```json {    \"result\": {      \"01JA8PMM6A90NV5ET0F28CYSZQ\": {        \"allowed\": false,         \"error\": {\"message\": \"\"}      },      \"01JA8PM3QM7VBPGB8KMPK8SBD5\": {        \"allowed\": true,         \"error\": {\"message\": \"\"}      } } ``` 
          * @summary Send a list of `check` operations in a single request
          * @param {string} storeId
          * @param {BatchCheckRequest} body
@@ -257,27 +259,6 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
       }, options);
     },
     /**
-       * The Streamed ListObjects API is very similar to the ListObjects API, with two differences:
-       * 1. Instead of collecting all objects before returning a response, it streams them to the client as they are collected.
-       * 2. The number of results returned is only limited by the execution timeout specified in the flag OPENFGA_LIST_OBJECTS_DEADLINE.
-       * @summary Stream all objects of the given type that the user has a relation with
-       * @param {string} storeId
-       * @param {ListObjectsRequest} body
-       * @param {*} [options] Override http request option.
-       * @throws { FgaError }
-       */
-    async streamedListObjects(storeId: string, body: ListObjectsRequest, options?: any): Promise<(axios?: AxiosInstance) => Promise<any>> {
-      assertParamExists("streamedListObjects", "storeId", storeId);
-      assertParamExists("streamedListObjects", "body", body);
-      return api.executeStreamedApiRequest({
-        operationName: "StreamedListObjects",
-        method: "POST",
-        path: "/stores/{store_id}/streamed-list-objects",
-        pathParams: { store_id: storeId },
-        body,
-      }, options);
-    },
-    /**
          * Returns a paginated list of OpenFGA stores and a continuation token to get additional stores. The continuation token will be empty if there are no more stores. 
          * @summary List all stores
          * @param {number} [pageSize]
@@ -291,7 +272,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
         operationName: "ListStores",
         method: "GET",
         path: "/stores",
-        queryParams: { page_size: pageSize, continuation_token: continuationToken, name },
+        queryParams: { page_size: pageSize, continuation_token: continuationToken, name: name },
       }, options);
     },
     /**
@@ -365,7 +346,7 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
         operationName: "ReadAuthorizationModel",
         method: "GET",
         path: "/stores/{store_id}/authorization-models/{id}",
-        pathParams: { store_id: storeId, id },
+        pathParams: { store_id: storeId, id: id },
       }, options);
     },
     /**
@@ -405,7 +386,28 @@ export const OpenFgaApiFp = function(configuration: Configuration, credentials: 
         method: "GET",
         path: "/stores/{store_id}/changes",
         pathParams: { store_id: storeId },
-        queryParams: { type, page_size: pageSize, continuation_token: continuationToken, start_time: startTime },
+        queryParams: { type: type, page_size: pageSize, continuation_token: continuationToken, start_time: startTime },
+      }, options);
+    },
+    /**
+       * The Streamed ListObjects API is very similar to the ListObjects API, with two differences:
+       * 1. Instead of collecting all objects before returning a response, it streams them to the client as they are collected.
+       * 2. The number of results returned is only limited by the execution timeout specified in the flag OPENFGA_LIST_OBJECTS_DEADLINE.
+       * @summary Stream all objects of the given type that the user has a relation with
+       * @param {string} storeId
+       * @param {ListObjectsRequest} body
+       * @param {*} [options] Override http request option.
+       * @throws { FgaError }
+       */
+    async streamedListObjects(storeId: string, body: ListObjectsRequest, options?: any): Promise<(axios?: AxiosInstance) => Promise<any>> {
+      assertParamExists("streamedListObjects", "storeId", storeId);
+      assertParamExists("streamedListObjects", "body", body);
+      return api.executeStreamedApiRequest({
+        operationName: "StreamedListObjects",
+        method: "POST",
+        path: "/stores/{store_id}/streamed-list-objects",
+        pathParams: { store_id: storeId },
+        body,
       }, options);
     },
     /**
@@ -578,19 +580,6 @@ export const OpenFgaApiFactory = function (configuration: Configuration, credent
       return localVarFp.listObjects(storeId, body, options).then((request) => request(axios));
     },
     /**
-       * The Streamed ListObjects API is very similar to the ListObjects API, with two differences:
-       * 1. Instead of collecting all objects before returning a response, it streams them to the client as they are collected.
-       * 2. The number of results returned is only limited by the execution timeout specified in the flag OPENFGA_LIST_OBJECTS_DEADLINE.
-       * @summary Stream all objects of the given type that the user has a relation with
-       * @param {string} storeId
-       * @param {ListObjectsRequest} body
-       * @param {*} [options] Override http request option.
-       * @throws { FgaError }
-       */
-    streamedListObjects(storeId: string, body: ListObjectsRequest, options?: any): Promise<any> {
-      return localVarFp.streamedListObjects(storeId, body, options).then((request) => request(axios));
-    },
-    /**
          * Returns a paginated list of OpenFGA stores and a continuation token to get additional stores. The continuation token will be empty if there are no more stores. 
          * @summary List all stores
          * @param {number} [pageSize]
@@ -671,6 +660,19 @@ export const OpenFgaApiFactory = function (configuration: Configuration, credent
          */
     readChanges(storeId: string, type?: string, pageSize?: number, continuationToken?: string, startTime?: string, options?: any): PromiseResult<ReadChangesResponse> {
       return localVarFp.readChanges(storeId, type, pageSize, continuationToken, startTime, options).then((request) => request(axios));
+    },
+    /**
+       * The Streamed ListObjects API is very similar to the ListObjects API, with two differences:
+       * 1. Instead of collecting all objects before returning a response, it streams them to the client as they are collected.
+       * 2. The number of results returned is only limited by the execution timeout specified in the flag OPENFGA_LIST_OBJECTS_DEADLINE.
+       * @summary Stream all objects of the given type that the user has a relation with
+       * @param {string} storeId
+       * @param {ListObjectsRequest} body
+       * @param {*} [options] Override http request option.
+       * @throws { FgaError }
+       */
+    streamedListObjects(storeId: string, body: ListObjectsRequest, options?: any): Promise<any> {
+      return localVarFp.streamedListObjects(storeId, body, options).then((request) => request(axios));
     },
     /**
          * The Write API will transactionally update the tuples for a certain store. Tuples and type definitions allow OpenFGA to determine whether a relationship exists between an object and an user. In the body, `writes` adds new tuples and `deletes` removes existing tuples. When deleting a tuple, any `condition` specified with it is ignored. The API is not idempotent by default: if, later on, you try to add the same tuple key (even if the `condition` is different), or if you try to delete a non-existing tuple, it will throw an error. To allow writes when an identical tuple already exists in the database, set `\"on_duplicate\": \"ignore\"` on the `writes` object. To allow deletes when a tuple was already removed from the database, set `\"on_missing\": \"ignore\"` on the `deletes` object. If a Write request contains both idempotent (ignore) and non-idempotent (error) operations, the most restrictive action (error) will take precedence. If a condition fails for a sub-request with an error flag, the entire transaction will be rolled back. This gives developers explicit control over the atomicity of the requests. The API will not allow you to write tuples such as `document:2021-budget#viewer@document:2021-budget#viewer`, because they are implicit. An `authorization_model_id` may be specified in the body. If it is, it will be used to assert that each written tuple (not deleted) is valid for the model specified. If it is not specified, the latest authorization model ID will be used. ## Example ### Adding relationships To add `user:anne` as a `writer` for `document:2021-budget`, call write API with the following  ```json {   \"writes\": {     \"tuple_keys\": [       {         \"user\": \"user:anne\",         \"relation\": \"writer\",         \"object\": \"document:2021-budget\"       }     ],     \"on_duplicate\": \"ignore\"   },   \"authorization_model_id\": \"01G50QVV17PECNVAHX1GG4Y5NC\" } ``` ### Removing relationships To remove `user:bob` as a `reader` for `document:2021-budget`, call write API with the following  ```json {   \"deletes\": {     \"tuple_keys\": [       {         \"user\": \"user:bob\",         \"relation\": \"reader\",         \"object\": \"document:2021-budget\"       }     ],     \"on_missing\": \"ignore\"   } } ``` 
@@ -820,20 +822,6 @@ export class OpenFgaApi extends BaseAPI {
   }
 
   /**
-     * The Streamed ListObjects API is very similar to the ListObjects API, with two differences:  
-     * 1. Instead of collecting all objects before returning a response, it streams them to the client as they are collected.  
-     * 2. The number of results returned is only limited by the execution timeout specified in the flag OPENFGA_LIST_OBJECTS_DEADLINE.  
-     * @summary Stream all objects of the given type that the user has a relation with
-     * @param {string} storeId
-     * @param {ListObjectsRequest} body
-     * @param {*} [options] Override http request option.
-     * @throws { FgaError }
-     */
-  public streamedListObjects(storeId: string, body: ListObjectsRequest, options?: any): Promise<any> {
-    return OpenFgaApiFp(this.configuration, this.credentials).streamedListObjects(storeId, body, options).then((request) => request(this.axios));
-  }
-
-  /**
      * Returns a paginated list of OpenFGA stores and a continuation token to get additional stores. The continuation token will be empty if there are no more stores. 
      * @summary List all stores
      * @param {number} [pageSize]
@@ -930,6 +918,20 @@ export class OpenFgaApi extends BaseAPI {
   }
 
   /**
+     * The Streamed ListObjects API is very similar to the ListObjects API, with two differences:
+     * 1. Instead of collecting all objects before returning a response, it streams them to the client as they are collected.
+     * 2. The number of results returned is only limited by the execution timeout specified in the flag OPENFGA_LIST_OBJECTS_DEADLINE.
+     * @summary Stream all objects of the given type that the user has a relation with
+     * @param {string} storeId
+     * @param {ListObjectsRequest} body
+     * @param {*} [options] Override http request option.
+     * @throws { FgaError }
+     */
+  public streamedListObjects(storeId: string, body: ListObjectsRequest, options?: any): Promise<any> {
+    return OpenFgaApiFp(this.configuration, this.credentials).streamedListObjects(storeId, body, options).then((request) => request(this.axios));
+  }
+
+  /**
      * The Write API will transactionally update the tuples for a certain store. Tuples and type definitions allow OpenFGA to determine whether a relationship exists between an object and an user. In the body, `writes` adds new tuples and `deletes` removes existing tuples. When deleting a tuple, any `condition` specified with it is ignored. The API is not idempotent by default: if, later on, you try to add the same tuple key (even if the `condition` is different), or if you try to delete a non-existing tuple, it will throw an error. To allow writes when an identical tuple already exists in the database, set `\"on_duplicate\": \"ignore\"` on the `writes` object. To allow deletes when a tuple was already removed from the database, set `\"on_missing\": \"ignore\"` on the `deletes` object. If a Write request contains both idempotent (ignore) and non-idempotent (error) operations, the most restrictive action (error) will take precedence. If a condition fails for a sub-request with an error flag, the entire transaction will be rolled back. This gives developers explicit control over the atomicity of the requests. The API will not allow you to write tuples such as `document:2021-budget#viewer@document:2021-budget#viewer`, because they are implicit. An `authorization_model_id` may be specified in the body. If it is, it will be used to assert that each written tuple (not deleted) is valid for the model specified. If it is not specified, the latest authorization model ID will be used. ## Example ### Adding relationships To add `user:anne` as a `writer` for `document:2021-budget`, call write API with the following  ```json {   \"writes\": {     \"tuple_keys\": [       {         \"user\": \"user:anne\",         \"relation\": \"writer\",         \"object\": \"document:2021-budget\"       }     ],     \"on_duplicate\": \"ignore\"   },   \"authorization_model_id\": \"01G50QVV17PECNVAHX1GG4Y5NC\" } ``` ### Removing relationships To remove `user:bob` as a `reader` for `document:2021-budget`, call write API with the following  ```json {   \"deletes\": {     \"tuple_keys\": [       {         \"user\": \"user:bob\",         \"relation\": \"reader\",         \"object\": \"document:2021-budget\"       }     ],     \"on_missing\": \"ignore\"   } } ``` 
      * @summary Add or delete tuples from the store
      * @param {string} storeId
@@ -997,5 +999,6 @@ export class OpenFgaApi extends BaseAPI {
     return OpenFgaApiFp(this.configuration, this.credentials).executeStreamedApiRequest(request, options).then((request) => request(this.axios));
   }
 }
+
 
 
