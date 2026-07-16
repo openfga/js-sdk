@@ -23,6 +23,7 @@ import {
   ListObjectsRequest,
   ListObjectsResponse,
   StreamedListObjectsResponse,
+  StreamResultOfStreamedListObjectsResponse,
   ListStoresResponse,
   ListUsersRequest,
   ListUsersResponse,
@@ -883,8 +884,9 @@ export class OpenFgaClient extends BaseAPI {
     // Parse the Node.js stream
     try {
       for await (const item of parseNDJSONStream(source as any)) {
-        if (item && item.result && item.result.object) {
-          yield { object: item.result.object } as StreamedListObjectsResponse;
+        const streamResult = item as StreamResultOfStreamedListObjectsResponse;
+        if (streamResult?.result?.object) {
+          yield { object: streamResult.result.object } as StreamedListObjectsResponse;
         }
       }
     } finally {
