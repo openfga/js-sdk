@@ -1735,6 +1735,33 @@ describe("OpenFGA Client", () => {
         expect(scope.isDone()).toBe(true);
       });
 
+      it("should throw when the stream emits an error chunk", async () => {
+        const ndjsonResponse = [
+          JSON.stringify({ result: { object: "document:1" } }),
+          JSON.stringify({ error: { code: 13, message: "internal stream error" } }),
+        ].join("\n") + "\n";
+
+        const scope = nock(defaultConfiguration.getBasePath())
+          .post(`/stores/${baseConfig.storeId}/streamed-list-objects`)
+          .reply(200, () => Readable.from([ndjsonResponse]), {
+            "Content-Type": "application/x-ndjson"
+          });
+
+        const results: string[] = [];
+        await expect(async () => {
+          for await (const response of fgaClient.streamedListObjects({
+            user: "user:anne",
+            relation: "owner",
+            type: "document",
+          })) {
+            results.push(response.object);
+          }
+        }).rejects.toThrow("StreamedListObjects stream returned an error (code: 13): internal stream error");
+
+        expect(scope.isDone()).toBe(true);
+        expect(results).toEqual(["document:1"]);
+      });
+
       it("should handle retry on 429 error", async () => {
         const objects = ["document:1"];
 
