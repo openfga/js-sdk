@@ -45,7 +45,7 @@ import {
 import { BaseAPI } from "./base";
 import { CallResult, PromiseResult } from "./common";
 import { Configuration, RetryParams, UserConfigurationParams } from "./configuration";
-import { FgaApiAuthenticationError, FgaRequiredParamError, FgaValidationError } from "./errors";
+import { FgaApiAuthenticationError, FgaError, FgaRequiredParamError, FgaValidationError } from "./errors";
 import {
   chunkArray,
   generateRandomIdWithNonUniqueFallback,
@@ -885,6 +885,9 @@ export class OpenFgaClient extends BaseAPI {
     try {
       for await (const item of parseNDJSONStream(source as any)) {
         const streamResult = item as StreamResultOfStreamedListObjectsResponse;
+        if (streamResult?.error) {
+          throw new FgaError(`StreamedListObjects stream returned an error (code: ${streamResult.error.code}): ${streamResult.error.message}`);
+        }
         if (streamResult?.result?.object) {
           yield { object: streamResult.result.object } as StreamedListObjectsResponse;
         }
