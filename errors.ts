@@ -19,6 +19,20 @@ export interface HttpErrorContext {
 }
 
 /**
+ * Context extracted from a failed HTTP request/response,
+ * used to construct SDK error classes without coupling to any HTTP library.
+ */
+export interface HttpErrorContext {
+  status?: number;
+  statusText?: string;
+  headers?: Record<string, string>;
+  data?: any;
+  requestUrl?: string;
+  requestMethod?: string;
+  requestData?: any;
+}
+
+/**
  *
  * @export
  * @class FgaError
