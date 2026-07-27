@@ -1,4 +1,4 @@
-import { TelemetryAttribute, TelemetryAttributes } from "../../telemetry/attributes";
+import { TelemetryAttribute, TelemetryAttributes } from "../../telemetry/attributes.js";
 
 describe("TelemetryAttributes", () => {
 

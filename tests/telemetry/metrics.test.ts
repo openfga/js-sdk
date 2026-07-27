@@ -1,8 +1,8 @@
-import { MetricRecorder } from "../../telemetry/metrics";
-import { TelemetryCounters } from "../../telemetry/counters";
-import { TelemetryHistograms } from "../../telemetry/histograms";
-import { TelemetryAttributes } from "../../telemetry/attributes";
-import SdkConstants from "../../constants";
+import { MetricRecorder } from "../../telemetry/metrics.js";
+import { TelemetryCounters } from "../../telemetry/counters.js";
+import { TelemetryHistograms } from "../../telemetry/histograms.js";
+import { TelemetryAttributes } from "../../telemetry/attributes.js";
+import SdkConstants from "../../constants/index.js";
 import { metrics } from "@opentelemetry/api";
 
 jest.mock("@opentelemetry/api", () => ({

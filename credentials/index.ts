@@ -11,5 +11,5 @@
  */
 
 
-export * from "./credentials";
-export * from "./types";
+export * from "./credentials.js";
+export * from "./types.js";

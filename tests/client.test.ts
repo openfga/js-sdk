@@ -13,8 +13,8 @@ import {
   ErrorCode,
   ClientWriteRequestOnDuplicateWrites,
   ClientWriteRequestOnMissingDeletes,
-} from "../index";
-import { baseConfig, defaultConfiguration, getNocks } from "./helpers";
+} from "../index.js";
+import { baseConfig, defaultConfiguration, getNocks } from "./helpers/index.js";
 
 const nocks = getNocks(nock);
 

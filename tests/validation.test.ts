@@ -1,4 +1,4 @@
-import { isWellFormedUlidString } from "../validation";
+import { isWellFormedUlidString } from "../validation.js";
 
 describe("validation.ts", () => {
   describe("isWellFormedUlidString", () => {

@@ -1,2 +1,2 @@
-export { getNocks } from "./nocks";
-export { baseConfig, defaultConfiguration } from "./default-config";
+export { getNocks } from "./nocks.js";
+export { baseConfig, defaultConfiguration } from "./default-config.js";

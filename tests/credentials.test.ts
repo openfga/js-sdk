@@ -1,16 +1,16 @@
 import nock from "nock";
 import * as jose from "jose";
-import { Credentials, CredentialsMethod, DEFAULT_TOKEN_ENDPOINT_PATH } from "../credentials";
-import { AuthCredentialsConfig } from "../credentials/types";
-import { TelemetryConfiguration } from "../telemetry/configuration";
-import SdkConstants from "../constants";
+import { Credentials, CredentialsMethod, DEFAULT_TOKEN_ENDPOINT_PATH } from "../credentials/index.js";
+import { AuthCredentialsConfig } from "../credentials/types.js";
+import { TelemetryConfiguration } from "../telemetry/configuration.js";
+import SdkConstants from "../constants/index.js";
 import {
   OPENFGA_API_AUDIENCE,
   OPENFGA_CLIENT_ASSERTION_SIGNING_KEY,
   OPENFGA_CLIENT_ID,
   OPENFGA_CLIENT_SECRET,
-} from "./helpers/default-config";
-import { FgaApiAuthenticationError, FgaValidationError } from "../errors";
+} from "./helpers/default-config.js";
+import { FgaApiAuthenticationError, FgaValidationError } from "../errors.js";
 
 describe("Credentials", () => {
   const mockTelemetryConfig: TelemetryConfiguration = new TelemetryConfiguration({});

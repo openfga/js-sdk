@@ -87,6 +87,16 @@ yarn add @openfga/sdk
 
 ### Supported Runtimes
 
+The SDK ships with both CommonJS and ES Module builds, and should work out of the box in Node.js, Deno, Cloudflare Workers, and modern bundlers.
+
+```javascript
+// CommonJS
+const { OpenFgaClient } = require("@openfga/sdk");
+
+// ES Modules
+import { OpenFgaClient } from "@openfga/sdk";
+```
+
 For details on the supported Node.js versions and our support policy, see [SUPPORTED_RUNTIMES.md](./SUPPORTED_RUNTIMES.md).
 
 ## Getting Started
@@ -102,7 +112,7 @@ We strongly recommend you initialize the `OpenFgaClient` only once and then re-u
 #### No Credentials
 
 ```javascript
-const { OpenFgaClient } = require('@openfga/sdk'); // OR import { OpenFgaClient } from '@openfga/sdk';
+import { OpenFgaClient } from '@openfga/sdk';
 
 const fgaClient = new OpenFgaClient({
   apiUrl: process.env.FGA_API_URL, // required
@@ -114,7 +124,7 @@ const fgaClient = new OpenFgaClient({
 #### API Token
 
 ```javascript
-const { OpenFgaClient, CredentialsMethod } = require('@openfga/sdk'); // OR import { OpenFgaClient, CredentialsMethod } from '@openfga/sdk';
+import { OpenFgaClient, CredentialsMethod } from '@openfga/sdk';
 
 const fgaClient = new OpenFgaClient({
   apiUrl: process.env.FGA_API_URL, // required
@@ -132,7 +142,7 @@ const fgaClient = new OpenFgaClient({
 #### Client Credentials
 
 ```javascript
-const { OpenFgaClient, CredentialsMethod } = require('@openfga/sdk'); // OR import { OpenFgaClient, CredentialsMethod } from '@openfga/sdk';
+import { OpenFgaClient, CredentialsMethod } from '@openfga/sdk';
 
 const fgaClient = new OpenFgaClient({
   apiUrl: process.env.FGA_API_URL, // required
@@ -157,7 +167,7 @@ const fgaClient = new OpenFgaClient({
 You can set default headers that will be sent with every request during client initialization:
 
 ```javascript
-const { OpenFgaClient } = require('@openfga/sdk'); // OR import { OpenFgaClient } from '@openfga/sdk';
+import { OpenFgaClient } from '@openfga/sdk';
 
 const fgaClient = new OpenFgaClient({
   apiUrl: process.env.FGA_API_URL,
@@ -195,7 +205,7 @@ const result = await fgaClient.check({
 The SDK uses the native `fetch` API by default. You can provide a custom `HttpClient` to control the underlying HTTP behavior.
 
 ```javascript
-const { OpenFgaClient } = require('@openfga/sdk'); // OR import { OpenFgaClient } from '@openfga/sdk';
+import { OpenFgaClient } from '@openfga/sdk';
 
 const fgaClient = new OpenFgaClient(
   {
@@ -954,7 +964,7 @@ This is useful when:
 #### Example: Calling a Custom Endpoint with POST
 
 ```javascript
-const { OpenFgaClient } = require('@openfga/sdk');
+import { OpenFgaClient } from "@openfga/sdk";
 
 const fgaClient = new OpenFgaClient({
   apiUrl: process.env.FGA_API_URL,
@@ -1056,7 +1066,7 @@ To customize this behavior, create an object with `maxRetry` and `minWaitInMs` p
 Apply your custom retry values by setting to `retryParams` on the configuration object passed to the `OpenFgaClient` call.
 
 ```javascript
-const { OpenFgaClient } = require('@openfga/sdk'); // OR import { OpenFgaClient } from '@openfga/sdk';
+import { OpenFgaClient } from '@openfga/sdk';
 
 const fgaClient = new OpenFgaClient({
   apiUrl: process.env.FGA_API_URL, // required

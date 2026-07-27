@@ -11,9 +11,9 @@
  */
 
 
-import { FgaValidationError } from "../errors";
-import { TelemetryAttribute } from "./attributes";
-import { TelemetryMetric, MetricRecorder } from "./metrics";
+import { FgaValidationError } from "../errors.js";
+import { TelemetryAttribute } from "./attributes.js";
+import { TelemetryMetric, MetricRecorder } from "./metrics.js";
 
 /**
  * Configuration for a telemetry metric.

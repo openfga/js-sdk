@@ -6,6 +6,9 @@ module.exports = {
     "^.+\\.ts$": ["ts-jest", { tsconfig: "tests/tsconfig.spec.json" }],
   },
   moduleFileExtensions: ["js", "d.ts", "ts", "json"],
+  moduleNameMapper: {
+    "^(\\.{1,2}/.*)\\.js$": "$1",
+  },
   setupFilesAfterEnv: ["./tests/setup.ts"],
   collectCoverage: true,
   coverageReporters: ["text", "cobertura", "lcov"],

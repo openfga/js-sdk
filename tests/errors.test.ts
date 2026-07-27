@@ -1,5 +1,5 @@
-import { FgaError, FgaApiError, HttpErrorContext } from "../errors";
-import SdkConstants from "../constants";
+import { FgaError, FgaApiError, HttpErrorContext } from "../errors.js";
+import SdkConstants from "../constants/index.js";
 
 describe("errors.ts", () => {
   describe("FgaError", () => {

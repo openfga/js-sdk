@@ -12,10 +12,10 @@
 
 
 import { Counter, Histogram, Meter } from "@opentelemetry/api";
-import { TelemetryCounter } from "./counters";
-import { TelemetryHistogram } from "./histograms";
+import { TelemetryCounter } from "./counters.js";
+import { TelemetryHistogram } from "./histograms.js";
 import { metrics } from "@opentelemetry/api";
-import SdkConstants from "../constants";
+import SdkConstants from "../constants/index.js";
 
 export enum TelemetryMetric {
   CounterCredentialsRequest = "counterCredentialsRequest",

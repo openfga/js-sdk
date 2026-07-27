@@ -1,4 +1,4 @@
-import { FgaApiAuthenticationError, FgaApiError, HttpErrorContext } from "../errors";
+import { FgaApiAuthenticationError, FgaApiError, HttpErrorContext } from "../errors.js";
 
 describe("errors.ts", () => {
   describe("FgaApiAuthenticationError", () => {

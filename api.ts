@@ -11,7 +11,7 @@
  */
 
 
-import { BaseAPI } from "./base";
+import { BaseAPI } from "./base.js";
 import {
   DUMMY_BASE_URL,
   setSearchParams,
@@ -28,12 +28,12 @@ import {
   RequestBuilderParams,
   RequestBuilderOptions,
   RequestBuilder,
-} from "./common";
+} from "./common.js";
 
 export type { HttpMethod, RequestBuilderParams, RequestBuilderOptions };
-import { Configuration } from "./configuration";
-import { Credentials } from "./credentials";
-import { assertParamExists } from "./validation";
+import { Configuration } from "./configuration.js";
+import { Credentials } from "./credentials/index.js";
+import { assertParamExists } from "./validation.js";
 
 import {
   AbortedMessageResponse,
@@ -122,8 +122,8 @@ import {
   WriteRequest,
   WriteRequestDeletes,
   WriteRequestWrites,
-} from "./apiModel";
-import { TelemetryAttribute, TelemetryAttributes } from "./telemetry/attributes";
+} from "./apiModel.js";
+import { TelemetryAttribute, TelemetryAttributes } from "./telemetry/attributes.js";
 
 
 /**

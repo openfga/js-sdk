@@ -1,6 +1,6 @@
-import { Configuration, UserConfigurationParams } from "./configuration";
-import { HttpClient } from "./common";
-import { Credentials } from "./credentials";
+import { Configuration, UserConfigurationParams } from "./configuration.js";
+import { HttpClient } from "./common.js";
+import { Credentials } from "./credentials/index.js";
 
 const DEFAULT_CONNECTION_TIMEOUT_IN_MS = 10000;
 

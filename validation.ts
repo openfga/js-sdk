@@ -1,4 +1,4 @@
-import { FgaRequiredParamError } from "./errors";
+import { FgaRequiredParamError } from "./errors.js";
 
 /**
  *
