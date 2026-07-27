@@ -27,10 +27,6 @@ describe("OpenFGA Client", () => {
       fgaClient = new OpenFgaClient({ ...baseConfig, credentials: { method: CredentialsMethod.None } });
     });
 
-    afterEach(() => {
-      nock.cleanAll();
-    });
-
     describe("Configuration", () => {
       it("should throw an error if the storeId is not in a valid format", async () => {
         expect(
@@ -81,7 +77,7 @@ describe("OpenFGA Client", () => {
     describe("ListStores", () => {
       it("should properly call the ListStores API", async () => {
         const store = { id: "some-id", name: "some-name" };
-        const scope = nocks.listStores(defaultConfiguration.getBasePath(), {
+        nocks.listStores(defaultConfiguration.getBasePath(), {
           continuation_token: "",
           stores: [{
             ...store,
@@ -91,17 +87,15 @@ describe("OpenFGA Client", () => {
           }],
         });
 
-        expect(scope.isDone()).toBe(false);
         const response = await fgaClient.listStores();
 
-        expect(scope.isDone()).toBe(true);
         expect(response.stores).toHaveLength(1);
         expect(response.stores?.[0]).toMatchObject(store);
       });
 
       it("should properly call the ListStores API with name filter", async () => {
         const store = { id: "some-id", name: "test-store" };
-        const scope = nocks.listStores(defaultConfiguration.getBasePath(), {
+        nocks.listStores(defaultConfiguration.getBasePath(), {
           continuation_token: "",
           stores: [{
             ...store,
@@ -111,10 +105,8 @@ describe("OpenFGA Client", () => {
           }],
         }, 200, { name: "test-store" });
 
-        expect(scope.isDone()).toBe(false);
         const response = await fgaClient.listStores({ name: "test-store" });
 
-        expect(scope.isDone()).toBe(true);
         expect(response.stores).toHaveLength(1);
         expect(response.stores?.[0]).toMatchObject(store);
       });
@@ -123,16 +115,14 @@ describe("OpenFGA Client", () => {
     describe("CreateStore", () => {
       it("should create a store", async () => {
         const store = { id: "some-id", name: "some-name" };
-        const scope = nocks.createStore(defaultConfiguration.getBasePath(), {
+        nocks.createStore(defaultConfiguration.getBasePath(), {
           ...store,
           created_at: "2023-11-02T15:27:47.951Z",
           updated_at: "2023-11-02T15:27:47.951Z",
         });
 
-        expect(scope.isDone()).toBe(false);
         const response = await fgaClient.createStore(store);
 
-        expect(scope.isDone()).toBe(true);
         expect(response).toMatchObject(store);
       });
     });
@@ -140,16 +130,14 @@ describe("OpenFGA Client", () => {
     describe("GetStore", () => {
       it("should properly call the GetStore API", async () => {
         const store = { id: defaultConfiguration.storeId!, name: "some-name" };
-        const scope = nocks.getStore(store.id, defaultConfiguration.getBasePath(), {
+        nocks.getStore(store.id, defaultConfiguration.getBasePath(), {
           ...store,
           created_at: "2023-11-02T15:27:47.951Z",
           updated_at: "2023-11-02T15:27:47.951Z",
         });
 
-        expect(scope.isDone()).toBe(false);
         const response = await fgaClient.getStore();
 
-        expect(scope.isDone()).toBe(true);
         expect(response).toMatchObject(store);
       });
 
@@ -159,40 +147,34 @@ describe("OpenFGA Client", () => {
         const overriddenStoreId = "01HWD53SDGYRXHBXTYA10PF6T4";
 
         const store = { id: overriddenStoreId, name: "some-name" };
-        const scope = nocks.getStore(store.id, defaultConfiguration.getBasePath(), {
+        nocks.getStore(store.id, defaultConfiguration.getBasePath(), {
           ...store,
           created_at: "2023-11-02T15:27:47.951Z",
           updated_at: "2023-11-02T15:27:47.951Z",
         });
 
-        expect(scope.isDone()).toBe(false);
         const response = await fgaClient.getStore({ storeId: overriddenStoreId });
 
-        expect(scope.isDone()).toBe(true);
         expect(response).toMatchObject(store);
       });
     });
 
     describe("DeleteStore", () => {
       it("should properly call the DeleteStore API", async () => {
-        const scope = nocks.deleteStore(defaultConfiguration.storeId!);
+        nocks.deleteStore(defaultConfiguration.storeId!);
 
-        expect(scope.isDone()).toBe(false);
         await fgaClient.deleteStore();
 
-        expect(scope.isDone()).toBe(true);
       });
     });
 
     /* Authorization Models */
     describe("ReadAuthorizationModels", () => {
       it("should properly call the ReadAuthorizationModels API", async () => {
-        const scope = nocks.readAuthorizationModels(defaultConfiguration.storeId!);
+        nocks.readAuthorizationModels(defaultConfiguration.storeId!);
 
-        expect(scope.isDone()).toBe(false);
         const data = await fgaClient.readAuthorizationModels();
 
-        expect(scope.isDone()).toBe(true);
         expect(data).toMatchObject({
           authorization_models: expect.arrayContaining([]),
         });
@@ -207,17 +189,15 @@ describe("OpenFGA Client", () => {
             { type: "workspace", relations: { admin: { this: {} } } },
           ],
         };
-        const scope = nocks.writeAuthorizationModel(
+        nocks.writeAuthorizationModel(
           baseConfig.storeId!,
           authorizationModel
         );
 
-        expect(scope.isDone()).toBe(false);
         const data = await fgaClient.writeAuthorizationModel(
           authorizationModel
         );
 
-        expect(scope.isDone()).toBe(true);
         expect(data).toMatchObject({ id: expect.any(String) });
       });
     });
@@ -225,12 +205,10 @@ describe("OpenFGA Client", () => {
     describe("ReadAuthorizationModel", () => {
       it("should properly call the ReadAuthorizationModel API", async () => {
         const modelId = "01H0THVNGCSAZ6SAQVTHPH3F0Q";
-        const scope = nocks.readSingleAuthzModel(defaultConfiguration.storeId!, modelId);
+        nocks.readSingleAuthzModel(defaultConfiguration.storeId!, modelId);
 
-        expect(scope.isDone()).toBe(false);
         const data = await fgaClient.readAuthorizationModel({ authorizationModelId: modelId });
 
-        expect(scope.isDone()).toBe(true);
         expect(data).toMatchObject({
           authorization_model: {
             id: expect.any(String),
@@ -244,17 +222,15 @@ describe("OpenFGA Client", () => {
     describe("ReadLatestAuthorizationModel", () => {
       it("should properly call the ReadLatestAuthorizationModel API", async () => {
         const modelId = "01H0THVNGCSAZ6SAQVTHPH3F0Q";
-        const scope = nock(defaultConfiguration.getBasePath())
+        nock(defaultConfiguration.getBasePath())
           .get(`/stores/${defaultConfiguration.storeId!}/authorization-models`)
           .query({ page_size: 1 })
           .reply(200, {
             authorization_models: [{ id: modelId, schema_version: "1.1", type_definitions: [] }],
           });
 
-        expect(scope.isDone()).toBe(false);
         const data = await fgaClient.readLatestAuthorizationModel();
 
-        expect(scope.isDone()).toBe(true);
         expect(data).toMatchObject({
           authorization_model: {
             id: expect.any(String),
@@ -273,12 +249,10 @@ describe("OpenFGA Client", () => {
         const startTime = "2022-01-01T00:00:00Z";
         const continuationToken = "eyJwayI6IkxBVEVTVF9OU0NPTkZJR19hdXRoMHN0b3JlIiwic2siOiIxem1qbXF3MWZLZExTcUoyN01MdTdqTjh0cWgifQ==";
 
-        const scope = nocks.readChanges(baseConfig.storeId!, type, pageSize, continuationToken, startTime);
+        nocks.readChanges(baseConfig.storeId!, type, pageSize, continuationToken, startTime);
 
-        expect(scope.isDone()).toBe(false);
         const response = await fgaClient.readChanges({ type, startTime }, { pageSize, continuationToken });
 
-        expect(scope.isDone()).toBe(true);
         expect(response).toMatchObject({ changes: expect.arrayContaining([]) });
       });
 
@@ -287,12 +261,10 @@ describe("OpenFGA Client", () => {
         const continuationToken = "eyJwayI6IkxBVEVTVF9OU0NPTkZJR19hdXRoMHN0b3JlIiwic2siOiIxem1qbXF3MWZLZExTcUoyN01MdTdqTjh0cWgifQ==";
         const startTime = "2022-01-01T00:00:00Z";
 
-        const scope = nocks.readChanges(baseConfig.storeId!, "", pageSize, continuationToken,"");
+        nocks.readChanges(baseConfig.storeId!, "", pageSize, continuationToken,"");
 
-        expect(scope.isDone()).toBe(false);
         const response = await fgaClient.readChanges(undefined, { pageSize, continuationToken });
 
-        expect(scope.isDone()).toBe(true);
         expect(response).toMatchObject({ changes: expect.arrayContaining([]) });
       });
     });
@@ -304,12 +276,10 @@ describe("OpenFGA Client", () => {
           relation: "admin",
           object: "workspace:1",
         };
-        const scope = nocks.read(baseConfig.storeId!, tuple, undefined, ConsistencyPreference.HigherConsistency);
+        nocks.read(baseConfig.storeId!, tuple, undefined, ConsistencyPreference.HigherConsistency);
 
-        expect(scope.isDone()).toBe(false);
         const data = await fgaClient.read(tuple, { consistency: ConsistencyPreference.HigherConsistency});
 
-        expect(scope.isDone()).toBe(true);
         expect(data).toMatchObject({});
       });
     });
@@ -321,16 +291,14 @@ describe("OpenFGA Client", () => {
           relation: "admin",
           object: "workspace:1",
         };
-        const scope = nocks.write(baseConfig.storeId!);
+        nocks.write(baseConfig.storeId!);
 
-        expect(scope.isDone()).toBe(false);
         const data = await fgaClient.write({
           writes: [tuple],
         }, {
           authorizationModelId: "01GXSA8YR785C4FYS3C0RTG7B1",
         });
 
-        expect(scope.isDone()).toBe(true);
         expect(data).toMatchObject({});
       });
 
@@ -365,6 +333,9 @@ describe("OpenFGA Client", () => {
         expect(scope2.isDone()).toBe(false);
         expect(scope3.isDone()).toBe(false);
         expect(data).toMatchObject({});
+
+        // NOTE: manually clean pending mocks as we assert on _not_ being matched above.
+        nock.cleanAll();
       });
 
       it("should not fail the request on errors in non-transaction mode", async () => {
@@ -409,6 +380,9 @@ describe("OpenFGA Client", () => {
         expect(data.writes.find(tuple => tuple.tuple_key.object === tuples[0].object)?.status).toBe(ClientWriteStatus.SUCCESS);
         expect(data.writes.find(tuple => tuple.tuple_key.object === tuples[1].object)?.status).toBe(ClientWriteStatus.SUCCESS);
         expect(data.writes.find(tuple => tuple.tuple_key.object === tuples[2].object)?.status).toBe(ClientWriteStatus.FAILURE);
+
+        // NOTE: manually clean pending mocks as we assert on _not_ being matched above.
+        nock.cleanAll();
       });
 
       it("should throw an error if auth fails in not transaction mode", async () => {
@@ -441,6 +415,9 @@ describe("OpenFGA Client", () => {
           expect(scope0.isDone()).toBe(true);
           expect(scope1.isDone()).toBe(false);
         }
+
+        // NOTE: manually clean pending mocks as we assert on _not_ being matched above.
+        nock.cleanAll();
       });
 
       it("should properly call the Write API when providing one empty array", async () => {
@@ -449,9 +426,8 @@ describe("OpenFGA Client", () => {
           relation: "admin",
           object: "workspace:1",
         };
-        const scope = nocks.write(baseConfig.storeId!);
+        nocks.write(baseConfig.storeId!);
 
-        expect(scope.isDone()).toBe(false);
         const data = await fgaClient.write({
           writes: [tuple],
           deletes: []
@@ -459,7 +435,6 @@ describe("OpenFGA Client", () => {
           authorizationModelId: "01GXSA8YR785C4FYS3C0RTG7B1",
         });
 
-        expect(scope.isDone()).toBe(true);
         expect(data.writes.length).toBe(1);
         expect(data.deletes.length).toBe(0);
       });
@@ -1091,14 +1066,12 @@ describe("OpenFGA Client", () => {
           relation: "admin",
           object: "workspace:1",
         };
-        const scope = nocks.write(baseConfig.storeId!);
+        nocks.write(baseConfig.storeId!);
 
-        expect(scope.isDone()).toBe(false);
         const data = await fgaClient.writeTuples([tuple], {
           authorizationModelId: "01GXSA8YR785C4FYS3C0RTG7B1",
         });
 
-        expect(scope.isDone()).toBe(true);
         expect(data).toMatchObject({});
       });
 
@@ -1193,14 +1166,12 @@ describe("OpenFGA Client", () => {
           relation: "admin",
           object: "workspace:1",
         };
-        const scope = nocks.write(baseConfig.storeId!);
+        nocks.write(baseConfig.storeId!);
 
-        expect(scope.isDone()).toBe(false);
         const data = await fgaClient.deleteTuples([tuple], {
           authorizationModelId: "01GXSA8YR785C4FYS3C0RTG7B1",
         });
 
-        expect(scope.isDone()).toBe(true);
         expect(data).toMatchObject({});
       });
 
@@ -1296,12 +1267,10 @@ describe("OpenFGA Client", () => {
           relation: "admin",
           object: "workspace:1",
         };
-        const scope = nocks.check(baseConfig.storeId!, tuple, undefined, undefined, undefined, ConsistencyPreference.HigherConsistency);
+        nocks.check(baseConfig.storeId!, tuple, undefined, undefined, undefined, ConsistencyPreference.HigherConsistency);
 
-        expect(scope.isDone()).toBe(false);
         const data = await fgaClient.check(tuple, { consistency: ConsistencyPreference.HigherConsistency });
 
-        expect(scope.isDone()).toBe(true);
         expect(data).toMatchObject({ allowed: expect.any(Boolean) });
       });
     });
@@ -1349,6 +1318,9 @@ describe("OpenFGA Client", () => {
             { _request: tuples[1], allowed: false },
             { _request: tuples[2], error: expect.any(Error) },
           ]));
+
+        // NOTE: manually clean pending mocks as we assert on _not_ being matched above.
+        nock.cleanAll();
       });
     });
 
@@ -1394,9 +1366,8 @@ describe("OpenFGA Client", () => {
           },
         };
 
-        const scope = nocks.singleBatchCheck(baseConfig.storeId!, mockedResponse, undefined, ConsistencyPreference.HigherConsistency, "01GAHCE4YVKPQEKZQHT2R89MQV").matchHeader("X-OpenFGA-Client-Bulk-Request-Id", /.*/);
+        nocks.singleBatchCheck(baseConfig.storeId!, mockedResponse, undefined, ConsistencyPreference.HigherConsistency, "01GAHCE4YVKPQEKZQHT2R89MQV").matchHeader("X-OpenFGA-Client-Bulk-Request-Id", /.*/);
 
-        expect(scope.isDone()).toBe(false);
         const response = await fgaClient.batchCheck({
           checks: [{
             user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
@@ -1427,7 +1398,6 @@ describe("OpenFGA Client", () => {
           consistency: ConsistencyPreference.HigherConsistency,
         });
 
-        expect(scope.isDone()).toBe(true);
         expect(response.result).toHaveLength(2);
         expect(response.result[0].allowed).toBe(true);
         expect(response.result[1].allowed).toBe(false);
@@ -1457,11 +1427,8 @@ describe("OpenFGA Client", () => {
           },
         };
 
-        const scope0 = nocks.singleBatchCheck(baseConfig.storeId!, mockedResponse0, undefined, ConsistencyPreference.HigherConsistency, "01GAHCE4YVKPQEKZQHT2R89MQV").matchHeader("X-OpenFGA-Client-Bulk-Request-Id", /.*/);
-        const scope1 = nocks.singleBatchCheck(baseConfig.storeId!, mockedResponse1, undefined, ConsistencyPreference.HigherConsistency, "01GAHCE4YVKPQEKZQHT2R89MQV").matchHeader("X-OpenFGA-Client-Bulk-Request-Id", /.*/);
-
-        expect(scope0.isDone()).toBe(false);
-        expect(scope1.isDone()).toBe(false);
+        nocks.singleBatchCheck(baseConfig.storeId!, mockedResponse0, undefined, ConsistencyPreference.HigherConsistency, "01GAHCE4YVKPQEKZQHT2R89MQV").matchHeader("X-OpenFGA-Client-Bulk-Request-Id", /.*/);
+        nocks.singleBatchCheck(baseConfig.storeId!, mockedResponse1, undefined, ConsistencyPreference.HigherConsistency, "01GAHCE4YVKPQEKZQHT2R89MQV").matchHeader("X-OpenFGA-Client-Bulk-Request-Id", /.*/);
 
         const response = await fgaClient.batchCheck({
           checks: [{
@@ -1500,8 +1467,6 @@ describe("OpenFGA Client", () => {
           maxBatchSize: 2,
         });
 
-        expect(scope0.isDone()).toBe(true);
-        expect(scope1.isDone()).toBe(true);
         expect(response.result).toHaveLength(3);
 
         const resp0 = response.result.find(r => r.correlationId === "cor-1");
@@ -1526,9 +1491,9 @@ describe("OpenFGA Client", () => {
         expect(resp2?.error?.input_error).toBe(ErrorCode.RelationNotFound);
         expect(resp2?.error?.message).toBe("relation not found");
       });
-      it("should throw an error if auth fails", async () => {
 
-        const scope = nock(defaultConfiguration.getBasePath())
+      it("should throw an error if auth fails", async () => {
+        nock(defaultConfiguration.getBasePath())
           .post(`/stores/${baseConfig.storeId!}/batch-check`)
           .reply(401, {});
 
@@ -1542,8 +1507,6 @@ describe("OpenFGA Client", () => {
           });
         } catch (err) {
           expect(err).toBeInstanceOf(FgaApiAuthenticationError);
-        } finally {
-          expect(scope.isDone()).toBe(true);
         }
       });
 
@@ -1561,7 +1524,7 @@ describe("OpenFGA Client", () => {
           },
         };
 
-        const scope = nocks
+        nocks
           .singleBatchCheck(
             baseConfig.storeId!,
             mockedResponse,
@@ -1571,7 +1534,6 @@ describe("OpenFGA Client", () => {
           )
           .matchHeader("X-OpenFGA-Client-Bulk-Request-Id", /.*/);
 
-        expect(scope.isDone()).toBe(false);
         const response = await fgaClient.batchCheck({
           checks: [
             {
@@ -1603,7 +1565,6 @@ describe("OpenFGA Client", () => {
           ],
         });
 
-        expect(scope.isDone()).toBe(true);
         expect(response.result).toHaveLength(2);
         expect(response.result[0].allowed).toBe(true);
         expect(response.result[1].allowed).toBe(false);
@@ -1617,12 +1578,10 @@ describe("OpenFGA Client", () => {
           relation: "admin",
           object: "workspace:1",
         };
-        const scope = nocks.expand(baseConfig.storeId!, tuple, undefined, ConsistencyPreference.HigherConsistency);
+        nocks.expand(baseConfig.storeId!, tuple, undefined, ConsistencyPreference.HigherConsistency);
 
-        expect(scope.isDone()).toBe(false);
         const data = await fgaClient.expand(tuple, { authorizationModelId: "01GXSA8YR785C4FYS3C0RTG7B1", consistency: ConsistencyPreference.HigherConsistency });
 
-        expect(scope.isDone()).toBe(true);
         expect(data).toMatchObject({});
       });
     });
@@ -1630,9 +1589,8 @@ describe("OpenFGA Client", () => {
     describe("ListObjects", () => {
       it("should call the api and return the response", async () => {
         const mockedResponse = { objects: ["document:0192ab2a-d83f-756d-9397-c5ed9f3cb69a"] };
-        const scope = nocks.listObjects(baseConfig.storeId!, mockedResponse, undefined, ConsistencyPreference.HigherConsistency);
+        nocks.listObjects(baseConfig.storeId!, mockedResponse, undefined, ConsistencyPreference.HigherConsistency);
 
-        expect(scope.isDone()).toBe(false);
         const response = await fgaClient.listObjects({
           user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
           relation: "can_read",
@@ -1652,7 +1610,6 @@ describe("OpenFGA Client", () => {
           consistency: ConsistencyPreference.HigherConsistency,
         });
 
-        expect(scope.isDone()).toBe(true);
         expect(response.objects).toHaveLength(mockedResponse.objects.length);
         expect(response.objects).toEqual(expect.arrayContaining(mockedResponse.objects));
       });
@@ -1661,9 +1618,8 @@ describe("OpenFGA Client", () => {
     describe("StreamedListObjects", () => {
       it("should stream objects and yield them incrementally", async () => {
         const objects = ["document:1", "document:2", "document:3"];
-        const scope = nocks.streamedListObjects(baseConfig.storeId!, objects);
+        nocks.streamedListObjects(baseConfig.storeId!, objects);
 
-        expect(scope.isDone()).toBe(false);
 
         const results: string[] = [];
         for await (const response of fgaClient.streamedListObjects({
@@ -1674,7 +1630,6 @@ describe("OpenFGA Client", () => {
           results.push(response.object);
         }
 
-        expect(scope.isDone()).toBe(true);
         expect(results).toHaveLength(3);
         expect(results).toEqual(expect.arrayContaining(objects));
       });
@@ -1682,7 +1637,7 @@ describe("OpenFGA Client", () => {
       it("should handle custom headers", async () => {
         const objects = ["document:1"];
 
-        const scope = nock(defaultConfiguration.getBasePath())
+        nock(defaultConfiguration.getBasePath())
           .post(`/stores/${baseConfig.storeId}/streamed-list-objects`)
           .reply(function () {
             // Verify custom headers were sent
@@ -1713,12 +1668,11 @@ describe("OpenFGA Client", () => {
           results.push(response.object);
         }
 
-        expect(scope.isDone()).toBe(true);
         expect(results).toEqual(objects);
       });
 
       it("should handle errors from the stream", async () => {
-        const scope = nock(defaultConfiguration.getBasePath())
+        nock(defaultConfiguration.getBasePath())
           .post(`/stores/${baseConfig.storeId}/streamed-list-objects`)
           .reply(500, { code: "internal_error", message: "Server error" });
 
@@ -1732,7 +1686,6 @@ describe("OpenFGA Client", () => {
           }
         }).rejects.toThrow();
 
-        expect(scope.isDone()).toBe(true);
       });
 
       it("should handle retry on 429 error", async () => {
@@ -1746,7 +1699,7 @@ describe("OpenFGA Client", () => {
         });
 
         // First attempt fails with 429 (called exactly once)
-        const scope1 = nock(defaultConfiguration.getBasePath())
+        nock(defaultConfiguration.getBasePath())
           .post(`/stores/${baseConfig.storeId}/streamed-list-objects`)
           .times(1)
           .reply(429, { code: "rate_limit_exceeded", message: "Rate limited" }, {
@@ -1754,7 +1707,7 @@ describe("OpenFGA Client", () => {
           });
 
         // Second attempt succeeds (retry - called exactly once)
-        const scope2 = nocks.streamedListObjects(baseConfig.storeId!, objects);
+        nocks.streamedListObjects(baseConfig.storeId!, objects);
 
         const results: string[] = [];
         for await (const response of fgaClientWithRetry.streamedListObjects({
@@ -1765,15 +1718,12 @@ describe("OpenFGA Client", () => {
           results.push(response.object);
         }
 
-        // Verify both scopes were called (proves retry happened)
-        expect(scope1.isDone()).toBe(true);
-        expect(scope2.isDone()).toBe(true);
         expect(results).toEqual(objects);
       });
 
       it("should support consistency preference", async () => {
         const objects = ["document:1"];
-        const scope = nocks.streamedListObjects(baseConfig.storeId!, objects);
+        nocks.streamedListObjects(baseConfig.storeId!, objects);
 
         const results: string[] = [];
         for await (const response of fgaClient.streamedListObjects({
@@ -1786,7 +1736,6 @@ describe("OpenFGA Client", () => {
           results.push(response.object);
         }
 
-        expect(scope.isDone()).toBe(true);
         expect(results).toEqual(objects);
       });
     });
@@ -1846,6 +1795,9 @@ describe("OpenFGA Client", () => {
         expect(scope5.isDone()).toBe(false);
         expect(response.relations.length).toBe(2);
         expect(response.relations.sort()).toEqual(expect.arrayContaining(["admin", "reader"]));
+
+        // NOTE: manually clean pending mocks as we assert on _not_ being matched above.
+        nock.cleanAll();
       });
 
       it("should throw an error if any check returns an error", async () => {
@@ -1908,6 +1860,9 @@ describe("OpenFGA Client", () => {
           expect(scope5.isDone()).toBe(false);
           expect(err).toBeInstanceOf(FgaApiError);
         }
+
+        // NOTE: manually clean pending mocks as we assert on _not_ being matched above.
+        nock.cleanAll();
       });
 
       it("should throw an error if no relations passed", async () => {
@@ -1949,6 +1904,9 @@ describe("OpenFGA Client", () => {
           expect(scope0.isDone()).toBe(true);
           expect(scope1.isDone()).toBe(false);
         }
+
+        // NOTE: manually clean pending mocks as we assert on _not_ being matched above.
+        nock.cleanAll();
       });
     });
 
@@ -1972,9 +1930,8 @@ describe("OpenFGA Client", () => {
             }
           }]
         };
-        const scope = nocks.listUsers(baseConfig.storeId!, mockedResponse, undefined, ConsistencyPreference.HigherConsistency);
+        nocks.listUsers(baseConfig.storeId!, mockedResponse, undefined, ConsistencyPreference.HigherConsistency);
 
-        expect(scope.isDone()).toBe(false);
         const response = await fgaClient.listUsers({
           object: {
             type: "document",
@@ -2003,7 +1960,6 @@ describe("OpenFGA Client", () => {
           consistency: ConsistencyPreference.HigherConsistency
         });
 
-        expect(scope.isDone()).toBe(true);
         expect(response.users).toHaveLength(mockedResponse.users.length);
         expect(response.users[0]).toMatchObject({
           object: {
@@ -2031,12 +1987,10 @@ describe("OpenFGA Client", () => {
     describe("ReadAssertions", () => {
       it("should properly call the ReadAssertions API", async () => {
         const modelId = "01H0THVNGCSAZ6SAQVTHPH3F0Q";
-        const scope = nocks.readAssertions(defaultConfiguration.storeId!, modelId);
+        nocks.readAssertions(defaultConfiguration.storeId!, modelId);
 
-        expect(scope.isDone()).toBe(false);
         const data = await fgaClient.readAssertions({ authorizationModelId: modelId });
 
-        expect(scope.isDone()).toBe(true);
         expect(data).toMatchObject({
           authorization_model_id: modelId,
           assertions: expect.arrayContaining([]),
@@ -2047,9 +2001,8 @@ describe("OpenFGA Client", () => {
     describe("WriteAssertions", () => {
       it("should properly call the WriteAssertions API", async () => {
         const modelId = "01H0THVNGCSAZ6SAQVTHPH3F0Q";
-        const scope = nocks.writeAssertions(defaultConfiguration.storeId!, modelId);
+        nocks.writeAssertions(defaultConfiguration.storeId!, modelId);
 
-        expect(scope.isDone()).toBe(false);
         await fgaClient.writeAssertions([{
           user: "user:81684243-9356-4421-8fbf-a4f8d36aa31b",
           relation: "viewer",
@@ -2057,7 +2010,6 @@ describe("OpenFGA Client", () => {
           expectation: true,
         }], { authorizationModelId: modelId });
 
-        expect(scope.isDone()).toBe(true);
       });
     });
   });

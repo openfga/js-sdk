@@ -1,12 +1,11 @@
 import nock from "nock";
-
+import { CredentialsMethod } from "../credentials";
 import {
-  OpenFgaClient,
-  UserClientConfigurationParams,
   FgaApiNotFoundError,
   FgaApiValidationError,
+  OpenFgaClient,
+  type UserClientConfigurationParams,
 } from "../index";
-import { CredentialsMethod } from "../credentials";
 import { baseConfig, defaultConfiguration, OPENFGA_STORE_ID } from "./helpers/default-config";
 
 describe("OpenFgaClient.executeApiRequest", () => {
@@ -15,21 +14,6 @@ describe("OpenFgaClient.executeApiRequest", () => {
     ...baseConfig,
     credentials: { method: CredentialsMethod.None }
   };
-
-  beforeAll(() => {
-    nock.restore();
-    nock.cleanAll();
-    nock.activate();
-    nock.disableNetConnect();
-  });
-
-  afterEach(() => {
-    nock.cleanAll();
-  });
-
-  afterAll(() => {
-    nock.restore();
-  });
 
   describe("GET requests", () => {
     it("should make GET requests successfully", async () => {
@@ -336,21 +320,6 @@ describe("OpenFgaClient.executeApiRequest - path parameters", () => {
     ...baseConfig,
     credentials: { method: CredentialsMethod.None }
   };
-
-  beforeAll(() => {
-    nock.restore();
-    nock.cleanAll();
-    nock.activate();
-    nock.disableNetConnect();
-  });
-
-  afterEach(() => {
-    nock.cleanAll();
-  });
-
-  afterAll(() => {
-    nock.restore();
-  });
 
   describe("path parameter replacement", () => {
     it("should replace path parameters with values (single_parameter)", async () => {

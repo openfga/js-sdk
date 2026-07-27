@@ -16,21 +16,12 @@ describe("Credentials", () => {
   const mockTelemetryConfig: TelemetryConfiguration = new TelemetryConfiguration({});
 
   describe("Refreshing access token", () => {
-    beforeEach(() => {
-      nock.disableNetConnect();
-    });
-
-    afterEach(() => {
-      nock.cleanAll();
-      nock.enableNetConnect();
-    });
-
     test("should use default scheme and token endpoint path when apiTokenIssuer has no scheme and no path", async () => {
       const apiTokenIssuer = "issuer.fga.example";
       const expectedBaseUrl = "https://issuer.fga.example";
       const expectedPath = `/${DEFAULT_TOKEN_ENDPOINT_PATH}`;
 
-      const scope = nock(expectedBaseUrl)
+      nock(expectedBaseUrl)
         .post(expectedPath)
         .reply(200, {
           access_token: "test-token",
@@ -52,8 +43,6 @@ describe("Credentials", () => {
       );
 
       await credentials.getAccessTokenHeader();
-
-      expect(scope.isDone()).toBe(true);
     });
 
     test("should use default token endpoint path when apiTokenIssuer has root path and no scheme", async () => {
@@ -61,7 +50,7 @@ describe("Credentials", () => {
       const expectedBaseUrl = "https://issuer.fga.example";
       const expectedPath = `/${DEFAULT_TOKEN_ENDPOINT_PATH}`;
 
-      const scope = nock(expectedBaseUrl)
+      nock(expectedBaseUrl)
         .post(expectedPath)
         .reply(200, {
           access_token: "test-token",
@@ -83,8 +72,6 @@ describe("Credentials", () => {
       );
 
       await credentials.getAccessTokenHeader();
-
-      expect(scope.isDone()).toBe(true);
     });
 
     test("should preserve custom token endpoint path when provided", async () => {
@@ -92,7 +79,7 @@ describe("Credentials", () => {
       const expectedBaseUrl = "https://issuer.fga.example";
       const expectedPath = "/some_endpoint";
 
-      const scope = nock(expectedBaseUrl)
+      nock(expectedBaseUrl)
         .post(expectedPath)
         .reply(200, {
           access_token: "test-token",
@@ -114,8 +101,6 @@ describe("Credentials", () => {
       );
 
       await credentials.getAccessTokenHeader();
-
-      expect(scope.isDone()).toBe(true);
     });
 
     test("should preserve custom token endpoint path with nested path when provided", async () => {
@@ -123,7 +108,7 @@ describe("Credentials", () => {
       const expectedBaseUrl = "https://issuer.fga.example";
       const expectedPath = "/api/v1/oauth/token";
 
-      const scope = nock(expectedBaseUrl)
+      nock(expectedBaseUrl)
         .post(expectedPath)
         .reply(200, {
           access_token: "test-token",
@@ -145,8 +130,6 @@ describe("Credentials", () => {
       );
 
       await credentials.getAccessTokenHeader();
-
-      expect(scope.isDone()).toBe(true);
     });
 
     test("should add https:// prefix when apiTokenIssuer has no scheme", async () => {
@@ -154,7 +137,7 @@ describe("Credentials", () => {
       const expectedBaseUrl = "https://issuer.fga.example";
       const expectedPath = "/some_endpoint";
 
-      const scope = nock(expectedBaseUrl)
+      nock(expectedBaseUrl)
         .post(expectedPath)
         .reply(200, {
           access_token: "test-token",
@@ -176,8 +159,6 @@ describe("Credentials", () => {
       );
 
       await credentials.getAccessTokenHeader();
-
-      expect(scope.isDone()).toBe(true);
     });
 
     test("should preserve http:// scheme when provided", async () => {
@@ -185,7 +166,7 @@ describe("Credentials", () => {
       const expectedBaseUrl = "http://issuer.fga.example";
       const expectedPath = "/some_endpoint";
 
-      const scope = nock(expectedBaseUrl)
+      nock(expectedBaseUrl)
         .post(expectedPath)
         .reply(200, {
           access_token: "test-token",
@@ -207,8 +188,6 @@ describe("Credentials", () => {
       );
 
       await credentials.getAccessTokenHeader();
-
-      expect(scope.isDone()).toBe(true);
     });
 
     test("should use default path when apiTokenIssuer has https:// scheme but no path", async () => {
@@ -216,7 +195,7 @@ describe("Credentials", () => {
       const expectedBaseUrl = "https://issuer.fga.example";
       const expectedPath = `/${DEFAULT_TOKEN_ENDPOINT_PATH}`;
 
-      const scope = nock(expectedBaseUrl)
+      nock(expectedBaseUrl)
         .post(expectedPath)
         .reply(200, {
           access_token: "test-token",
@@ -238,8 +217,6 @@ describe("Credentials", () => {
       );
 
       await credentials.getAccessTokenHeader();
-
-      expect(scope.isDone()).toBe(true);
     });
 
     test("should preserve custom path with query parameters", async () => {
@@ -248,7 +225,7 @@ describe("Credentials", () => {
       const expectedPath = "/some_endpoint";
       const queryParams = { param: "value" };
 
-      const scope = nock(expectedBaseUrl)
+      nock(expectedBaseUrl)
         .post(expectedPath)
         .query(queryParams)
         .reply(200, {
@@ -271,8 +248,6 @@ describe("Credentials", () => {
       );
 
       await credentials.getAccessTokenHeader();
-
-      expect(scope.isDone()).toBe(true);
     });
 
     test("should preserve custom path with port number", async () => {
@@ -280,7 +255,7 @@ describe("Credentials", () => {
       const expectedBaseUrl = "https://issuer.fga.example:8080";
       const expectedPath = "/some_endpoint";
 
-      const scope = nock(expectedBaseUrl)
+      nock(expectedBaseUrl)
         .post(expectedPath)
         .reply(200, {
           access_token: "test-token",
@@ -302,8 +277,6 @@ describe("Credentials", () => {
       );
 
       await credentials.getAccessTokenHeader();
-
-      expect(scope.isDone()).toBe(true);
     });
 
     test("should use default path when path has multiple trailing slashes", async () => {
@@ -311,7 +284,7 @@ describe("Credentials", () => {
       const expectedBaseUrl = "https://issuer.fga.example";
       const expectedPath = `/${DEFAULT_TOKEN_ENDPOINT_PATH}`;
 
-      const scope = nock(expectedBaseUrl)
+      nock(expectedBaseUrl)
         .post(expectedPath)
         .reply(200, {
           access_token: "test-token",
@@ -333,8 +306,6 @@ describe("Credentials", () => {
       );
 
       await credentials.getAccessTokenHeader();
-
-      expect(scope.isDone()).toBe(true);
     });
 
     test("should use default path when path only consists of slashes", async () => {
@@ -342,7 +313,7 @@ describe("Credentials", () => {
       const expectedBaseUrl = "https://issuer.fga.example";
       const expectedPath = `/${DEFAULT_TOKEN_ENDPOINT_PATH}`;
 
-      const scope = nock(expectedBaseUrl)
+      nock(expectedBaseUrl)
         .post(expectedPath)
         .reply(200, {
           access_token: "test-token",
@@ -364,8 +335,6 @@ describe("Credentials", () => {
       );
 
       await credentials.getAccessTokenHeader();
-
-      expect(scope.isDone()).toBe(true);
     });
 
     test("should preserve custom path with consecutive/trailing slashes", async () => {
@@ -373,7 +342,7 @@ describe("Credentials", () => {
       const expectedBaseUrl = "https://issuer.fga.example";
       const expectedPath = "/oauth//token///";
 
-      const scope = nock(expectedBaseUrl)
+      nock(expectedBaseUrl)
         .post(expectedPath)
         .reply(200, {
           access_token: "test-token",
@@ -395,8 +364,6 @@ describe("Credentials", () => {
       );
 
       await credentials.getAccessTokenHeader();
-
-      expect(scope.isDone()).toBe(true);
     });
 
     test.each([
@@ -433,7 +400,7 @@ describe("Credentials", () => {
       const expectedBaseUrl = "https://issuer.fga.example";
       const expectedAudience = "https://issuer.fga.example/some_endpoint/";
 
-      const scope = nock(expectedBaseUrl)
+      nock(expectedBaseUrl)
         .post("/some_endpoint", (body: string) => {
           const params = new URLSearchParams(body);
           const clientAssertion = params.get("client_assertion") as string;
@@ -461,8 +428,6 @@ describe("Credentials", () => {
       );
 
       await credentials.getAccessTokenHeader();
-
-      expect(scope.isDone()).toBe(true);
     });
 
     test("should normalize audience from apiTokenIssuer when using PrivateKeyJWT client credentials with HTTP scheme", async () => {
@@ -470,7 +435,7 @@ describe("Credentials", () => {
       const expectedBaseUrl = "http://issuer.fga.example";
       const expectedAudience = "http://issuer.fga.example/some_endpoint/";
 
-      const scope = nock(expectedBaseUrl)
+      nock(expectedBaseUrl)
         .post("/some_endpoint", (body: string) => {
           const params = new URLSearchParams(body);
           const clientAssertion = params.get("client_assertion") as string;
@@ -498,8 +463,6 @@ describe("Credentials", () => {
       );
 
       await credentials.getAccessTokenHeader();
-
-      expect(scope.isDone()).toBe(true);
     });
 
     test("should normalize audience from apiTokenIssuer when using PrivateKeyJWT client credentials with no scheme", async () => {
@@ -507,7 +470,7 @@ describe("Credentials", () => {
       const expectedBaseUrl = "https://issuer.fga.example";
       const expectedAudience = "https://issuer.fga.example/some_endpoint/";
 
-      const scope = nock(expectedBaseUrl)
+      nock(expectedBaseUrl)
         .post("/some_endpoint", (body: string) => {
           const params = new URLSearchParams(body);
           const clientAssertion = params.get("client_assertion") as string;
@@ -535,8 +498,6 @@ describe("Credentials", () => {
       );
 
       await credentials.getAccessTokenHeader();
-
-      expect(scope.isDone()).toBe(true);
     });
 
     test("should throw a real FgaApiAuthenticationError instance when token refresh fails", async () => {
@@ -638,7 +599,7 @@ describe("Credentials", () => {
       const expectedBaseUrl = "https://issuer.fga.example";
       const expectedPath = `/${DEFAULT_TOKEN_ENDPOINT_PATH}`;
 
-      const scope = nock(expectedBaseUrl)
+      nock(expectedBaseUrl)
         .post(expectedPath)
         .once()
         .delay(20)
@@ -668,7 +629,6 @@ describe("Credentials", () => {
       headers.forEach(header => {
         expect(header?.value).toBe("Bearer shared-token");
       });
-      expect(scope.isDone()).toBe(true);
     });
 
     test("should clear shared refresh promise after failure and retry on the next call", async () => {
@@ -676,7 +636,7 @@ describe("Credentials", () => {
       const expectedBaseUrl = "https://issuer.fga.example";
       const expectedPath = `/${DEFAULT_TOKEN_ENDPOINT_PATH}`;
 
-      const scope = nock(expectedBaseUrl)
+      nock(expectedBaseUrl)
         .post(expectedPath)
         .once()
         .reply(404, {
@@ -718,7 +678,6 @@ describe("Credentials", () => {
       const header = await credentials.getAccessTokenHeader();
 
       expect(header?.value).toBe("Bearer recovered-token");
-      expect(scope.isDone()).toBe(true);
     });
 
     test("should refresh cached token when it is close to expiration", async () => {
@@ -731,7 +690,7 @@ describe("Credentials", () => {
         SdkConstants.TokenExpiryThresholdBufferInSec - 1
       );
 
-      const scope = nock(expectedBaseUrl)
+      nock(expectedBaseUrl)
         .post(expectedPath)
         .reply(200, {
           access_token: "short-lived-token",
@@ -763,7 +722,6 @@ describe("Credentials", () => {
 
         expect(header1?.value).toBe("Bearer short-lived-token");
         expect(header2?.value).toBe("Bearer refreshed-token");
-        expect(scope.isDone()).toBe(true);
       } finally {
         randomSpy.mockRestore();
       }
