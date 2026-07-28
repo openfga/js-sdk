@@ -883,8 +883,7 @@ export class OpenFgaClient extends BaseAPI {
 
     // Parse the Node.js stream
     try {
-      for await (const item of parseNDJSONStream(source as any)) {
-        const streamResult = item as StreamResultOfStreamedListObjectsResponse;
+      for await (const streamResult of parseNDJSONStream<StreamResultOfStreamedListObjectsResponse>(source as any)) {
         if (streamResult?.error) {
           throw new FgaError(`StreamedListObjects stream returned an error (code: ${streamResult.error.code}): ${streamResult.error.message}`);
         }
