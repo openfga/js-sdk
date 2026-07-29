@@ -860,21 +860,6 @@ export interface ListObjectsResponse {
      */
     objects: Array<string>;
 }
-
-/**
- * The response for a StreamedListObjects RPC.
- * @export
- * @interface StreamedListObjectsResponse
- */
-export interface StreamedListObjectsResponse {
-    /**
-     * 
-     * @type {string}
-     * @memberof StreamedListObjectsResponse
-     */
-    object: string;
-}
-
 /**
  * 
  * @export
@@ -1392,6 +1377,38 @@ export interface Store {
      * @memberof Store
      */
     deleted_at?: string;
+}
+/**
+ * 
+ * @export
+ * @interface StreamResultOfStreamedListObjectsResponse
+ */
+export interface StreamResultOfStreamedListObjectsResponse {
+    /**
+     * 
+     * @type {StreamedListObjectsResponse}
+     * @memberof StreamResultOfStreamedListObjectsResponse
+     */
+    result?: StreamedListObjectsResponse;
+    /**
+     * 
+     * @type {Status}
+     * @memberof StreamResultOfStreamedListObjectsResponse
+     */
+    error?: Status;
+}
+/**
+ * The response for a StreamedListObjects RPC.
+ * @export
+ * @interface StreamedListObjectsResponse
+ */
+export interface StreamedListObjectsResponse {
+    /**
+     * 
+     * @type {string}
+     * @memberof StreamedListObjectsResponse
+     */
+    object: string;
 }
 /**
  * 

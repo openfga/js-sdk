@@ -7,7 +7,6 @@
 .npmrc
 CONTRIBUTING.md
 LICENSE
-README.md
 VERSION.txt
 api.ts
 apiModel.ts

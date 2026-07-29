@@ -3,6 +3,7 @@ node_modules
 typings
 dist
 coverage
+example/**/package-lock.json
 
 
 # IDEs
@@ -25,5 +26,3 @@ credentials.json
 
 VERSION.txt
 git_push.sh
-
-example/**/package-lock.json
