@@ -104,10 +104,11 @@ const createAsyncIterableFromReadable = (readable: any): AsyncIterable<any> => {
  * Parse newline-delimited JSON (NDJSON) from a Node.js readable stream
  * @param stream - Node.js readable stream, AsyncIterable, string, or Buffer
  * @returns AsyncGenerator that yields parsed JSON objects
+ * @template T - The expected shape of each parsed JSON line
  */
-export async function* parseNDJSONStream(
+export async function* parseNDJSONStream<T = any>(
   stream: Readable | AsyncIterable<Uint8Array | string | Buffer> | string | Uint8Array | Buffer
-): AsyncGenerator<any> {
+): AsyncGenerator<T> {
   const decoder = new TextDecoder("utf-8");
   let buffer = "";
 

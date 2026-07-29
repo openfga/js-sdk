@@ -14,7 +14,6 @@
 /**
  * Version of the OpenFGA JavaScript SDK.
  */
-
 const SdkVersion = "0.9.6"; // x-release-please-version
 
 /**
