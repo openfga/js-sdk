@@ -1,3 +1,7 @@
+import { describe, test } from "node:test";
+import "./setup";
+import { expect, spyOn } from "./helpers/test";
+
 import nock from "nock";
 import * as jose from "jose";
 import { Credentials, CredentialsMethod, DEFAULT_TOKEN_ENDPOINT_PATH } from "../credentials";
@@ -366,7 +370,7 @@ describe("Credentials", () => {
       await credentials.getAccessTokenHeader();
     });
 
-    test.each([
+    for (const { description, apiTokenIssuer } of [
       {
         description: "malformed url",
         apiTokenIssuer: "not a valid url::::",
@@ -379,21 +383,23 @@ describe("Credentials", () => {
         description: "whitespace-only issuer",
         apiTokenIssuer: "   ",
       },
-    ])("should throw FgaValidationError when $description", ({ apiTokenIssuer }) => {
-      expect(() => new Credentials(
-        {
-          method: CredentialsMethod.ClientCredentials,
-          config: {
-            apiTokenIssuer,
-            apiAudience: OPENFGA_API_AUDIENCE,
-            clientId: OPENFGA_CLIENT_ID,
-            clientSecret: OPENFGA_CLIENT_SECRET,
-          },
-        } as AuthCredentialsConfig,
-        undefined,
-        mockTelemetryConfig,
-      )).toThrow(FgaValidationError);
-    });
+    ]) {
+      test(`should throw FgaValidationError when ${description}`, () => {
+        expect(() => new Credentials(
+          {
+            method: CredentialsMethod.ClientCredentials,
+            config: {
+              apiTokenIssuer,
+              apiAudience: OPENFGA_API_AUDIENCE,
+              clientId: OPENFGA_CLIENT_ID,
+              clientSecret: OPENFGA_CLIENT_SECRET,
+            },
+          } as AuthCredentialsConfig,
+          undefined,
+          mockTelemetryConfig,
+        )).toThrow(FgaValidationError);
+      });
+    }
 
     test("should normalize audience from apiTokenIssuer when using PrivateKeyJWT client credentials with HTTPS scheme", async () => {
       const apiTokenIssuer = "https://issuer.fga.example/some_endpoint";
@@ -505,7 +511,7 @@ describe("Credentials", () => {
       const expectedBaseUrl = "https://issuer.fga.example";
       const expectedPath = `/${DEFAULT_TOKEN_ENDPOINT_PATH}`;
       // We do this to skip the wait time between retries
-      const setTimeoutSpy = jest.spyOn(global, "setTimeout").mockImplementation(((callback: () => void) => {
+      const setTimeoutSpy = spyOn(global, "setTimeout").mockImplementation(((callback: () => void) => {
         callback();
         return {} as NodeJS.Timeout;
       }) as typeof setTimeout);
@@ -684,7 +690,7 @@ describe("Credentials", () => {
       const apiTokenIssuer = "issuer.fga.example";
       const expectedBaseUrl = "https://issuer.fga.example";
       const expectedPath = `/${DEFAULT_TOKEN_ENDPOINT_PATH}`;
-      const randomSpy = jest.spyOn(Math, "random").mockReturnValue(0);
+      const randomSpy = spyOn(Math, "random").mockReturnValue(0);
       const shortLivedTokenInSec = Math.max(
         1,
         SdkConstants.TokenExpiryThresholdBufferInSec - 1

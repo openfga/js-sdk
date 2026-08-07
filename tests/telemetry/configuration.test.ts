@@ -1,3 +1,7 @@
+import { describe, test } from "node:test";
+import "../setup";
+import { expect } from "../helpers/test";
+
 import { TelemetryConfiguration, TelemetryMetricConfig } from "../../telemetry/configuration";
 import { TelemetryAttribute } from "../../telemetry/attributes";
 import { TelemetryMetric } from "../../telemetry/metrics";

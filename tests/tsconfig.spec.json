@@ -1,13 +1,22 @@
 {
   "extends": "../tsconfig.json",
   "compilerOptions": {
-    "types": ["jest", "node"],
+    "types": ["node"],
     "esModuleInterop": true,
-    "noEmit": true,
-    "rootDir": "../"
+    "rootDir": "../",
+    "outDir": "../.test-dist",
+    "declaration": false
   },
   "include": [
-    "../**/*.ts",
-    "./*.ts"
+    "../*.ts",
+    "../constants/**/*.ts",
+    "../credentials/**/*.ts",
+    "../telemetry/**/*.ts",
+    "../utils/**/*.ts",
+    "./**/*.ts"
+  ],
+  "exclude": [
+    "../dist",
+    "../node_modules"
   ]
 }

@@ -1,3 +1,7 @@
+import { before, describe, it } from "node:test";
+import "./setup";
+import { expect, spyOn } from "./helpers/test";
+
 import nock from "nock";
 import { Readable } from "node:stream";
 
@@ -23,7 +27,7 @@ describe("OpenFGA Client", () => {
   describe("Using the OpenFGA Client", () => {
     let fgaClient: OpenFgaClient;
 
-    beforeAll(() => {
+    before(() => {
       fgaClient = new OpenFgaClient({ ...baseConfig, credentials: { method: CredentialsMethod.None } });
     });
 
@@ -447,7 +451,7 @@ describe("OpenFGA Client", () => {
             object: "workspace:1",
           };
 
-          const mockWrite = jest.spyOn(fgaClient.api, "write").mockResolvedValue({} as any);
+          const mockWrite = spyOn(fgaClient.api, "write").mockResolvedValue({} as any);
 
           await fgaClient.write({
             writes: [tuple],
@@ -478,7 +482,7 @@ describe("OpenFGA Client", () => {
             object: "workspace:1",
           };
 
-          const mockWrite = jest.spyOn(fgaClient.api, "write").mockResolvedValue({} as any);
+          const mockWrite = spyOn(fgaClient.api, "write").mockResolvedValue({} as any);
 
           await fgaClient.write({
             writes: [tuple],
@@ -509,7 +513,7 @@ describe("OpenFGA Client", () => {
             object: "workspace:1",
           };
 
-          const mockWrite = jest.spyOn(fgaClient.api, "write").mockResolvedValue({} as any);
+          const mockWrite = spyOn(fgaClient.api, "write").mockResolvedValue({} as any);
 
           await fgaClient.write({
             deletes: [tuple],
@@ -540,7 +544,7 @@ describe("OpenFGA Client", () => {
             object: "workspace:1",
           };
 
-          const mockWrite = jest.spyOn(fgaClient.api, "write").mockResolvedValue({} as any);
+          const mockWrite = spyOn(fgaClient.api, "write").mockResolvedValue({} as any);
 
           await fgaClient.write({
             deletes: [tuple],
@@ -576,7 +580,7 @@ describe("OpenFGA Client", () => {
             object: "workspace:2",
           };
 
-          const mockWrite = jest.spyOn(fgaClient.api, "write").mockResolvedValue({} as any);
+          const mockWrite = spyOn(fgaClient.api, "write").mockResolvedValue({} as any);
 
           await fgaClient.write({
             writes: [writeTuple],
@@ -618,7 +622,7 @@ describe("OpenFGA Client", () => {
             object: "workspace:2",
           };
 
-          const mockWrite = jest.spyOn(fgaClient.api, "write").mockResolvedValue({} as any);
+          const mockWrite = spyOn(fgaClient.api, "write").mockResolvedValue({} as any);
 
           await fgaClient.write({
             writes: [writeTuple],
@@ -651,7 +655,7 @@ describe("OpenFGA Client", () => {
           };
 
           it("should handle writes only with onDuplicateWrites Error", async () => {
-            const mockWrite = jest.spyOn(fgaClient.api, "write").mockResolvedValue({} as any);
+            const mockWrite = spyOn(fgaClient.api, "write").mockResolvedValue({} as any);
 
             await fgaClient.write({
               writes: [writeTuple],
@@ -676,7 +680,7 @@ describe("OpenFGA Client", () => {
           });
 
           it("should handle writes only with onDuplicateWrites Ignore", async () => {
-            const mockWrite = jest.spyOn(fgaClient.api, "write").mockResolvedValue({} as any);
+            const mockWrite = spyOn(fgaClient.api, "write").mockResolvedValue({} as any);
 
             await fgaClient.write({
               writes: [writeTuple],
@@ -709,7 +713,7 @@ describe("OpenFGA Client", () => {
           };
 
           it("should handle deletes only with onMissingDeletes Error", async () => {
-            const mockWrite = jest.spyOn(fgaClient.api, "write").mockResolvedValue({} as any);
+            const mockWrite = spyOn(fgaClient.api, "write").mockResolvedValue({} as any);
 
             await fgaClient.write({
               deletes: [deleteTuple],
@@ -734,7 +738,7 @@ describe("OpenFGA Client", () => {
           });
 
           it("should handle deletes only with onMissingDeletes Ignore", async () => {
-            const mockWrite = jest.spyOn(fgaClient.api, "write").mockResolvedValue({} as any);
+            const mockWrite = spyOn(fgaClient.api, "write").mockResolvedValue({} as any);
 
             await fgaClient.write({
               deletes: [deleteTuple],
@@ -772,7 +776,7 @@ describe("OpenFGA Client", () => {
           };
 
           it("should handle mixed writes and deletes with (Ignore, Ignore)", async () => {
-            const mockWrite = jest.spyOn(fgaClient.api, "write").mockResolvedValue({} as any);
+            const mockWrite = spyOn(fgaClient.api, "write").mockResolvedValue({} as any);
 
             await fgaClient.write({
               writes: [writeTuple],
@@ -803,7 +807,7 @@ describe("OpenFGA Client", () => {
           });
 
           it("should handle mixed writes and deletes with (Ignore, Error)", async () => {
-            const mockWrite = jest.spyOn(fgaClient.api, "write").mockResolvedValue({} as any);
+            const mockWrite = spyOn(fgaClient.api, "write").mockResolvedValue({} as any);
 
             await fgaClient.write({
               writes: [writeTuple],
@@ -834,7 +838,7 @@ describe("OpenFGA Client", () => {
           });
 
           it("should handle mixed writes and deletes with (Error, Ignore)", async () => {
-            const mockWrite = jest.spyOn(fgaClient.api, "write").mockResolvedValue({} as any);
+            const mockWrite = spyOn(fgaClient.api, "write").mockResolvedValue({} as any);
 
             await fgaClient.write({
               writes: [writeTuple],
@@ -865,7 +869,7 @@ describe("OpenFGA Client", () => {
           });
 
           it("should handle mixed writes and deletes with (Error, Error)", async () => {
-            const mockWrite = jest.spyOn(fgaClient.api, "write").mockResolvedValue({} as any);
+            const mockWrite = spyOn(fgaClient.api, "write").mockResolvedValue({} as any);
 
             await fgaClient.write({
               writes: [writeTuple],
@@ -904,7 +908,7 @@ describe("OpenFGA Client", () => {
               object: "workspace:1",
             };
 
-            const mockWrite = jest.spyOn(fgaClient.api, "write").mockResolvedValue({} as any);
+            const mockWrite = spyOn(fgaClient.api, "write").mockResolvedValue({} as any);
 
             await fgaClient.write({
               writes: [tuple],
@@ -936,7 +940,7 @@ describe("OpenFGA Client", () => {
               object: "workspace:1",
             };
 
-            const mockWrite = jest.spyOn(fgaClient.api, "write").mockResolvedValue({} as any);
+            const mockWrite = spyOn(fgaClient.api, "write").mockResolvedValue({} as any);
 
             await fgaClient.write({
               deletes: [tuple],
@@ -973,7 +977,7 @@ describe("OpenFGA Client", () => {
               object: "workspace:2",
             };
 
-            const mockWrite = jest.spyOn(fgaClient.api, "write").mockResolvedValue({} as any);
+            const mockWrite = spyOn(fgaClient.api, "write").mockResolvedValue({} as any);
 
             await fgaClient.write({
               writes: [writeTuple],
@@ -1027,7 +1031,7 @@ describe("OpenFGA Client", () => {
               }
             ];
 
-            const mockWrite = jest.spyOn(fgaClient.api, "write").mockResolvedValue({} as any);
+            const mockWrite = spyOn(fgaClient.api, "write").mockResolvedValue({} as any);
 
             await fgaClient.write({
               writes: tuples,
@@ -1082,7 +1086,7 @@ describe("OpenFGA Client", () => {
           object: "workspace:1",
         };
 
-        const mockWrite = jest.spyOn(fgaClient.api, "write").mockResolvedValue({} as any);
+        const mockWrite = spyOn(fgaClient.api, "write").mockResolvedValue({} as any);
 
         await fgaClient.writeTuples([tuple], {
           conflict: {
@@ -1111,7 +1115,7 @@ describe("OpenFGA Client", () => {
           object: "workspace:1",
         };
 
-        const mockWrite = jest.spyOn(fgaClient.api, "write").mockResolvedValue({} as any);
+        const mockWrite = spyOn(fgaClient.api, "write").mockResolvedValue({} as any);
 
         await fgaClient.writeTuples([tuple], {
           conflict: {
@@ -1140,7 +1144,7 @@ describe("OpenFGA Client", () => {
           object: "workspace:1",
         };
 
-        const mockWrite = jest.spyOn(fgaClient.api, "write").mockResolvedValue({} as any);
+        const mockWrite = spyOn(fgaClient.api, "write").mockResolvedValue({} as any);
 
         await fgaClient.writeTuples([tuple]);
 
@@ -1182,7 +1186,7 @@ describe("OpenFGA Client", () => {
           object: "workspace:1",
         };
 
-        const mockWrite = jest.spyOn(fgaClient.api, "write").mockResolvedValue({} as any);
+        const mockWrite = spyOn(fgaClient.api, "write").mockResolvedValue({} as any);
 
         await fgaClient.deleteTuples([tuple], {
           conflict: {
@@ -1211,7 +1215,7 @@ describe("OpenFGA Client", () => {
           object: "workspace:1",
         };
 
-        const mockWrite = jest.spyOn(fgaClient.api, "write").mockResolvedValue({} as any);
+        const mockWrite = spyOn(fgaClient.api, "write").mockResolvedValue({} as any);
 
         await fgaClient.deleteTuples([tuple], {
           conflict: {
@@ -1240,7 +1244,7 @@ describe("OpenFGA Client", () => {
           object: "workspace:1",
         };
 
-        const mockWrite = jest.spyOn(fgaClient.api, "write").mockResolvedValue({} as any);
+        const mockWrite = spyOn(fgaClient.api, "write").mockResolvedValue({} as any);
 
         await fgaClient.deleteTuples([tuple]);
 

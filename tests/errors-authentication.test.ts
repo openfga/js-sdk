@@ -1,3 +1,7 @@
+import { describe, test } from "node:test";
+import "./setup";
+import { expect } from "./helpers/test";
+
 import { FgaApiAuthenticationError, FgaApiError } from "../errors";
 
 describe("errors.ts", () => {

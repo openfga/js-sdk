@@ -1,3 +1,7 @@
+import { describe, it } from "node:test";
+import "./setup";
+import { expect } from "./helpers/test";
+
 import nock from "nock";
 import { OpenFgaClient, UserClientConfigurationParams } from "../index";
 import { baseConfig } from "./helpers/default-config";

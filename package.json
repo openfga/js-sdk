@@ -17,7 +17,7 @@
   "scripts": {
     "build": "tsc --outDir dist/",
     "prepublishOnly": "rm -rf dist/ && npm run build",
-    "test": "jest --config ./tests/jest.config.js",
+    "test": "rm -rf .test-dist coverage && mkdir coverage && tsc --project tests/tsconfig.spec.json && node --test --experimental-test-coverage --test-reporter=lcov --test-reporter-destination=coverage/lcov.info '.test-dist/tests/**/*.test.js'",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix"
   },
@@ -28,7 +28,6 @@
     "tiny-async-pool": "^2.1.0"
   },
   "devDependencies": {
-    "@types/jest": "30.0.0",
     "@types/node": "^26.1.0",
     "@types/tiny-async-pool": "^2.0.3",
     "@typescript-eslint/eslint-plugin": "^8.59.2",
@@ -36,9 +35,7 @@
     "@typescript/native": "npm:typescript@^7.0.2",
     "eslint": "^10.3.0",
     "globals": "^17.6.0",
-    "jest": "30.3.0",
     "nock": "^14.0.14",
-    "ts-jest": "29.4.12",
     "typescript": "npm:@typescript/typescript6@^6.0.3"
   },
   "overrides": {

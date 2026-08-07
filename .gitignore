@@ -3,6 +3,7 @@ node_modules
 typings
 dist
 coverage
+.test-dist
 example/**/package-lock.json
 
 

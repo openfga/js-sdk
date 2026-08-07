@@ -1,3 +1,7 @@
+import { describe, it } from "node:test";
+import "./setup";
+import { expect, spyOn } from "./helpers/test";
+
 /**
  * JavaScript and Node.js SDK for OpenFGA
  *
@@ -77,7 +81,7 @@ describe("Streaming Utilities", () => {
     });
 
     it("should skip invalid JSON lines", async () => {
-      const consoleWarnSpy = jest.spyOn(console, "warn").mockImplementation();
+      const consoleWarnSpy = spyOn(console, "warn").mockImplementation();
 
       const ndjson = "{\"result\":{\"object\":\"document:1\"}}\ninvalid json\n{\"result\":{\"object\":\"document:2\"}}\n";
       const stream = Readable.from([ndjson]);
@@ -117,7 +121,7 @@ describe("Streaming Utilities", () => {
     });
 
     it("should skip invalid final JSON buffer and warn", async () => {
-      const warn = jest.spyOn(console, "warn").mockImplementation();
+      const warn = spyOn(console, "warn").mockImplementation();
       const stream = Readable.from(["{\"a\":1}\n{\"b\":"]);
 
       const out: any[] = [];
@@ -244,7 +248,7 @@ describe("Streaming Utilities", () => {
     });
 
     it("should warn on invalid JSON line in string input path", async () => {
-      const warn = jest.spyOn(console, "warn").mockImplementation();
+      const warn = spyOn(console, "warn").mockImplementation();
       const input = "{\"a\":1}\nnot json\n{\"b\":2}\n";
 
       const out: any[] = [];
