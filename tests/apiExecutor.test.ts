@@ -1,6 +1,5 @@
 import nock from "nock";
 import { describe, it } from "node:test";
-import "./setup";
 import { CredentialsMethod } from "../credentials";
 import {
   FgaApiNotFoundError,

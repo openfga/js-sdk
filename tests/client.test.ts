@@ -1,7 +1,6 @@
 import nock from "nock";
 import { Readable } from "node:stream";
 import { afterEach, before, describe, it, mock } from "node:test";
-import "./setup";
 
 import {
   ClientWriteStatus,

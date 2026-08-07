@@ -6,7 +6,6 @@ import SdkConstants from "../../constants";
 import { metrics } from "@opentelemetry/api";
 import { afterEach, beforeEach, describe, mock, test } from "node:test";
 import { expect } from "../helpers/expect";
-import "../setup";
 
 describe("TelemetryMetrics", () => {
   let telemetryMetrics: MetricRecorder;

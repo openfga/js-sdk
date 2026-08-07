@@ -1,7 +1,6 @@
 import { TelemetryCounters } from "../../telemetry/counters";
 import { describe, test } from "node:test";
 import { expect } from "../helpers/expect";
-import "../setup";
 
 describe("TelemetryCounters", () => {
   test("should have correct counter details", () => {

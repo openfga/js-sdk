@@ -1,6 +1,7 @@
 import { readdirSync } from "node:fs";
 import { join } from "node:path";
 import { spawnSync } from "node:child_process";
+import { pathToFileURL } from "node:url";
 
 function findTestFiles(directory) {
   return readdirSync(directory, { withFileTypes: true }).flatMap(entry => {
@@ -12,7 +13,9 @@ function findTestFiles(directory) {
   });
 }
 
-const testFiles = findTestFiles(join(process.cwd(), ".test-dist", "tests")).sort();
+const testDirectory = join(process.cwd(), ".test-dist", "tests");
+const testFiles = findTestFiles(testDirectory).sort();
+const setupFile = pathToFileURL(join(testDirectory, "setup.js")).href;
 const coverageSupported = process.allowedNodeEnvironmentFlags.has("--test-coverage-exclude");
 const coverageArguments = coverageSupported ? [
   "--experimental-test-coverage",
@@ -27,6 +30,7 @@ const coverageArguments = coverageSupported ? [
 
 const result = spawnSync(process.execPath, [
   "--enable-source-maps",
+  `--import=${setupFile}`,
   "--test",
   ...coverageArguments,
   ...testFiles,

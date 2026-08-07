@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { inspect } from "node:util";
 
 const asymmetricMatcher = Symbol("asymmetricMatcher");
 
@@ -69,9 +70,14 @@ function matches(actual: unknown, expected: unknown, partial = false): boolean {
   return Object.is(actual, expected);
 }
 
+function mismatchMessage(actual: unknown, expected: unknown): string {
+  const inspectOptions = { depth: null, sorted: true } as const;
+  return `Expected:\n${inspect(expected, inspectOptions)}\nActual:\n${inspect(actual, inspectOptions)}`;
+}
+
 function assertEqual(actual: unknown, expected: unknown): void {
   if (containsAsymmetricMatcher(expected)) {
-    assert.ok(matches(actual, expected), "actual value did not match the expected value");
+    assert.ok(matches(actual, expected), mismatchMessage(actual, expected));
     return;
   }
   assert.deepStrictEqual(actual, expected);
@@ -128,7 +134,7 @@ export function expect(actual: unknown) {
       assertEqual(actual, expected);
     },
     toMatchObject(expected: unknown): void {
-      assert.ok(matches(actual, expected, true), "actual object did not contain the expected properties");
+      assert.ok(matches(actual, expected, true), mismatchMessage(actual, expected));
     },
     toHaveLength(expected: number): void {
       assert.ok(actual !== null && actual !== undefined && "length" in Object(actual));

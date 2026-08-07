@@ -1,7 +1,6 @@
 import { FgaError } from "../errors";
 import { describe, test } from "node:test";
 import { expect } from "./helpers/expect";
-import "./setup";
 
 describe("errors.ts", () => {
   describe("FgaError", () => {

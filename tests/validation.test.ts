@@ -1,7 +1,6 @@
 import { isWellFormedUlidString } from "../validation";
 import { describe, it } from "node:test";
 import { expect } from "./helpers/expect";
-import "./setup";
 
 describe("validation.ts", () => {
   describe("isWellFormedUlidString", () => {

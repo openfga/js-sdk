@@ -1,6 +1,5 @@
 import nock from "nock";
 import { before, beforeEach, describe, it } from "node:test";
-import "./setup";
 
 import {
   CheckResponse,

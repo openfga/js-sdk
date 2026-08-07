@@ -1,7 +1,6 @@
 import { TelemetryAttribute, TelemetryAttributes } from "../../telemetry/attributes";
 import { describe, test } from "node:test";
 import { expect } from "../helpers/expect";
-import "../setup";
 
 describe("TelemetryAttributes", () => {
 

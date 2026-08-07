@@ -16,7 +16,6 @@ import { EventEmitter } from "node:events";
 import { afterEach, describe, it, mock } from "node:test";
 import { parseNDJSONStream } from "../streaming";
 import { expect } from "./helpers/expect";
-import "./setup";
 
 afterEach(() => {
   mock.restoreAll();

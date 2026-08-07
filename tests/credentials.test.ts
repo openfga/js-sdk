@@ -1,7 +1,6 @@
 import nock from "nock";
 import * as jose from "jose";
 import { describe, mock, test } from "node:test";
-import "./setup";
 import { Credentials, CredentialsMethod, DEFAULT_TOKEN_ENDPOINT_PATH } from "../credentials";
 import { AuthCredentialsConfig } from "../credentials/types";
 import { TelemetryConfiguration } from "../telemetry/configuration";
