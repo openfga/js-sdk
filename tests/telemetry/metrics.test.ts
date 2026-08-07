@@ -4,21 +4,22 @@ import { TelemetryHistograms } from "../../telemetry/histograms";
 import { TelemetryAttributes } from "../../telemetry/attributes";
 import SdkConstants from "../../constants";
 import { metrics } from "@opentelemetry/api";
-
-jest.mock("@opentelemetry/api", () => ({
-  metrics: {
-    getMeter: jest.fn().mockReturnValue({
-      createCounter: jest.fn().mockReturnValue({ add: jest.fn() }),
-      createHistogram: jest.fn().mockReturnValue({ record: jest.fn() }),
-    }),
-  },
-}));
+import { afterEach, beforeEach, describe, mock, test } from "node:test";
+import { expect } from "../helpers/expect";
 
 describe("TelemetryMetrics", () => {
   let telemetryMetrics: MetricRecorder;
 
   beforeEach(() => {
+    mock.method(metrics, "getMeter", () => ({
+      createCounter: mock.fn(() => ({ add: mock.fn() })),
+      createHistogram: mock.fn(() => ({ record: mock.fn() })),
+    }) as any);
     telemetryMetrics = new MetricRecorder();
+  });
+
+  afterEach(() => {
+    mock.restoreAll();
   });
 
   test("should create a counter and add a value", () => {
