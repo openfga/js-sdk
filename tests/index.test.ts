@@ -1,4 +1,6 @@
 import nock from "nock";
+import { before, beforeEach, describe, it } from "node:test";
+import "./setup";
 
 import {
   CheckResponse,
@@ -25,6 +27,7 @@ import {
   OPENFGA_CLIENT_ASSERTION_SIGNING_KEY,
 } from "./helpers/default-config";
 import { getNocks } from "./helpers/nocks";
+import { expect } from "./helpers/expect";
 
 const nocks = getNocks(nock);
 
@@ -60,35 +63,39 @@ describe("OpenFGA SDK", function () {
       ).not.toThrow();
     });
 
-    it.each(["https://", "http://", ""])("should allow valid schemes or default when scheme is missing (%s)", (scheme) => {
-      expect(
-        () => new OpenFgaApi({
-          ...baseConfig,
-          credentials: {
-            method: CredentialsMethod.ClientCredentials,
-            config: {
-              ...(baseConfig.credentials as any).config,
-              apiTokenIssuer: `${scheme}tokenissuer.fga.example`
-            }
-          } as Configuration["credentials"]
-        })
-      ).not.toThrow();
-    });
+    for (const scheme of ["https://", "http://", ""]) {
+      it(`should allow valid schemes or default when scheme is missing (${scheme})`, () => {
+        expect(
+          () => new OpenFgaApi({
+            ...baseConfig,
+            credentials: {
+              method: CredentialsMethod.ClientCredentials,
+              config: {
+                ...(baseConfig.credentials as any).config,
+                apiTokenIssuer: `${scheme}tokenissuer.fga.example`
+              }
+            } as Configuration["credentials"]
+          })
+        ).not.toThrow();
+      });
+    }
 
-    it.each(["tcp://", "grpc://", "file://"])("should not allow invalid schemes as part of the apiTokenIssuer in configuration (%s)", (scheme) => {
-      expect(
-        () => new OpenFgaApi({
-          ...baseConfig,
-          credentials: {
-            method: CredentialsMethod.ClientCredentials,
-            config: {
-              ...(baseConfig.credentials as any).config,
-              apiTokenIssuer: `${scheme}tokenissuer.fga.example`
-            }
-          } as Configuration["credentials"]
-        })
-      ).toThrow();
-    });
+    for (const scheme of ["tcp://", "grpc://", "file://"]) {
+      it(`should not allow invalid schemes as part of the apiTokenIssuer in configuration (${scheme})`, () => {
+        expect(
+          () => new OpenFgaApi({
+            ...baseConfig,
+            credentials: {
+              method: CredentialsMethod.ClientCredentials,
+              config: {
+                ...(baseConfig.credentials as any).config,
+                apiTokenIssuer: `${scheme}tokenissuer.fga.example`
+              }
+            } as Configuration["credentials"]
+          })
+        ).toThrow();
+      });
+    }
 
     it("should not require credentials in configuration when not needed", () => {
       expect(
@@ -304,7 +311,7 @@ describe("OpenFGA SDK", function () {
     const basePath = defaultConfiguration.getBasePath();
     const requestId = "1F2A3B";
 
-    beforeAll(() => {
+    before(() => {
       fgaApi = new OpenFgaApi({ ...baseConfig });
     });
 
@@ -1231,7 +1238,7 @@ describe("OpenFGA SDK", function () {
     let result: CallResult<CheckResponse>;
     let fgaApi: OpenFgaApi;
 
-    beforeAll(async () => {
+    before(async () => {
       fgaApi = new OpenFgaApi({ ...baseConfig });
       nocks.tokenExchange(OPENFGA_API_TOKEN_ISSUER);
 
@@ -1260,7 +1267,7 @@ describe("OpenFGA SDK", function () {
   describe("using the sdk", () => {
     let fgaApi: OpenFgaApi;
 
-    beforeAll(() => {
+    before(() => {
       fgaApi = new OpenFgaApi({ ...baseConfig });
     });
 

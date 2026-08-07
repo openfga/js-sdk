@@ -2,6 +2,7 @@ wwwroot/*.js
 node_modules
 typings
 dist
+.test-dist
 coverage
 example/**/package-lock.json
 

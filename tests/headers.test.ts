@@ -1,7 +1,10 @@
 import nock from "nock";
+import { describe, it } from "node:test";
+import "./setup";
 import { OpenFgaClient, UserClientConfigurationParams } from "../index";
 import { baseConfig } from "./helpers/default-config";
 import { CredentialsMethod } from "../credentials";
+import { expect } from "./helpers/expect";
 
 describe("Header Functionality Tests", () => {
   const testConfig: UserClientConfigurationParams = {

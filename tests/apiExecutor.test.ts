@@ -1,4 +1,6 @@
 import nock from "nock";
+import { describe, it } from "node:test";
+import "./setup";
 import { CredentialsMethod } from "../credentials";
 import {
   FgaApiNotFoundError,
@@ -7,6 +9,7 @@ import {
   type UserClientConfigurationParams,
 } from "../index";
 import { baseConfig, defaultConfiguration, OPENFGA_STORE_ID } from "./helpers/default-config";
+import { expect } from "./helpers/expect";
 
 describe("OpenFgaClient.executeApiRequest", () => {
   const basePath = defaultConfiguration.getBasePath();

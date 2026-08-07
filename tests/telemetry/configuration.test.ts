@@ -1,6 +1,9 @@
 import { TelemetryConfiguration, TelemetryMetricConfig } from "../../telemetry/configuration";
 import { TelemetryAttribute } from "../../telemetry/attributes";
 import { TelemetryMetric } from "../../telemetry/metrics";
+import { describe, test } from "node:test";
+import { expect } from "../helpers/expect";
+import "../setup";
 
 describe("TelemetryConfiguration", () => {
   test("should use defaults if not all metrics defined", () => {
