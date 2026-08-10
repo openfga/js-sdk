@@ -6,10 +6,9 @@ The OpenFGA JavaScript SDK follows the upstream [Node.js release policy](https:/
 
 | Node.js Version | Upstream Support Status | Tested in CI/CD Pipelines |
 |:----------------|:------------------------|:-------------------------:|
-| **20**          | Maintenance             |            Yes            |
-| **22**          | Maintenance             |            Yes            |
+| **22**          | LTS                     |            Yes            |
 | **24**          | LTS                     |            Yes            |
-| **25**          | Current                 |            Yes            |
+| **26**          | Current                 |            Yes            |
 
 ### Support Details
 
