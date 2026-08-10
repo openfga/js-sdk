@@ -1,6 +1,6 @@
 ## Node.js Support Policy for OpenFGA JS SDK
 
-The OpenFGA JavaScript SDK follows the upstream [Node.js release policy](https://nodejs.org/en/about/previous-releases). We support Node.js versions that are currently in **LTS** or **Maintenance** status.
+The OpenFGA JavaScript SDK follows the upstream [Node.js release policy](https://nodejs.org/en/about/previous-releases). We support Node.js versions that are currently in **LTS**, **Current** or **Maintenance** status.
 
 ### Currently Supported Versions
 
