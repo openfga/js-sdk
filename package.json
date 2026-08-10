@@ -17,7 +17,7 @@
   "scripts": {
     "build": "tsc --outDir dist/",
     "prepublishOnly": "rm -rf dist/ && npm run build",
-    "pretest": "rm -rf .test-dist coverage && tsc --project ./tests/tsconfig.spec.json && mkdir -p coverage",
+    "pretest": "node ./tests/prepare-tests.mjs && tsc --project ./tests/tsconfig.spec.json",
     "test": "node ./tests/run-tests.mjs",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix"
