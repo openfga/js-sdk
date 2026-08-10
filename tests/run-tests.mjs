@@ -16,16 +16,13 @@ function findTestFiles(directory) {
 const testDirectory = join(process.cwd(), ".test-dist", "tests");
 const testFiles = findTestFiles(testDirectory).sort();
 const setupFile = pathToFileURL(join(testDirectory, "setup.js")).href;
-const coverageSupported = process.allowedNodeEnvironmentFlags.has("--test-coverage-exclude");
-const coverageArguments = coverageSupported ? [
+const coverageArguments = [
   "--experimental-test-coverage",
   "--test-coverage-exclude=**/tests/**",
   "--test-reporter=spec",
   "--test-reporter-destination=stdout",
   "--test-reporter=lcov",
   "--test-reporter-destination=coverage/lcov.info",
-] : [
-  "--test-reporter=spec",
 ];
 
 const result = spawnSync(process.execPath, [
