@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { inspect } from "node:util";
+import { inspect, isDeepStrictEqual } from "node:util";
 
 const asymmetricMatcher = Symbol("asymmetricMatcher");
 
@@ -45,6 +45,11 @@ function containsAsymmetricMatcher(value: unknown): boolean {
   return false;
 }
 
+function isPlainObject(value: object): boolean {
+  const prototype = Object.getPrototypeOf(value);
+  return prototype === null || prototype === Object.prototype;
+}
+
 function matches(actual: unknown, expected: unknown, partial = false): boolean {
   if (isAsymmetricMatcher(expected)) {
     return expected[asymmetricMatcher](actual);
@@ -61,8 +66,14 @@ function matches(actual: unknown, expected: unknown, partial = false): boolean {
       return false;
     }
 
-    const expectedEntries = Object.entries(expected);
-    const actualKeys = Object.keys(actual);
+    if (!isPlainObject(expected)) {
+      return isDeepStrictEqual(actual, expected);
+    }
+
+    const expectedEntries = Object.entries(expected)
+      .filter(([, value]) => partial || value !== undefined);
+    const actualKeys = Object.keys(actual)
+      .filter(key => partial || (actual as Record<string, unknown>)[key] !== undefined);
     return (partial || actualKeys.length === expectedEntries.length)
       && expectedEntries.every(([key, value]) => key in actual && matches((actual as Record<string, unknown>)[key], value, partial));
   }
@@ -218,4 +229,4 @@ expect.objectContaining = (expected: Record<string, unknown>): any =>
   matcher("object containing expected properties", actual => matches(actual, expected, true));
 
 expect.arrayContaining = (expected: unknown[]): any => matcher("array containing expected values", actual =>
-  Array.isArray(actual) && expected.every(expectedValue => actual.some(actualValue => matches(actualValue, expectedValue, true))));
+  Array.isArray(actual) && expected.every(expectedValue => actual.some(actualValue => matches(actualValue, expectedValue))));
