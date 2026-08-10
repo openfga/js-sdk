@@ -32,6 +32,7 @@ const result = spawnSync(process.execPath, [
   "--enable-source-maps",
   `--import=${setupFile}`,
   "--test",
+  "--test-timeout=30000",
   ...coverageArguments,
   ...testFiles,
 ], { stdio: "inherit" });
