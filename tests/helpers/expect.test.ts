@@ -28,3 +28,9 @@ test("arrayContaining requires full element equality unless explicitly partial",
   expect(actual).toEqual(expect.arrayContaining([expect.objectContaining({ id: 1 })]));
   expect([{ id: 1, extra: undefined }]).toEqual(expect.arrayContaining([{ id: 1 }]));
 });
+
+test("toThrow recognizes undefined as a thrown value", () => {
+  expect(() => {
+    throw undefined;
+  }).toThrow();
+});

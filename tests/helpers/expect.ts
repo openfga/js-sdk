@@ -121,12 +121,14 @@ function assertThrownMatches(error: unknown, expected?: unknown): void {
 function assertThrows(actual: unknown, expected?: unknown): void {
   assert.strictEqual(typeof actual, "function", "expected a function that throws");
   let thrown: unknown;
+  let didThrow = false;
   try {
     (actual as () => unknown)();
   } catch (error) {
     thrown = error;
+    didThrow = true;
   }
-  assert.notStrictEqual(thrown, undefined, "expected function to throw");
+  assert.ok(didThrow, "expected function to throw");
   assertThrownMatches(thrown, expected);
 }
 
