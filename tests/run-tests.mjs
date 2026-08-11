@@ -1,20 +1,9 @@
-import { readdirSync } from "node:fs";
 import { join } from "node:path";
 import { spawnSync } from "node:child_process";
 import { pathToFileURL } from "node:url";
 
-function findTestFiles(directory) {
-  return readdirSync(directory, { withFileTypes: true }).flatMap(entry => {
-    const path = join(directory, entry.name);
-    if (entry.isDirectory()) {
-      return findTestFiles(path);
-    }
-    return entry.name.endsWith(".test.js") ? [path] : [];
-  });
-}
-
 const testDirectory = join(process.cwd(), ".test-dist", "tests");
-const testFiles = findTestFiles(testDirectory).sort();
+const testPattern = ".test-dist/tests/**/*.test.js";
 const setupFile = pathToFileURL(join(testDirectory, "setup.js")).href;
 const coverageArguments = [
   "--experimental-test-coverage",
@@ -31,7 +20,7 @@ const result = spawnSync(process.execPath, [
   "--test",
   "--test-timeout=30000",
   ...coverageArguments,
-  ...testFiles,
+  testPattern,
 ], { stdio: "inherit" });
 
 if (result.error) {
