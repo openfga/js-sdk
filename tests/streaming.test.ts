@@ -13,7 +13,13 @@
 
 import { Readable } from "node:stream";
 import { EventEmitter } from "node:events";
+import { afterEach, describe, it, mock } from "node:test";
 import { parseNDJSONStream } from "../streaming";
+import { expect } from "./helpers/expect";
+
+afterEach(() => {
+  mock.restoreAll();
+});
 
 describe("Streaming Utilities", () => {
   describe("parseNDJSONStream (Node.js)", () => {
@@ -77,7 +83,7 @@ describe("Streaming Utilities", () => {
     });
 
     it("should skip invalid JSON lines", async () => {
-      const consoleWarnSpy = jest.spyOn(console, "warn").mockImplementation();
+      const consoleWarnSpy = mock.method(console, "warn", () => {});
 
       const ndjson = "{\"result\":{\"object\":\"document:1\"}}\ninvalid json\n{\"result\":{\"object\":\"document:2\"}}\n";
       const stream = Readable.from([ndjson]);
@@ -92,7 +98,7 @@ describe("Streaming Utilities", () => {
       expect(results[1]).toEqual({ result: { object: "document:2" } });
       expect(consoleWarnSpy).toHaveBeenCalled();
 
-      consoleWarnSpy.mockRestore();
+      consoleWarnSpy.mock.restore();
     });
 
     it("should parse when Readable emits Buffer chunks", async () => {
@@ -117,7 +123,7 @@ describe("Streaming Utilities", () => {
     });
 
     it("should skip invalid final JSON buffer and warn", async () => {
-      const warn = jest.spyOn(console, "warn").mockImplementation();
+      const warn = mock.method(console, "warn", () => {});
       const stream = Readable.from(["{\"a\":1}\n{\"b\":"]);
 
       const out: any[] = [];
@@ -126,7 +132,7 @@ describe("Streaming Utilities", () => {
       }
       expect(out).toEqual([{ a: 1 }]);
       expect(warn).toHaveBeenCalled();
-      warn.mockRestore();
+      warn.mock.restore();
     });
 
     it("should parse when given a string input", async () => {
@@ -244,7 +250,7 @@ describe("Streaming Utilities", () => {
     });
 
     it("should warn on invalid JSON line in string input path", async () => {
-      const warn = jest.spyOn(console, "warn").mockImplementation();
+      const warn = mock.method(console, "warn", () => {});
       const input = "{\"a\":1}\nnot json\n{\"b\":2}\n";
 
       const out: any[] = [];
@@ -253,7 +259,7 @@ describe("Streaming Utilities", () => {
       }
       expect(out).toEqual([{ a: 1 }, { b: 2 }]);
       expect(warn).toHaveBeenCalled();
-      warn.mockRestore();
+      warn.mock.restore();
     });
   });
 });

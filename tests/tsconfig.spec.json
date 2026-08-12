@@ -1,13 +1,21 @@
 {
   "extends": "../tsconfig.json",
   "compilerOptions": {
-    "types": ["jest", "node"],
+    "types": ["node"],
+    "declaration": false,
     "esModuleInterop": true,
-    "noEmit": true,
-    "rootDir": "../"
+    "noEmit": false,
+    "outDir": "../.test-dist",
+    "rootDir": "../",
+    "sourceMap": true,
+    "inlineSources": true
   },
   "include": [
-    "../**/*.ts",
-    "./*.ts"
+    "../**/*.ts"
+  ],
+  "exclude": [
+    "../.test-dist",
+    "../dist",
+    "../node_modules"
   ]
 }
