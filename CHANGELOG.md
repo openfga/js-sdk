@@ -3,13 +3,6 @@
 
 ## [0.9.7](https://github.com/openfga/js-sdk/compare/v0.9.6...v0.9.7) (2026-08-18)
 
-
-### Fixed
-
-* **ci:** resolve npm audit vulnerabilities ([#464](https://github.com/openfga/js-sdk/issues/464)) ([36497d6](https://github.com/openfga/js-sdk/commit/36497d67356c532dacab418b673f2a7804e9a350))
-* keep TypeScript compatible with tooling ([ad7a03d](https://github.com/openfga/js-sdk/commit/ad7a03daffa7c3e16bc975f68d3110b1a115617a))
-
-
 ### Changed
 
 * rework how nock is setup and used to harden tests ([#395](https://github.com/openfga/js-sdk/issues/395)) ([0d20683](https://github.com/openfga/js-sdk/commit/0d20683d6d6b9eb64d69be557239d62b5ae5a96d))
@@ -19,10 +12,6 @@
 
 * update stated node version support ([#468](https://github.com/openfga/js-sdk/issues/468)) ([8ea3346](https://github.com/openfga/js-sdk/commit/8ea3346aa57fc4dce96203e0c8f7e674c9df04f6))
 
-
-### Miscellaneous
-
-* release 0.9.7 ([9c37a79](https://github.com/openfga/js-sdk/commit/9c37a7960d12f7e9438bf31f28fce543e0a2af5d))
 
 ## [0.9.6](https://github.com/openfga/js-sdk/compare/v0.9.5...v0.9.6) (2026-05-11)
 
