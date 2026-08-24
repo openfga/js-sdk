@@ -1,0 +1,1 @@
+{"version":3,"file":"assert-never.js","sourceRoot":"","sources":["../../utils/assert-never.ts"],"names":[],"mappings":";;;AAAA,qBAA4B,KAAY;IACtC,MAAM,IAAI,KAAK,CAAC,0CAA0C,KAAK,GAAG,CAAC,CAAC;AACtE,CAAC","sourcesContent":["export function assertNever(value: never): never {\n  throw new Error(`Assertion failed. Unacceptable value: '${value}'`);\n}\n"]}
