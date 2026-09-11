@@ -1,6 +1,18 @@
 # Changelog
 
 
+## [0.9.7](https://github.com/openfga/js-sdk/compare/v0.9.6...v0.9.7) (2026-08-18)
+
+### Changed
+
+* rework how nock is setup and used to harden tests ([#395](https://github.com/openfga/js-sdk/issues/395)) ([0d20683](https://github.com/openfga/js-sdk/commit/0d20683d6d6b9eb64d69be557239d62b5ae5a96d))
+
+
+### Documentation
+
+* update stated node version support ([#468](https://github.com/openfga/js-sdk/issues/468)) ([8ea3346](https://github.com/openfga/js-sdk/commit/8ea3346aa57fc4dce96203e0c8f7e674c9df04f6))
+
+
 ## [0.9.6](https://github.com/openfga/js-sdk/compare/v0.9.5...v0.9.6) (2026-05-11)
 
 

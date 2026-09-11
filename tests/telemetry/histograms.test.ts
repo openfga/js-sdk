@@ -1,4 +1,6 @@
 import { TelemetryHistograms } from "../../telemetry/histograms";
+import { describe, test } from "node:test";
+import { expect } from "../helpers/expect";
 
 describe("TelemetryHistograms", () => {
   test("should have correct histogram details for request duration", () => {

@@ -4,7 +4,7 @@ const globals = require("globals");
 
 module.exports = [
   {
-    ignores: ["dist/"]
+    ignores: ["dist/", ".test-dist/"]
   },
   {
     files: ["**/*.ts"],
