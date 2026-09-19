@@ -32,8 +32,9 @@ export interface TelemetryMetricConfig {
  * @property {Record<TelemetryMetric, TelemetryMetricConfig>} metrics - A record mapping telemetry metrics to their configurations.
  */
 export interface TelemetryConfig {
-  metrics?: Partial<Record<TelemetryMetric, TelemetryMetricConfig>>;
+  metrics?: Partial<Record<TelemetryMetric, TelemetryMetricConfig>> | undefined;
 }
+
 
 /**
  * Manages the overall telemetry configuration, including default and valid attributes.
