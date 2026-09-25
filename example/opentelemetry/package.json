@@ -14,7 +14,7 @@
     "@opentelemetry/exporter-prometheus": "^0.222.0",
     "@opentelemetry/sdk-metrics": "^2.7.1",
     "@opentelemetry/sdk-node": "^0.222.0",
-    "dotenv": "^17.4.2"
+    "dotenv": "^18.0.2"
   },
   "engines": {
     "node": ">=20.19.0"
