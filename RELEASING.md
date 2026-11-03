@@ -24,11 +24,15 @@ routine breaking changes.
 
 1. Go to **Actions → release-please** and click **Run workflow**.
 2. Choose a bump type:
+   - `auto` — bump determined from the conventional commits since the last release (default)
    - `patch` — bugfixes, docs, small changes
    - `minor` — breaking changes (see above)
-   - `explicit` — you specify the exact version string (e.g. `0.10.0` or `0.10.0-beta.1`)
+   - `explicit` — uses the exact version entered in `release-version` (e.g. `0.10.0` or
+     `0.10.0-beta.1`); the other bump types ignore that field
 3. The workflow creates a release PR. Review it, then merge.
-4. The GitHub Release and tag are created automatically on merge.
+4. On merge, CI pushes a signed `vX.Y.Z` tag and a draft GitHub release. The tag triggers
+   **Build, Test and Publish**, which publishes to npm and then undrafts the release.
+   A release stuck in draft means that run failed.
 
 > **Note — release-please only understands `auto` or an explicit version string.**
 > The `patch`, `minor`, and `major` options in the workflow dropdown are conveniences
@@ -77,8 +81,32 @@ feat: add support for batch check          → Added
 fix: correct retry logic for transient errors  → Fixed
 docs: update API reference                 → Documentation
 perf: cache DNS lookups                    → Changed
-refactor: extract auth helper              → (hidden)
+refactor: extract auth helper              → Changed
 chore: bump dependencies                   → (hidden)
+```
+
+### Overriding a changelog entry
+
+If a commit message isn't user-facing, add this block to the PR description (before or
+after merging; re-run the release workflow to pick it up). release-please uses it instead
+of the commit message:
+
+```
+BEGIN_COMMIT_OVERRIDE
+feat: user-facing description of the change
+END_COMMIT_OVERRIDE
+```
+
+### Breaking changes
+
+Mark the type with `!` and add a `BREAKING CHANGE:` footer. PRs are squash-merged, and
+GitHub prefills the squash title from the commit subject on single-commit PRs (PR title
+otherwise), so check the merge dialog: the title must keep the `!` and the body the footer:
+
+```
+feat!: remove the Foo option
+
+BREAKING CHANGE: the Foo option has been removed. Use Bar instead.
 ```
 
 ---
