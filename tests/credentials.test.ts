@@ -64,8 +64,8 @@ describe("Credentials", () => {
       expect(params.get("scope")).toBe("read");
     });
 
-    test("should leave out the audience and the scope when neither is set", async () => {
-      const params = await tokenRequestParams({ scopes: "  " });
+    test("should leave out the audience and the scope when they are blank", async () => {
+      const params = await tokenRequestParams({ apiAudience: "  ", scopes: "  " });
 
       expect(params.has("audience")).toBe(false);
       expect(params.has("scope")).toBe(false);
