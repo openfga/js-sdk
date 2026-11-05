@@ -27,7 +27,8 @@ import SdkConstants from "../constants";
 interface ClientSecretRequest {
   client_id: string;
   client_secret: string;
-  audience: string;
+  audience?: string;
+  scope?: string;
   grant_type: "client_credentials";
 }
 
@@ -35,7 +36,8 @@ interface ClientAssertionRequest {
   client_id: string;
   client_assertion: string;
   client_assertion_type: "urn:ietf:params:oauth:client-assertion-type:jwt-bearer";
-  audience: string;
+  audience?: string;
+  scope?: string;
 }
 
 const HTTP_SCHEME = "http://";
@@ -98,7 +100,6 @@ export class Credentials {
     case CredentialsMethod.ClientCredentials: {
       assertParamExists("Credentials", "config.clientId", authConfig.config?.clientId);
       assertParamExists("Credentials", "config.apiTokenIssuer", authConfig.config?.apiTokenIssuer);
-      assertParamExists("Credentials", "config.apiAudience", authConfig.config?.apiAudience);
       assertParamExists("Credentials", "config.clientSecret or config.clientAssertionSigningKey", (authConfig.config as ClientSecretConfig).clientSecret || (authConfig.config as PrivateKeyJWTConfig).clientAssertionSigningKey);
 
       const normalizedApiTokenIssuer = this.normalizeApiTokenIssuer(authConfig.config?.apiTokenIssuer);
@@ -274,6 +275,22 @@ export class Credentials {
     }
   }
 
+  /**
+   * The optional audience and scope parameters of the token request. Unset values are left out,
+   * so providers that reject an unknown or empty audience still accept the request.
+   */
+  private audienceAndScope(config: ClientCredentialsConfig): { audience?: string; scope?: string } {
+    const params: { audience?: string; scope?: string } = {};
+    if (config.apiAudience) {
+      params.audience = config.apiAudience;
+    }
+    const scope = config.scopes?.trim();
+    if (scope) {
+      params.scope = scope;
+    }
+    return params;
+  }
+
   private async buildClientAuthenticationPayload(): Promise<ClientSecretRequest|ClientAssertionRequest> {
     if (this.authConfig?.method !== CredentialsMethod.ClientCredentials) {
       throw new FgaValidationError("Credentials method is not set to ClientCredentials");
@@ -297,7 +314,7 @@ export class Credentials {
         ...config.customClaims,
         client_id: (config as PrivateKeyJWTConfig).clientId,
         client_assertion: assertion,
-        audience: config.apiAudience,
+        ...this.audienceAndScope(config),
         client_assertion_type: "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
         grant_type: "client_credentials",
       } as ClientAssertionRequest;
@@ -306,7 +323,7 @@ export class Credentials {
         ...config.customClaims,
         client_id: (config as ClientSecretConfig).clientId,
         client_secret: (config as ClientSecretConfig).clientSecret,
-        audience: (config as ClientSecretConfig).apiAudience,
+        ...this.audienceAndScope(config),
         grant_type: "client_credentials",
       };
     }
