@@ -281,7 +281,7 @@ export class Credentials {
    */
   private audienceAndScope(config: ClientCredentialsConfig): { audience?: string; scope?: string } {
     const params: { audience?: string; scope?: string } = {};
-    if (config.apiAudience) {
+    if (config.apiAudience?.trim()) {
       params.audience = config.apiAudience;
     }
     const scope = config.scopes?.trim();
