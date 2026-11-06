@@ -149,6 +149,28 @@ const fgaClient = new OpenFgaClient({
 });
 ```
 
+#### OAuth2 Client Credentials
+
+The client credentials flow also works with OAuth2 providers other than Auth0 (e.g. Keycloak, Okta). `apiAudience` is optional, and `scopes` can be set to a space-separated list of scopes. The `apiTokenIssuer` can be a hostname (e.g. `issuer.example.com`, which defaults to `https` and the `/oauth/token` path) or a full token endpoint URL.
+
+```javascript
+const { OpenFgaClient, CredentialsMethod } = require('@openfga/sdk'); // OR import { OpenFgaClient, CredentialsMethod } from '@openfga/sdk';
+
+const fgaClient = new OpenFgaClient({
+  apiUrl: process.env.FGA_API_URL, // required
+  storeId: process.env.FGA_STORE_ID, // not needed when calling `CreateStore` or `ListStores`
+  credentials: {
+    method: CredentialsMethod.ClientCredentials,
+    config: {
+      apiTokenIssuer: process.env.FGA_API_TOKEN_ISSUER, // e.g. https://mykeycloak.fga.example/realms/myrealm/protocol/openid-connect/token
+      clientId: process.env.FGA_CLIENT_ID,
+      clientSecret: process.env.FGA_CLIENT_SECRET,
+      scopes: process.env.FGA_API_SCOPES, // optional, space-separated, e.g. "read write"
+    }
+  }
+});
+```
+
 ### Custom Headers
 
 #### Default Headers
