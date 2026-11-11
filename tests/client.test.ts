@@ -1645,10 +1645,10 @@ describe("OpenFGA Client", () => {
 
         nock(defaultConfiguration.getBasePath())
           .post(`/stores/${baseConfig.storeId}/streamed-list-objects`)
-          .reply(function () {
+          .reply((request: Request) => {
             // Verify custom headers were sent
-            expect(this.req.headers["x-custom-header"]).toBe("custom-value");
-            expect(this.req.headers["x-request-id"]).toBe("test-123");
+            expect(request.headers.get("x-custom-header")).toBe("custom-value");
+            expect(request.headers.get("x-request-id")).toBe("test-123");
 
             // Return NDJSON stream
             const ndjsonResponse = objects

@@ -24,20 +24,20 @@
   },
   "dependencies": {
     "@opentelemetry/api": "^1.9.1",
-    "axios": "1.20.0",
+    "axios": "1.21.1",
     "jose": "5.10.0",
     "tiny-async-pool": "^2.1.0"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "@types/node": "^26.1.0",
+    "@types/node": "^26.6.6",
     "@types/tiny-async-pool": "^2.0.3",
     "@typescript/native": "npm:typescript@^7.0.2",
-    "eslint": "^10.3.0",
-    "globals": "^17.6.0",
-    "nock": "^14.0.14",
+    "eslint": "^10.14.0",
+    "globals": "^17.14.0",
+    "nock": "^15.0.6",
     "typescript": "npm:@typescript/typescript6@^6.0.3",
-    "typescript-eslint": "^8.72.1"
+    "typescript-eslint": "^8.72.2"
   },
   "overrides": {
     "brace-expansion": "^5.0.9",
