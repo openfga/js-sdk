@@ -23,19 +23,19 @@
     "lint:fix": "eslint . --fix"
   },
   "dependencies": {
-    "@opentelemetry/api": "^1.9.1",
-    "axios": "1.20.0",
+    "@opentelemetry/api": "^1.10.0",
+    "axios": "1.21.1",
     "jose": "5.10.0",
     "tiny-async-pool": "^2.1.0"
   },
   "devDependencies": {
-    "@types/node": "^26.1.0",
+    "@types/node": "^26.6.6",
     "@types/tiny-async-pool": "^2.0.3",
-    "@typescript-eslint/eslint-plugin": "^8.59.2",
-    "@typescript-eslint/parser": "^8.59.2",
+    "@typescript-eslint/eslint-plugin": "^8.72.2",
+    "@typescript-eslint/parser": "^8.72.2",
     "@typescript/native": "npm:typescript@^7.0.2",
-    "eslint": "^10.3.0",
-    "globals": "^17.6.0",
+    "eslint": "^10.14.0",
+    "globals": "^17.14.0",
     "nock": "^14.0.14",
     "typescript": "npm:@typescript/typescript6@^6.0.3"
   },
