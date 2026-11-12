@@ -13,6 +13,11 @@
 
 * release 0.9.8 ([3701afd](https://github.com/openfga/js-sdk/commit/3701afd2ad4d6e3475ae67a09bdb528e2bd8105a))
 
+
+### Security
+
+* Fixed [GHSA-7833-hg9v-mvxg](https://github.com/openfga/js-sdk/security/advisories/GHSA-7833-hg9v-mvxg), where the client secret could be exposed through the `requestData` property of errors raised for failed API and token requests. ([cbfce2e](https://github.com/openfga/js-sdk/commit/cbfce2ea5878979e1bca8164517c7e55fa5d4067))
+
 ## [0.9.7](https://github.com/openfga/js-sdk/compare/v0.9.6...v0.9.7) (2026-08-18)
 
 ### Changed
