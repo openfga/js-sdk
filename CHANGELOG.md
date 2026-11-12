@@ -1,6 +1,18 @@
 # Changelog
 
 
+## [0.9.8](https://github.com/openfga/js-sdk/compare/v0.9.7...v0.9.8) (2026-11-12)
+
+
+### Fixed
+
+* **deps:** update brace-expansion to patched version ([#488](https://github.com/openfga/js-sdk/issues/488)) ([d6d4035](https://github.com/openfga/js-sdk/commit/d6d4035903aa168e14fea14afdca801ce435090a))
+
+
+### Miscellaneous
+
+* release 0.9.8 ([3701afd](https://github.com/openfga/js-sdk/commit/3701afd2ad4d6e3475ae67a09bdb528e2bd8105a))
+
 ## [0.9.7](https://github.com/openfga/js-sdk/compare/v0.9.6...v0.9.7) (2026-08-18)
 
 ### Changed
