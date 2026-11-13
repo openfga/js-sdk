@@ -79,7 +79,7 @@ export const setSearchParams = function (url: URL, ...objects: any[]) {
  */
 const isJsonMime = (mime: string): boolean => {
    
-  const jsonMime = new RegExp("^(application/json|[^;/ \t]+/[^;/ \t]+[+]json)[ \t]*(;.*)?$", "i");
+  const jsonMime = new RegExp("^(application/json|[^;/ \\t]+/[^;/ \\t]+[+]json)[ \\t]*(;.*)?$", "i");
   return mime !== null && (jsonMime.test(mime) || mime.toLowerCase() === "application/json-patch+json");
 };
 
@@ -367,7 +367,7 @@ export const createRequestFunction = function (axiosArgs: RequestArgs, axiosInst
     const result: CallResult<any> = { ...data };
     setNotEnumerableProperty(result, "$response", response);
 
-    let attributes: StringIndexable = {};
+    let attributes: StringIndexable;
 
     attributes = TelemetryAttributes.fromRequest({
       userAgent: configuration.baseOptions?.headers["User-Agent"],
@@ -554,7 +554,7 @@ export const createStreamingRequestFunction = function (axiosArgs: RequestArgs, 
 
     const result: any = response?.data; // raw stream
 
-    let attributes: StringIndexable = {};
+    let attributes: StringIndexable;
 
     attributes = TelemetryAttributes.fromRequest({
       userAgent: configuration.baseOptions?.headers["User-Agent"],

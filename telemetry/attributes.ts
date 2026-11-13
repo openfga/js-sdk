@@ -38,7 +38,7 @@ export class TelemetryAttributes {
   ): Record<string, string | number> {
     attributes = attributes || {};
     // ensure we are always using a set
-    filter = new Set(filter) || new Set();
+    filter = new Set(filter);
     const result: Record<string, string | number> = {};
   
     for (const key in attributes) {

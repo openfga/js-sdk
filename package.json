@@ -29,15 +29,15 @@
     "tiny-async-pool": "^2.1.0"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@types/node": "^26.6.6",
     "@types/tiny-async-pool": "^2.0.3",
-    "@typescript-eslint/eslint-plugin": "^8.72.2",
-    "@typescript-eslint/parser": "^8.72.2",
     "@typescript/native": "npm:typescript@^7.0.2",
     "eslint": "^10.14.0",
     "globals": "^17.14.0",
     "nock": "^15.0.6",
-    "typescript": "npm:@typescript/typescript6@^6.0.3"
+    "typescript": "npm:@typescript/typescript6@^6.0.3",
+    "typescript-eslint": "^8.72.2"
   },
   "overrides": {
     "brace-expansion": "^5.0.9",
