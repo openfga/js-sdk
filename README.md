@@ -220,6 +220,8 @@ The `HttpClient` interface accepts:
 | `defaultHeaders` | `Record<string, string>` | *(Optional)* Headers to include with every request |
 | `defaultTimeout` | `number` | *(Optional)* Default request timeout in milliseconds |
 
+To use an HTTP proxy or a private CA certificate, see [Using an HTTP Proxy and Custom CA Certificates](https://github.com/openfga/js-sdk/blob/main/docs/proxy-and-custom-ca.md).
+
 #### Response Type
 
 Most SDK methods that are a direct call to the API return an `FgaResponse<T>` on the `$response` property:
