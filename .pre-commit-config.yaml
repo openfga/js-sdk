@@ -9,7 +9,7 @@ repos:
     name: eslint
     entry: npx eslint
     language: system
-    types_or: [javascript, ts, tsx]
+    types: [ts]
     pass_filenames: true
 - repo: https://github.com/pre-commit/pre-commit-hooks
   rev: v6.0.0

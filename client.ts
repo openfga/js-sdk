@@ -894,7 +894,7 @@ export class OpenFgaClient extends BaseAPI {
     } finally {
       // Ensure underlying HTTP connection closes if consumer stops early
       if (source && typeof source.destroy === "function") {
-        try { source.destroy(); } catch { }
+        try { source.destroy(); } catch { /* best-effort cleanup, the stream may already be destroyed */ }
       }
     }
   }
