@@ -10,10 +10,10 @@
   },
   "dependencies": {
     "@openfga/sdk": "file:../../",
-    "@opentelemetry/exporter-metrics-otlp-proto": "^0.300.0",
-    "@opentelemetry/exporter-prometheus": "^0.300.0",
+    "@opentelemetry/exporter-metrics-otlp-proto": "^0.301.1",
+    "@opentelemetry/exporter-prometheus": "^0.301.1",
     "@opentelemetry/sdk-metrics": "^3.0.0",
-    "@opentelemetry/sdk-node": "^0.300.0",
+    "@opentelemetry/sdk-node": "^0.301.1",
     "dotenv": "^18.0.2"
   },
   "engines": {
