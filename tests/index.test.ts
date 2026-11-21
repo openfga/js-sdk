@@ -117,7 +117,7 @@ describe("OpenFGA SDK", function () {
       ).toThrow();
     });
 
-    it("should require clientId, clientSecret, apiTokenIssuer and apiAudience credentials in configuration in client_credentials flow", () => {
+    it("should require clientId, clientSecret and apiTokenIssuer credentials in configuration in client_credentials flow", () => {
       expect(
         () =>
           new OpenFgaApi({
@@ -184,7 +184,7 @@ describe("OpenFGA SDK", function () {
               }
             } as Configuration["credentials"]
           })
-      ).toThrow("config.apiAudience");
+      ).not.toThrow();
 
       expect(
         () =>

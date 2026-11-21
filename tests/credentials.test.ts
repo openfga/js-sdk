@@ -18,6 +18,92 @@ describe("Credentials", () => {
   const mockTelemetryConfig: TelemetryConfiguration = new TelemetryConfiguration({});
 
   describe("Refreshing access token", () => {
+    const tokenRequestParams = async (config: Record<string, string | undefined>): Promise<URLSearchParams> => {
+      let params: URLSearchParams | undefined;
+      const scope = nock("https://issuer.fga.example")
+        .post("/oauth/token", (body: string) => {
+          params = new URLSearchParams(body);
+          return true;
+        })
+        .reply(200, {
+          access_token: "test-token",
+          expires_in: 300,
+        });
+
+      const credentials = new Credentials(
+        {
+          method: CredentialsMethod.ClientCredentials,
+          config: {
+            apiTokenIssuer: "https://issuer.fga.example/oauth/token",
+            clientId: OPENFGA_CLIENT_ID,
+            clientSecret: OPENFGA_CLIENT_SECRET,
+            ...config,
+          },
+        } as AuthCredentialsConfig,
+        undefined,
+        mockTelemetryConfig,
+      );
+
+      await credentials.getAccessTokenHeader();
+      expect(scope.isDone()).toBe(true);
+      return params!;
+    };
+
+    test("should send scopes without an audience when only scopes are set", async () => {
+      const params = await tokenRequestParams({ scopes: "read write" });
+
+      expect(params.get("scope")).toBe("read write");
+      expect(params.has("audience")).toBe(false);
+      expect(params.get("grant_type")).toBe("client_credentials");
+    });
+
+    test("should send both the audience and the scopes when both are set", async () => {
+      const params = await tokenRequestParams({ apiAudience: OPENFGA_API_AUDIENCE, scopes: "read" });
+
+      expect(params.get("audience")).toBe(OPENFGA_API_AUDIENCE);
+      expect(params.get("scope")).toBe("read");
+    });
+
+    test("should leave out the audience and the scope when they are blank", async () => {
+      const params = await tokenRequestParams({ apiAudience: "  ", scopes: "  " });
+
+      expect(params.has("audience")).toBe(false);
+      expect(params.has("scope")).toBe(false);
+    });
+
+    test("should send the scopes with a private key JWT client assertion", async () => {
+      let params: URLSearchParams | undefined;
+      nock("https://issuer.fga.example")
+        .post("/oauth/token", (body: string) => {
+          params = new URLSearchParams(body);
+          return true;
+        })
+        .reply(200, {
+          access_token: "test-token",
+          expires_in: 300,
+        });
+
+      const credentials = new Credentials(
+        {
+          method: CredentialsMethod.ClientCredentials,
+          config: {
+            apiTokenIssuer: "https://issuer.fga.example/oauth/token",
+            clientId: OPENFGA_CLIENT_ID,
+            clientAssertionSigningKey: OPENFGA_CLIENT_ASSERTION_SIGNING_KEY,
+            scopes: "read",
+          },
+        } as AuthCredentialsConfig,
+        undefined,
+        mockTelemetryConfig,
+      );
+
+      await credentials.getAccessTokenHeader();
+
+      expect(params!.get("scope")).toBe("read");
+      expect(params!.has("audience")).toBe(false);
+      expect(params!.has("client_assertion")).toBe(true);
+    });
+
     test("should use default scheme and token endpoint path when apiTokenIssuer has no scheme and no path", async () => {
       const apiTokenIssuer = "issuer.fga.example";
       const expectedBaseUrl = "https://issuer.fga.example";

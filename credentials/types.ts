@@ -32,11 +32,17 @@ type BaseClientCredentialsConfig = {
    */
    apiTokenIssuer: string;
    /**
-    * API Audience
+    * API Audience. Optional: Auth0 requires it, other OAuth2 providers usually don't.
     *
     * @type {string}
     */
-   apiAudience: string;
+   apiAudience?: string;
+   /**
+    * Scopes to request, as a space-separated string (e.g. "read write"). Optional.
+    *
+    * @type {string}
+    */
+   scopes?: string;
    /**
     * Claims to be included in the token exchange request.
     * 
